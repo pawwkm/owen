@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Owen Programming Language</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="icon" type="image/x-icon" href="images/logo.ico" />
+        <link rel="stylesheet" type="text/css" href="css/global.css">
+    </head>
+    <body>
+        <nav>
+            <div id="hamburger" onclick="this.parentNode.classList.toggle('open')">
+                <div></div>
+                <div></div>
+                <div></div>
+            </div>
+            <img src="images/logo.svg" alt="Owen Logo"/>
+            <a href="index.html" class="active">Home</a>
+            <a href="blog.html">Blog</a>
+            <a href="specification.html">Specification</a>
+        </nav>
+        <main>
+            <h1>Owen Programming Language</h1>
+            <pre><code><span class="keyword">function</span> main
+    <span class="keyword">output</span> <span class="type">i32</span>
+
+    print(<span class="string">"Hello World\n"</span>)
+
+    <span class="keyword">return</span> 0
+<span class="keyword">end</span></code></pre>
+
+            <p>
+                Owen is a statically typed imperative systems programming
+                language in early development.
+            </p>
+        </main>
+    </body>
+</html>

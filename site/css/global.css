@@ -1,0 +1,217 @@
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header, hgroup,
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video, svg {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    font: inherit;
+}
+
+::selection {
+  background: #1683b9; /* WebKit/Blink Browsers */
+}
+::-moz-selection {
+  background: #1683b9; /* Gecko Browsers */
+}
+
+body {
+    background-color: #212b30;
+    font-family: sans-serif;
+    color: #ffffff;
+}
+
+body:last-child {
+    margin-bottom: 15px;
+}
+
+main {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+div.split pre, div.split p {
+    display: inline-block;
+    vertical-align: top;
+    width: 45%;
+}
+
+div.split p {
+    margin-left: 15px;
+}
+
+a {
+    color: #4785ee;
+    text-decoration: none;
+}
+
+a.active {
+    background-color: #212b30;
+}
+
+nav {
+    background-color: #263238;
+    font-family: monospace;
+    font-size: 25px;
+}
+
+nav img {
+    margin: 15px auto 15px auto;
+    display: block;
+}
+
+nav a, nav a:active, nav a:visited {
+    color: #ffffff;
+    text-decoration: none;
+    display: block;
+}
+
+nav a {
+    padding: 15px;
+}
+
+h1, h2, h3, h4, h5, h6, p, time, pre {
+    margin-top: 15px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-size: 25px;
+}
+
+i {
+    font-style: italic;
+}
+
+b {
+    font-weight: bold;
+}
+
+span.keyword {
+    color: #1683b9;
+}
+
+span.string {
+    color: #a9b7c4;
+}
+
+span.comment {
+    color: #0bb123;
+}
+
+span.type {
+    color: #0bb1b0;
+}
+
+span.rule {
+    font-family: monospace;
+}
+
+pre {
+    font-family: monospace;
+    overflow-x: auto;
+    background-color: #263238;
+    page-break-inside: avoid;
+    max-width: 100%;
+    overflow: auto;
+    padding: 15px;
+    display: block;
+    word-wrap: break-word;
+}
+
+code {
+    font-family: monospace;
+}
+
+pre code {
+    width: 100%;
+}
+
+table {
+    margin-top: 15px;
+    margin-left:auto;
+    margin-right:auto;
+}
+
+th, td {
+  padding: 5px 15px;
+}
+
+div.hamburger {
+    display: none;
+}
+
+@media screen and (min-width: 1250px) {
+
+    
+    nav {
+        height: 100%;
+        position: fixed;
+        margin-top: -15px;
+    }
+
+    main {
+        width: 750px;
+    }
+}
+
+@media screen and (max-width: 1249px) {
+    nav {
+        margin-top: 0;
+        padding-top: 15px;
+
+    }
+
+    nav a {
+        display: none;
+    }
+
+    nav.open a {
+        display: block;
+        padding-left: 15px;
+    }
+
+    nav.open a:last-child {
+        border-bottom: 2px solid #263238;
+    }
+
+    #hamburger {
+        margin-left: 15px;
+        padding-bottom: 15px;
+        cursor: pointer;
+    }
+
+    #hamburger div {
+        width: 35px;
+        height: 5px;
+        background-color: #ffffff;
+        margin: 6px 0;
+        transition: 0.4s;
+    }
+
+    #hamburger div:first-child {
+        margin: 0;
+    }
+
+    #hamburger div:last-child {
+        margin-bottom: 0;
+    }
+
+    nav img {
+        display: none;
+    }
+
+    main {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+}
