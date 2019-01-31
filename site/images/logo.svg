@@ -1,0 +1,25 @@
+<svg width="60" height="60" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <linearGradient id="fromKeywordToComment" x1="0%" y1="0%" x2="100%" y2="0%" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" style="stop-color:rgb(22,131,185);stop-opacity:1" />
+            <stop offset="100%" style="stop-color:rgb(11,177,35);stop-opacity:1" />
+        </linearGradient>
+    </defs>
+    <g transform="translate(30,0) rotate(45)">
+        <rect width="42.4528302888" height="42.4528302888" fill="#212b30" />
+
+        <g fill="url(#fromKeywordToComment)">
+            <rect width="12.7358490866" height="12.7358490866" x="1.06132075722" y="1.06132075722" />
+            <rect width="12.7358490866" height="12.7358490866" x="14.8584906011" y="1.06132075722" />
+            <rect width="12.7358490866" height="12.7358490866" x="28.6556604449" y="1.06132075722" />
+
+            <rect width="12.7358490866" height="12.7358490866" x="1.06132075722" y="14.8584906011" />
+            <rect width="12.7358490866" height="12.7358490866" x="14.8584906011" y="14.8584906011" />
+            <rect width="12.7358490866" height="12.7358490866" x="28.6556604449" y="14.8584906011" />
+
+            <rect width="12.7358490866" height="12.7358490866" x="1.06132075722" y="28.6556604449" />
+            <rect width="12.7358490866" height="12.7358490866" x="14.8584906011" y="28.6556604449" />
+            <rect width="12.7358490866" height="12.7358490866" x="28.6556604449" y="28.6556604449" />
+        </g>
+    </g>
+</svg>
