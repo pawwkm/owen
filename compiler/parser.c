@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <ctype.h>
+#include <string.h>
 #include <assert.h>
 
 #include "parser.h"
@@ -26,12 +27,19 @@ bool whitespace(Source* source)
     return skipped;
 }
 
+bool test(char a, char b)
+{
+    return a != '\0' &&
+           b != '\0' &&
+           a == b;
+}
+
 bool literal(Source* source, char* literal)
 {
     char* start = source->current;
-    if (*literal == *source->current)
+    if (test(*literal, *source->current))
     {
-        while (*literal == *source->current)
+        while (test(*literal, *source->current))
         {
             if (*literal != *source->current)
             {
@@ -75,7 +83,7 @@ Slice identifier(Source* source)
     };
 }
 
-QualifiedIdentifier* qualifiedIdentifier(Source* source)
+QualifiedIdentifier* qualifiedIdentifier(Source* source, DiagnosticList* diagnostics)
 {
     Slice first = identifier(source);
     if (first.length != 0)
@@ -84,7 +92,22 @@ QualifiedIdentifier* qualifiedIdentifier(Source* source)
         appendIdentifier(list, first);
 
         while (literal(source, "."))
-            appendIdentifier(list, identifier(source));
+        {
+            Slice next = identifier(source);
+            if (next.length == 0)
+            {
+                appendDiagnostic(diagnostics, (Diagnostic)
+                {
+                    .description = "Identifier expected.",
+                    .code = source->code,
+                    .index = source->current
+                });
+
+                break;
+            }
+            else
+                appendIdentifier(list, next);
+        }
 
         return list;
     }
@@ -92,10 +115,23 @@ QualifiedIdentifier* qualifiedIdentifier(Source* source)
     return NULL;
 }
 
-QualifiedIdentifier* namespaceDirective(Source* source)
+QualifiedIdentifier* namespaceDirective(Source* source, DiagnosticList* diagnostics)
 {
-    return literal(source, "namespace") ? qualifiedIdentifier(source) :
-                                          NULL;
+    if (!literal(source, "namespace"))
+        return NULL;
+
+    QualifiedIdentifier* list =  qualifiedIdentifier(source, diagnostics);
+    if (!list)
+    {
+        appendDiagnostic(diagnostics, (Diagnostic)
+        {
+            .description = "Qualified identifier expected.",
+            .code = source->code,
+            .index = source->current
+        });
+    }
+
+    return list;
 }
 
 CompilationUnit compilationUnit(Source* source, DiagnosticList* diagnostics)
@@ -105,7 +141,7 @@ CompilationUnit compilationUnit(Source* source, DiagnosticList* diagnostics)
     return (CompilationUnit)
     {
         .source = source,
-        .namespace = namespaceDirective(source)
+        .namespace = namespaceDirective(source, diagnostics)
     };
 }
 
@@ -119,12 +155,7 @@ Program parse(Source* sources, int length)
             .count = 0,
             .capacity = 0
         },
-        .diagnostics =
-        {
-            .elements = NULL,
-            .count = 0,
-            .capacity = 0
-        }
+        .diagnostics = initDiagnosticList()
     };
 
     for (int32_t i = 0; i < length; i++)
@@ -138,6 +169,8 @@ Program parse(Source* sources, int length)
 
 void canParseAQualifiedIdentifierWithOneIdentifier()
 {
+    DiagnosticList diagnostics = initDiagnosticList();
+
     char* code = "abc";
     Source source =
     {
@@ -146,7 +179,7 @@ void canParseAQualifiedIdentifierWithOneIdentifier()
        .current = code
     };
 
-    QualifiedIdentifier* list = qualifiedIdentifier(&source);
+    QualifiedIdentifier* list = qualifiedIdentifier(&source, &diagnostics);
     Slice expected =
     {
         .start = code,
@@ -160,6 +193,8 @@ void canParseAQualifiedIdentifierWithOneIdentifier()
 
 void canParseAQualifiedIdentifierWithMultipleIdentifiers()
 {
+    DiagnosticList diagnostics = initDiagnosticList();
+
     char* code = "abc.def";
     Source source =
     {
@@ -168,7 +203,7 @@ void canParseAQualifiedIdentifierWithMultipleIdentifiers()
        .current = code
     };
 
-    QualifiedIdentifier* list = qualifiedIdentifier(&source);
+    QualifiedIdentifier* list = qualifiedIdentifier(&source, &diagnostics);
     Slice first =
     {
         .start = code,
@@ -185,6 +220,52 @@ void canParseAQualifiedIdentifierWithMultipleIdentifiers()
     assert(list->count == 2);
     assert(compareSlices(&list->elements[0], &first));
     assert(compareSlices(&list->elements[1], &second));
+}
+
+void missingIdentifierAfterDotInQualifiedIdentifierIssuesDiagnostic()
+{
+    DiagnosticList diagnostics = initDiagnosticList();
+
+    char* code = "abc.";
+    Source source =
+    {
+       .path = "main.owen",
+       .code = code,
+       .current = code
+    };
+
+    QualifiedIdentifier* list = qualifiedIdentifier(&source, &diagnostics);
+    Slice expected =
+    {
+        .start = code,
+        .length = 3
+    };
+
+    assert(list != NULL);
+    assert(list->count == 1);
+    assert(compareSlices(&list->elements[0], &expected));
+
+    assert(diagnostics.count == 1);
+    assert(!strcmp(diagnostics.elements[0].description, "Identifier expected."));
+}
+
+void missingQualifiedIdentifierAfterNamespaceKeyword()
+{
+    DiagnosticList diagnostics = initDiagnosticList();
+
+    char* code = "namespace";
+    Source source =
+    {
+       .path = "main.owen",
+       .code = code,
+       .current = code
+    };
+
+    QualifiedIdentifier* list = namespaceDirective(&source, &diagnostics);
+
+    assert(list == NULL);
+    assert(diagnostics.count == 1);
+    assert(!strcmp(diagnostics.elements[0].description, "Qualified identifier expected."));
 }
 
 void canParseANamespace()
@@ -213,5 +294,8 @@ void parserTestSuite()
 {
     canParseAQualifiedIdentifierWithOneIdentifier();
     canParseAQualifiedIdentifierWithMultipleIdentifiers();
+    missingIdentifierAfterDotInQualifiedIdentifierIssuesDiagnostic();
+
     canParseANamespace();
+    missingQualifiedIdentifierAfterNamespaceKeyword();
 }

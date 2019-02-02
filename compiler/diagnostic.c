@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "diagnostics.h"
@@ -14,4 +15,14 @@ void appendDiagnostic(DiagnosticList* diagnostics, Diagnostic diagnostic)
 
     diagnostics->elements[diagnostics->count] = diagnostic;
     diagnostics->count++;
+}
+
+DiagnosticList initDiagnosticList()
+{
+    return (DiagnosticList)
+    {
+        .elements = NULL,
+        .count = 0,
+        .capacity = 0
+    };
 }
