@@ -27,8 +27,16 @@ typedef struct
 
 typedef struct
 {
+    QualifiedIdentifier* elements;
+    int32_t count;
+    int32_t capacity;
+} QualifiedIdentifierList;
+
+typedef struct
+{
     const Source* source;
     const QualifiedIdentifier* namespace;
+    const QualifiedIdentifierList* uses;
 } CompilationUnit;
 
 typedef struct
@@ -47,6 +55,8 @@ typedef struct
 bool compareSlices(Slice* a, Slice* b);
 
 void appendIdentifier(QualifiedIdentifier* qualifiedIdentifier, Slice identifier);
+
+void appendQualifiedIdentifier(QualifiedIdentifierList* list, QualifiedIdentifier qualifiedIdentifier);
 
 void appendCompilationUnit(CompilationUnitList* compilationUnits, CompilationUnit compilationUnit);
 

@@ -16,6 +16,8 @@ bool whitespace(Source* source)
         switch (*source->current)
         {
             case ' ':
+            case '\n':
+            case '\t':
                 skipped = true;
                 source->current++;
             break;
@@ -134,6 +136,42 @@ QualifiedIdentifier* namespaceDirective(Source* source, DiagnosticList* diagnost
     return list;
 }
 
+QualifiedIdentifier* useDirective(Source* source, DiagnosticList* diagnostics)
+{
+    if (!literal(source, "use"))
+        return NULL;
+
+    QualifiedIdentifier* list =  qualifiedIdentifier(source, diagnostics);
+    if (!list)
+    {
+        appendDiagnostic(diagnostics, (Diagnostic)
+        {
+            .description = "Qualified identifier expected.",
+            .code = source->code,
+            .index = source->current
+        });
+    }
+
+    return list;
+}
+
+QualifiedIdentifierList* useDirectives(Source* source, DiagnosticList* diagnostics)
+{
+    QualifiedIdentifier* next = useDirective(source, diagnostics);
+    if (next)
+    {
+        QualifiedIdentifierList* list = calloc(1, sizeof(QualifiedIdentifierList));
+        appendQualifiedIdentifier(list, *next);
+
+        while (next = useDirective(source, diagnostics))
+            appendQualifiedIdentifier(list, *next);
+
+        return list;
+    }
+    else
+        return NULL;
+}
+
 CompilationUnit compilationUnit(Source* source, DiagnosticList* diagnostics)
 {
     whitespace(source);
@@ -141,7 +179,8 @@ CompilationUnit compilationUnit(Source* source, DiagnosticList* diagnostics)
     return (CompilationUnit)
     {
         .source = source,
-        .namespace = namespaceDirective(source, diagnostics)
+        .namespace = namespaceDirective(source, diagnostics),
+        .uses = useDirectives(source, diagnostics)
     };
 }
 
@@ -268,7 +307,7 @@ void missingQualifiedIdentifierAfterNamespaceKeyword()
     assert(!strcmp(diagnostics.elements[0].description, "Qualified identifier expected."));
 }
 
-void canParseANamespace()
+void canParseANamespaceDirective()
 {
     char* code = "namespace abc";
     Source source =
@@ -290,12 +329,81 @@ void canParseANamespace()
     assert(unit->namespace != NULL);
 }
 
+void canParseAUseDirective()
+{
+    char* code = "use abc";
+    Source source =
+    {
+       .path = "main.owen",
+       .code = code,
+       .current = code
+    };
+
+    Program program = parse(&source, 1);
+
+    assert(program.compilationUnits.elements != NULL);
+    assert(program.compilationUnits.count == 1);
+    assert(program.diagnostics.count == 0);
+
+    CompilationUnit* unit = &program.compilationUnits.elements[0];
+
+    assert(unit->uses != NULL);
+    assert(unit->uses->count == 1);
+}
+
+void canParseUseDirectives()
+{
+    char* code = "use abc\n"
+                 "use def";
+
+    Source source =
+    {
+       .path = "main.owen",
+       .code = code,
+       .current = code
+    };
+
+    Program program = parse(&source, 1);
+
+    assert(program.compilationUnits.elements != NULL);
+    assert(program.compilationUnits.count == 1);
+    assert(program.diagnostics.count == 0);
+
+    CompilationUnit* unit = &program.compilationUnits.elements[0];
+
+    assert(unit->uses != NULL);
+    assert(unit->uses->count == 2);
+}
+
+void missingQualifiedIdentifierAfterUseKeywordIssuesDiagnostic()
+{
+    DiagnosticList diagnostics = initDiagnosticList();
+
+    char* code = "use";
+    Source source =
+    {
+       .path = "main.owen",
+       .code = code,
+       .current = code
+    };
+
+    QualifiedIdentifier* list = useDirective(&source, &diagnostics);
+
+    assert(list == NULL);
+    assert(diagnostics.count == 1);
+    assert(!strcmp(diagnostics.elements[0].description, "Qualified identifier expected."));
+}
+
 void parserTestSuite()
 {
     canParseAQualifiedIdentifierWithOneIdentifier();
     canParseAQualifiedIdentifierWithMultipleIdentifiers();
     missingIdentifierAfterDotInQualifiedIdentifierIssuesDiagnostic();
 
-    canParseANamespace();
+    canParseANamespaceDirective();
     missingQualifiedIdentifierAfterNamespaceKeyword();
+
+    canParseAUseDirective();
+    canParseUseDirectives();
+    missingQualifiedIdentifierAfterUseKeywordIssuesDiagnostic();
 }

@@ -29,6 +29,19 @@ void appendIdentifier(QualifiedIdentifier* qualifiedIdentifier, Slice identifier
     qualifiedIdentifier->count++;
 }
 
+void appendQualifiedIdentifier(QualifiedIdentifierList* list, QualifiedIdentifier qualifiedIdentifier)
+{
+    if (list->capacity < list->count + 1)
+    {
+        int32_t oldCapacity = list->capacity;
+        list->capacity = list->capacity < 4 ? 4 : list->capacity * 2;
+        list->elements = (QualifiedIdentifier*)realloc(list->elements, list->capacity);
+    }
+
+    list->elements[list->count] = qualifiedIdentifier;
+    list->count++;
+}
+
 bool compareSlices(Slice* a, Slice* b)
 {
     if (a->length != b->length)
