@@ -29,7 +29,7 @@ bool whitespace(Source* source)
     return skipped;
 }
 
-bool test(char a, char b)
+bool compareCharactersUnlessNull(char a, char b)
 {
     return a != '\0' &&
            b != '\0' &&
@@ -39,21 +39,12 @@ bool test(char a, char b)
 bool literal(Source* source, char* literal)
 {
     char* start = source->current;
-    if (test(*literal, *source->current))
+    if (compareCharactersUnlessNull(*literal, *source->current))
     {
-        while (test(*literal, *source->current))
+        while (compareCharactersUnlessNull(*literal, *source->current))
         {
-            if (*literal != *source->current)
-            {
-                source->current = start;
-
-                return false;
-            }
-            else
-            {
-                literal++;
-                source->current++;
-            }
+            literal++;
+            source->current++;
         }
 
         whitespace(source);
