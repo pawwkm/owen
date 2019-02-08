@@ -195,7 +195,6 @@ div.hamburger {
         height: 5px;
         background-color: #ffffff;
         margin: 6px 0;
-        transition: 0.4s;
     }
 
     #hamburger div:first-child {
