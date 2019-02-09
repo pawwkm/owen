@@ -8,6 +8,32 @@
 
 #include "parser.h"
 
+char* keywords[] =
+{
+    "namespace",
+    "use",
+    "public",
+    "function",
+    "input",
+    "output",
+    "end",
+    "if",
+    "else",
+    "for",
+    "each",
+    "in",
+    "while",
+    "break",
+    "continue",
+    "structure",
+    "proposition",
+    "enumeration",
+    "of",
+    "size",
+    "union",
+    0
+};
+
 bool whitespace(Source* source)
 {
     bool skipped = false;
@@ -29,24 +55,12 @@ bool whitespace(Source* source)
     return skipped;
 }
 
-bool compareCharactersUnlessNull(char a, char b)
-{
-    return a != '\0' &&
-           b != '\0' &&
-           a == b;
-}
-
 bool literal(Source* source, char* literal)
 {
-    char* start = source->current;
-    if (compareCharactersUnlessNull(*literal, *source->current))
+    size_t length = strlen(literal);
+    if (!strncmp(source->current, literal, length))
     {
-        while (compareCharactersUnlessNull(*literal, *source->current))
-        {
-            literal++;
-            source->current++;
-        }
-
+        source->current += length;
         whitespace(source);
 
         return true;
@@ -57,6 +71,24 @@ bool literal(Source* source, char* literal)
 
 Slice identifier(Source* source)
 {
+    bool isKeyword(char* start, size_t length)
+    {
+        int32_t i = 0;
+        while (true)
+        {
+            char* keyword = keywords[i];
+            if (keyword == 0)
+                break;
+
+            if (!strncmp(start, keyword, length) && length == strlen(keyword))
+                return true;
+
+            i++;
+        }
+
+        return false;
+    }
+
     char* start = source->current;
     char* end = start;
 
@@ -66,7 +98,13 @@ Slice identifier(Source* source)
             source->current++;
 
         end = source->current;
-        whitespace(source);
+        if (isKeyword(start, end - start))
+        {
+            end = start;
+            source->current = start;
+        }
+        else
+            whitespace(source);
     }
 
     return (Slice)
@@ -195,6 +233,62 @@ Program parse(Source* sources, int length)
     }
 
     return program;
+}
+
+void identifiersCantBeKeywords()
+{
+    char* code = "if";
+    Source source =
+    {
+       .path = "main.owen",
+       .code = code,
+       .current = code
+    };
+
+    Slice keyword = identifier(&source);
+
+    assert(code == source.current);
+    assert(keyword.length == 0);
+}
+
+void identifiersCanBePartialKeywords()
+{
+    char* code = "name";
+    Source source =
+    {
+       .path = "main.owen",
+       .code = code,
+       .current = code
+    };
+
+    Slice partial = identifier(&source);
+    Slice expected =
+    {
+        .start = code,
+        .length = 4
+    };
+
+    assert(compareSlices(&partial, &expected));
+}
+
+void identifierCanStartWithAKeyword()
+{
+    char* code = "ifn";
+    Source source =
+    {
+       .path = "main.owen",
+       .code = code,
+       .current = code
+    };
+
+    Slice super = identifier(&source);
+    Slice expected =
+    {
+        .start = code,
+        .length = 3
+    };
+
+    assert(compareSlices(&super, &expected));
 }
 
 void canParseAQualifiedIdentifierWithOneIdentifier()
@@ -387,6 +481,10 @@ void missingQualifiedIdentifierAfterUseKeywordIssuesDiagnostic()
 
 void parserTestSuite()
 {
+    identifiersCantBeKeywords();
+    identifiersCanBePartialKeywords();
+    identifierCanStartWithAKeyword();
+
     canParseAQualifiedIdentifierWithOneIdentifier();
     canParseAQualifiedIdentifierWithMultipleIdentifiers();
     missingIdentifierAfterDotInQualifiedIdentifierIssuesDiagnostic();
