@@ -215,9 +215,7 @@ FunctionSignature functionSignature(Source* source)
     };
 
     if (literal(source, "function"))
-    {
         signature.identifier = identifier(source);
-    }
 
     return signature;
 }
