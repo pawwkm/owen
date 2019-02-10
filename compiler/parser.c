@@ -201,6 +201,27 @@ QualifiedIdentifierList* useDirectives(Source* source, DiagnosticList* diagnosti
         return NULL;
 }
 
+FunctionSignature functionSignature(Source* source)
+{
+    char* start = source->current;
+    FunctionSignature signature =
+    {
+        .isPublic =  literal(source, "public"),
+        .identifier = (Slice)
+        {
+            .start = 0,
+            .length = 0
+        }
+    };
+
+    if (literal(source, "function"))
+    {
+        signature.identifier = identifier(source);
+    }
+
+    return signature;
+}
+
 CompilationUnit compilationUnit(Source* source, DiagnosticList* diagnostics)
 {
     whitespace(source);
@@ -479,6 +500,46 @@ void missingQualifiedIdentifierAfterUseKeywordIssuesDiagnostic()
     assert(!strcmp(diagnostics.elements[0].description, "Qualified identifier expected."));
 }
 
+void canParseAFunctionSignatureWithoutInputOrOutput()
+{
+    char* code = "function main";
+    Source source =
+    {
+       .path = "main.owen",
+       .code = code,
+       .current = code
+    };
+
+    FunctionSignature signature = functionSignature(&source);
+    Slice expected =
+    {
+        .start = code + 9,
+        .length = 4
+    };
+
+    assert(compareSlices(&expected, &signature.identifier));
+}
+
+void canParseAPublicFunctionSignatureWithoutInputOrOutput()
+{
+    char* code = "public function main";
+    Source source =
+    {
+       .path = "main.owen",
+       .code = code,
+       .current = code
+    };
+
+    FunctionSignature signature = functionSignature(&source);
+    Slice expected =
+    {
+        .start = code + 16,
+        .length = 4
+    };
+
+    assert(compareSlices(&expected, &signature.identifier));
+}
+
 void parserTestSuite()
 {
     identifiersCantBeKeywords();
@@ -495,4 +556,7 @@ void parserTestSuite()
     canParseAUseDirective();
     canParseUseDirectives();
     missingQualifiedIdentifierAfterUseKeywordIssuesDiagnostic();
+
+    canParseAFunctionSignatureWithoutInputOrOutput();
+    canParseAPublicFunctionSignatureWithoutInputOrOutput();
 }

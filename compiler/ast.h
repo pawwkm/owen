@@ -34,6 +34,12 @@ typedef struct
 
 typedef struct
 {
+    bool isPublic;
+    Slice identifier;
+} FunctionSignature;
+
+typedef struct
+{
     const Source* source;
     const QualifiedIdentifier* namespace;
     const QualifiedIdentifierList* uses;
