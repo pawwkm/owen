@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdbool.h>
 #include "ast.h"
 
@@ -40,6 +41,19 @@ void appendQualifiedIdentifier(QualifiedIdentifierList* list, QualifiedIdentifie
 
     list->elements[list->count] = qualifiedIdentifier;
     list->count++;
+}
+
+void appendFunctionDeclaration(FunctionDeclarationList* functions, FunctionDeclaration function)
+{
+    if (functions->capacity < functions->count + 1)
+    {
+        int32_t oldCapacity = functions->capacity;
+        functions->capacity = functions->capacity < 4 ? 4 : functions->capacity * 2;
+        functions->elements = (FunctionDeclaration*)realloc(functions->elements, functions->capacity);
+    }
+
+    functions->elements[functions->count] = function;
+    functions->count++;
 }
 
 bool compareSlices(Slice* a, Slice* b)

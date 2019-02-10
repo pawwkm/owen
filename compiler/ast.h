@@ -38,11 +38,37 @@ typedef struct
     Slice identifier;
 } FunctionSignature;
 
+typedef union
+{
+    int i;
+} Statement;
+
+typedef struct
+{
+    Statement* elements;
+    int32_t count;
+    int32_t capacity;
+} StatementList;
+
+typedef struct
+{
+    FunctionSignature signature;
+    StatementList body;
+} FunctionDeclaration;
+
+typedef struct
+{
+    FunctionDeclaration* elements;
+    int32_t count;
+    int32_t capacity;
+} FunctionDeclarationList;
+
 typedef struct
 {
     const Source* source;
     const QualifiedIdentifier* namespace;
     const QualifiedIdentifierList* uses;
+    const FunctionDeclarationList* functions;
 } CompilationUnit;
 
 typedef struct
@@ -65,5 +91,7 @@ void appendIdentifier(QualifiedIdentifier* qualifiedIdentifier, Slice identifier
 void appendQualifiedIdentifier(QualifiedIdentifierList* list, QualifiedIdentifier qualifiedIdentifier);
 
 void appendCompilationUnit(CompilationUnitList* compilationUnits, CompilationUnit compilationUnit);
+
+void appendFunctionDeclaration(FunctionDeclarationList* functions, FunctionDeclaration function);
 
 #endif

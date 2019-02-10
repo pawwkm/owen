@@ -220,16 +220,54 @@ FunctionSignature functionSignature(Source* source)
     return signature;
 }
 
+FunctionDeclaration functionDeclaration(Source* source, DiagnosticList* diagnostics)
+{
+    FunctionDeclaration declaration =
+    {
+        .signature = functionSignature(source),
+        .body = calloc(1, sizeof(StatementList))
+    };
+
+    if (!literal(source, "end"))
+    {
+
+    }
+
+    return declaration;
+}
+
 CompilationUnit compilationUnit(Source* source, DiagnosticList* diagnostics)
 {
     whitespace(source);
 
-    return (CompilationUnit)
+    FunctionDeclarationList* functions = calloc(1, sizeof(FunctionDeclarationList));
+    CompilationUnit unit =
     {
         .source = source,
         .namespace = namespaceDirective(source, diagnostics),
-        .uses = useDirectives(source, diagnostics)
+        .uses = useDirectives(source, diagnostics),
+        .functions = functions
     };
+
+    while (*source->current)
+    {
+        char* start = source->current;
+
+        FunctionDeclaration function = functionDeclaration(source, diagnostics);
+        if (start == source->current)
+        {
+            appendDiagnostic(diagnostics, (Diagnostic)
+            {
+                .description = "Function declaration expected.",
+                .code = source->code,
+                .index = source->current
+            });
+        }
+        else
+            appendFunctionDeclaration(functions, function);
+    }
+
+    return unit;
 }
 
 Program parse(Source* sources, int length)
@@ -538,6 +576,42 @@ void canParseAPublicFunctionSignatureWithoutInputOrOutput()
     assert(compareSlices(&expected, &signature.identifier));
 }
 
+void canParseAFunctionWithoutStatements()
+{
+    DiagnosticList diagnostics = initDiagnosticList();
+    char* code = "function main\n"
+                 "end";
+
+    Source source =
+    {
+       .path = "main.owen",
+       .code = code,
+       .current = code
+    };
+
+    FunctionDeclaration declaration = functionDeclaration(&source, &diagnostics);
+
+    assert(declaration.body.count == 0);
+    assert(diagnostics.count == 0);
+    assert(*source.current == 0);
+}
+
+void canParseACompilationUnitWithAFunction()
+{
+    char* code = "function main\n"
+                 "end";
+
+    Source source =
+    {
+       .path = "main.owen",
+       .code = code,
+       .current = code
+    };
+
+    Program program = parse(&source, 1);
+    assert(program.compilationUnits.elements[0].functions->count == 1);
+}
+
 void parserTestSuite()
 {
     identifiersCantBeKeywords();
@@ -557,4 +631,7 @@ void parserTestSuite()
 
     canParseAFunctionSignatureWithoutInputOrOutput();
     canParseAPublicFunctionSignatureWithoutInputOrOutput();
+
+    canParseAFunctionWithoutStatements();
+    canParseACompilationUnitWithAFunction();
 }
