@@ -1,5 +1,6 @@
 #ifndef DIAGNOSTICS_H
 #define DIAGNOSTICS_H
+#include "list.h"
 
 typedef struct
 {
@@ -8,15 +9,8 @@ typedef struct
     const char* index;
 } Diagnostic;
 
-typedef struct
-{
-    Diagnostic* elements;
-    int32_t count;
-    int32_t capacity;
-} DiagnosticList;
+DECLARE_LIST(Diagnostic)
 
 DiagnosticList initDiagnosticList();
-
-void appendDiagnostic(DiagnosticList* diagnostics, Diagnostic diagnostic);
 
 #endif

@@ -114,13 +114,13 @@ Slice identifier(Source* source)
     };
 }
 
-QualifiedIdentifier* qualifiedIdentifier(Source* source, DiagnosticList* diagnostics)
+SliceList* qualifiedIdentifier(Source* source, DiagnosticList* diagnostics)
 {
     Slice first = identifier(source);
     if (first.length != 0)
     {
-        QualifiedIdentifier* list = calloc(1, sizeof(QualifiedIdentifier));
-        appendIdentifier(list, first);
+        SliceList* list = calloc(1, sizeof(SliceList));
+        appendSlice(list, first);
 
         while (literal(source, "."))
         {
@@ -137,7 +137,7 @@ QualifiedIdentifier* qualifiedIdentifier(Source* source, DiagnosticList* diagnos
                 break;
             }
             else
-                appendIdentifier(list, next);
+                appendSlice(list, next);
         }
 
         return list;
@@ -146,12 +146,12 @@ QualifiedIdentifier* qualifiedIdentifier(Source* source, DiagnosticList* diagnos
     return NULL;
 }
 
-QualifiedIdentifier* namespaceDirective(Source* source, DiagnosticList* diagnostics)
+SliceList* namespaceDirective(Source* source, DiagnosticList* diagnostics)
 {
     if (!literal(source, "namespace"))
         return NULL;
 
-    QualifiedIdentifier* list =  qualifiedIdentifier(source, diagnostics);
+    SliceList* list =  qualifiedIdentifier(source, diagnostics);
     if (!list)
     {
         appendDiagnostic(diagnostics, (Diagnostic)
@@ -165,12 +165,12 @@ QualifiedIdentifier* namespaceDirective(Source* source, DiagnosticList* diagnost
     return list;
 }
 
-QualifiedIdentifier* useDirective(Source* source, DiagnosticList* diagnostics)
+SliceList* useDirective(Source* source, DiagnosticList* diagnostics)
 {
     if (!literal(source, "use"))
         return NULL;
 
-    QualifiedIdentifier* list =  qualifiedIdentifier(source, diagnostics);
+    SliceList* list =  qualifiedIdentifier(source, diagnostics);
     if (!list)
     {
         appendDiagnostic(diagnostics, (Diagnostic)
@@ -184,16 +184,16 @@ QualifiedIdentifier* useDirective(Source* source, DiagnosticList* diagnostics)
     return list;
 }
 
-QualifiedIdentifierList* useDirectives(Source* source, DiagnosticList* diagnostics)
+SliceListList* useDirectives(Source* source, DiagnosticList* diagnostics)
 {
-    QualifiedIdentifier* next = useDirective(source, diagnostics);
+    SliceList* next = useDirective(source, diagnostics);
     if (next)
     {
-        QualifiedIdentifierList* list = calloc(1, sizeof(QualifiedIdentifierList));
-        appendQualifiedIdentifier(list, *next);
+        SliceListList* list = calloc(1, sizeof(SliceListList));
+        appendSliceList(list, *next);
 
         while (next = useDirective(source, diagnostics))
-            appendQualifiedIdentifier(list, *next);
+            appendSliceList(list, *next);
 
         return list;
     }
@@ -360,7 +360,7 @@ void canParseAQualifiedIdentifierWithOneIdentifier()
        .current = code
     };
 
-    QualifiedIdentifier* list = qualifiedIdentifier(&source, &diagnostics);
+    SliceList* list = qualifiedIdentifier(&source, &diagnostics);
     Slice expected =
     {
         .start = code,
@@ -384,7 +384,7 @@ void canParseAQualifiedIdentifierWithMultipleIdentifiers()
        .current = code
     };
 
-    QualifiedIdentifier* list = qualifiedIdentifier(&source, &diagnostics);
+    SliceList* list = qualifiedIdentifier(&source, &diagnostics);
     Slice first =
     {
         .start = code,
@@ -415,7 +415,7 @@ void missingIdentifierAfterDotInQualifiedIdentifierIssuesDiagnostic()
        .current = code
     };
 
-    QualifiedIdentifier* list = qualifiedIdentifier(&source, &diagnostics);
+    SliceList* list = qualifiedIdentifier(&source, &diagnostics);
     Slice expected =
     {
         .start = code,
@@ -442,7 +442,7 @@ void missingQualifiedIdentifierAfterNamespaceKeyword()
        .current = code
     };
 
-    QualifiedIdentifier* list = namespaceDirective(&source, &diagnostics);
+    SliceList* list = namespaceDirective(&source, &diagnostics);
 
     assert(list == NULL);
     assert(diagnostics.count == 1);
@@ -529,7 +529,7 @@ void missingQualifiedIdentifierAfterUseKeywordIssuesDiagnostic()
        .current = code
     };
 
-    QualifiedIdentifier* list = useDirective(&source, &diagnostics);
+    SliceList* list = useDirective(&source, &diagnostics);
 
     assert(list == NULL);
     assert(diagnostics.count == 1);

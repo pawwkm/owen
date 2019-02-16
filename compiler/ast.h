@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "list.h"
 #include "diagnostics.h"
 
 typedef struct
@@ -18,19 +19,8 @@ typedef struct
     int32_t length;
 } Slice;
 
-typedef struct
-{
-    Slice* elements;
-    int32_t count;
-    int32_t capacity;
-} QualifiedIdentifier;
-
-typedef struct
-{
-    QualifiedIdentifier* elements;
-    int32_t count;
-    int32_t capacity;
-} QualifiedIdentifierList;
+DECLARE_LIST(Slice)
+DECLARE_LIST(SliceList)
 
 typedef struct
 {
@@ -56,27 +46,17 @@ typedef struct
     StatementList body;
 } FunctionDeclaration;
 
-typedef struct
-{
-    FunctionDeclaration* elements;
-    int32_t count;
-    int32_t capacity;
-} FunctionDeclarationList;
+DECLARE_LIST(FunctionDeclaration)
 
 typedef struct
 {
     const Source* source;
-    const QualifiedIdentifier* namespace;
-    const QualifiedIdentifierList* uses;
+    const SliceList* namespace;
+    const SliceListList* uses;
     const FunctionDeclarationList* functions;
 } CompilationUnit;
 
-typedef struct
-{
-    CompilationUnit* elements;
-    int32_t count;
-    int32_t capacity;
-} CompilationUnitList;
+DECLARE_LIST(CompilationUnit)
 
 typedef struct
 {
@@ -85,13 +65,5 @@ typedef struct
 } Program;
 
 bool compareSlices(Slice* a, Slice* b);
-
-void appendIdentifier(QualifiedIdentifier* qualifiedIdentifier, Slice identifier);
-
-void appendQualifiedIdentifier(QualifiedIdentifierList* list, QualifiedIdentifier qualifiedIdentifier);
-
-void appendCompilationUnit(CompilationUnitList* compilationUnits, CompilationUnit compilationUnit);
-
-void appendFunctionDeclaration(FunctionDeclarationList* functions, FunctionDeclaration function);
 
 #endif

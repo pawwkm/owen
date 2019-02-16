@@ -1,22 +1,10 @@
-#include <stdio.h>
 #include "parser.h"
+#include "semantics.h"
 
-#ifdef Test
-
-int main()
+int main(int argc, const char* argv[])
 {
-    parserTestSuite();
+    //parserTestSuite();
+    semanticsTestSuite();
 
     return 0;
 }
-
-#else
-
-int main(int argc, const char* argv[]))
-{
-    printf("Run the Compiler\n");
-
-    return 0;
-}
-
-#endif
