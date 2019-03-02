@@ -89,7 +89,20 @@ void bindFunctionsCallsInBlock(StatementList* block, SymbolList* symbols,  Diagn
         if (statement->type == STATEMENT_CALL)
         {
             SymbolList* matches = findSymbolsWithName(symbols, &statement->call.function);
-            if (matches->count > 1)
+            if (matches->count == 0)
+            {
+                char* description = malloc(statement->call.function.length + 1);
+                description[statement->call.function.length] = 0;
+                strncpy(description, statement->call.function.start, statement->call.function.length);
+                description = concatenate(description, " is undefined.");
+
+                appendDiagnostic(diagnostics, (Diagnostic)
+                {
+                    .description = description,
+                    .occurredAt = statement->declaredAt
+                });
+            }
+            else if (matches->count > 1)
             {
                 char* description = malloc(statement->call.function.length + 1);
                 description[statement->call.function.length] = 0;

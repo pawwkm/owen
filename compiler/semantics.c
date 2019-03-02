@@ -88,6 +88,30 @@ void analyze(Program* program)
     }
 }
 
+void callToUndefinedFunctionIssuesDiagnostic()
+{
+    char* code = "namespace Test\n"
+                 "public function a\n"
+                 "    b()\n"
+                 "end";
+
+    Source source =
+    {
+        .path = "main.owen",
+        .code = code,
+        .current = code
+    };
+
+    Program program = parse(&source, 1);
+    analyze(&program);
+
+    assert(program.diagnostics.count == 1);
+
+    Diagnostic* diagnostic = &program.diagnostics.elements[0];
+    assert(!strcmp("b is undefined.", diagnostic->description));
+    assert(37 == diagnostic->occurredAt.index - code);
+}
+
 void ambiguousCallIssuesDiagnostic()
 {
     char* callingCode = "namespace Test\n"
@@ -125,5 +149,6 @@ void ambiguousCallIssuesDiagnostic()
 
 void semanticsTestSuite()
 {
+    callToUndefinedFunctionIssuesDiagnostic();
     ambiguousCallIssuesDiagnostic();
 }
