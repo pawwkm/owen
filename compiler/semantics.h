@@ -10,7 +10,7 @@ typedef enum
 
 typedef struct
 {
-    char* name;
+    const char* namespace;
     Type type;
     union
     {
@@ -25,6 +25,8 @@ typedef struct SymbolList
     int32_t count;
     int32_t capacity;
 } SymbolList;
+
+void appendSymbol(SymbolList* list, Symbol element);
 
 void semanticsTestSuite();
 

@@ -77,7 +77,7 @@ Slice identifier(Source* source)
         while (true)
         {
             char* keyword = keywords[i];
-            if (keyword == 0)
+            if (!keyword)
                 break;
 
             if (!strncmp(start, keyword, length) && length == strlen(keyword))
@@ -114,7 +114,31 @@ Slice identifier(Source* source)
     };
 }
 
-SliceList* qualifiedIdentifier(Source* source, DiagnosticList* diagnostics)
+char* qualifiedIdentifierToString(const SliceList* list)
+{
+    int32_t length = list->count - 1;
+    for (int32_t i = 0; i < list->count; i++)
+        length += list->elements[i].length;
+
+    char* string = malloc(length + 1);
+
+    int32_t index = 0;
+    for (int32_t i = 0; i < list->count; i++)
+    {
+        Slice slice = list->elements[i];
+        strncpy(string + index, slice.start, slice.length);
+
+        index += slice.length;
+        string[index] = '.';
+        index++;
+    }
+
+    string[length] = 0;
+
+    return string;
+}
+
+char* qualifiedIdentifier(Source* source, DiagnosticList* diagnostics)
 {
     Slice first = identifier(source);
     if (first.length != 0)
@@ -130,8 +154,7 @@ SliceList* qualifiedIdentifier(Source* source, DiagnosticList* diagnostics)
                 appendDiagnostic(diagnostics, (Diagnostic)
                 {
                     .description = "Identifier expected.",
-                    .code = source->code,
-                    .index = source->current
+                    .occurredAt = positionOf(source)
                 });
 
                 break;
@@ -140,65 +163,124 @@ SliceList* qualifiedIdentifier(Source* source, DiagnosticList* diagnostics)
                 appendSlice(list, next);
         }
 
-        return list;
+        return qualifiedIdentifierToString(list);
     }
 
     return NULL;
 }
 
-SliceList* namespaceDirective(Source* source, DiagnosticList* diagnostics)
+char* namespaceDirective(Source* source, DiagnosticList* diagnostics)
 {
     if (!literal(source, "namespace"))
-        return NULL;
+    {
+        appendDiagnostic(diagnostics, (Diagnostic)
+        {
+            .description = "Namespace expected.",
+            .occurredAt = positionOf(source)
+        });
 
-    SliceList* list =  qualifiedIdentifier(source, diagnostics);
-    if (!list)
+        return NULL;
+    }
+
+    char* namespace =  qualifiedIdentifier(source, diagnostics);
+    if (!namespace)
     {
         appendDiagnostic(diagnostics, (Diagnostic)
         {
             .description = "Qualified identifier expected.",
-            .code = source->code,
-            .index = source->current
+            .occurredAt = positionOf(source)
         });
     }
 
-    return list;
+    return namespace;
 }
 
-SliceList* useDirective(Source* source, DiagnosticList* diagnostics)
+char* useDirective(Source* source, DiagnosticList* diagnostics)
 {
     if (!literal(source, "use"))
         return NULL;
 
-    SliceList* list =  qualifiedIdentifier(source, diagnostics);
-    if (!list)
+    char* namespace =  qualifiedIdentifier(source, diagnostics);
+    if (!namespace)
     {
         appendDiagnostic(diagnostics, (Diagnostic)
         {
             .description = "Qualified identifier expected.",
-            .code = source->code,
-            .index = source->current
+            .occurredAt = positionOf(source)
         });
     }
 
-    return list;
+    return namespace;
 }
 
-SliceListList* useDirectives(Source* source, DiagnosticList* diagnostics)
+StringList* useDirectives(Source* source, DiagnosticList* diagnostics)
 {
-    SliceList* next = useDirective(source, diagnostics);
+    char* next = useDirective(source, diagnostics);
     if (next)
     {
-        SliceListList* list = calloc(1, sizeof(SliceListList));
-        appendSliceList(list, *next);
+        StringList* list = calloc(1, sizeof(StringList));
+        appendString(list, next);
 
         while (next = useDirective(source, diagnostics))
-            appendSliceList(list, *next);
+            appendString(list, next);
 
         return list;
     }
     else
         return NULL;
+}
+
+bool callStatement(Source* source, StatementList* statements)
+{
+    char* start = source->current;
+    Slice function = identifier(source);
+
+    if (function.length == 0)
+        return false;
+
+    if (!literal(source, "("))
+    {
+
+    }
+
+    if (!literal(source, ")"))
+    {
+
+    }
+
+    appendStatement(statements, (Statement)
+    {
+        .declaredAt = (Position)
+        {
+            .path = source->path,
+            .code = source->code,
+            .index = start
+        },
+        .type = STATEMENT_CALL,
+        .call = function
+    });
+
+    return true;
+}
+
+bool statement(Source* source, StatementList* statements)
+{
+    return callStatement(source, statements);
+}
+
+StatementList statements(Source* source)
+{
+    StatementList list =
+    {
+        .elements = NULL,
+        .count = 0,
+        .capacity = 0
+    };
+
+    while (*source->current && statement(source, &list))
+        ;
+
+    return list;
 }
 
 FunctionSignature functionSignature(Source* source)
@@ -224,8 +306,14 @@ FunctionDeclaration functionDeclaration(Source* source, DiagnosticList* diagnost
 {
     FunctionDeclaration declaration =
     {
+        .declaredAt = (Position)
+        {
+            .path = source->path,
+            .code = source->code,
+            .index = source->current
+        },
         .signature = functionSignature(source),
-        .body = calloc(1, sizeof(StatementList))
+        .body = statements(source)
     };
 
     if (!literal(source, "end"))
@@ -259,8 +347,7 @@ CompilationUnit compilationUnit(Source* source, DiagnosticList* diagnostics)
             appendDiagnostic(diagnostics, (Diagnostic)
             {
                 .description = "Function declaration expected.",
-                .code = source->code,
-                .index = source->current
+                .occurredAt = positionOf(source)
             });
         }
         else
@@ -360,23 +447,17 @@ void canParseAQualifiedIdentifierWithOneIdentifier()
        .current = code
     };
 
-    SliceList* list = qualifiedIdentifier(&source, &diagnostics);
-    Slice expected =
-    {
-        .start = code,
-        .length = 3
-    };
+    char* abc = qualifiedIdentifier(&source, &diagnostics);
 
-    assert(list != NULL);
-    assert(list->count == 1);
-    assert(compareSlices(&list->elements[0], &expected));
+    assert(abc != NULL);
+    assert(!strcmp(code, abc));
 }
 
 void canParseAQualifiedIdentifierWithMultipleIdentifiers()
 {
     DiagnosticList diagnostics = initDiagnosticList();
 
-    char* code = "abc.def";
+    char* code = "abc . def";
     Source source =
     {
        .path = "main.owen",
@@ -384,23 +465,10 @@ void canParseAQualifiedIdentifierWithMultipleIdentifiers()
        .current = code
     };
 
-    SliceList* list = qualifiedIdentifier(&source, &diagnostics);
-    Slice first =
-    {
-        .start = code,
-        .length = 3
-    };
+    char* abcdef = qualifiedIdentifier(&source, &diagnostics);
 
-    Slice second =
-    {
-        .start = &code[4],
-        .length = 3
-    };
-
-    assert(list != NULL);
-    assert(list->count == 2);
-    assert(compareSlices(&list->elements[0], &first));
-    assert(compareSlices(&list->elements[1], &second));
+    assert(abcdef != NULL);
+    assert(!strcmp("abc.def", abcdef));
 }
 
 void missingIdentifierAfterDotInQualifiedIdentifierIssuesDiagnostic()
@@ -415,16 +483,7 @@ void missingIdentifierAfterDotInQualifiedIdentifierIssuesDiagnostic()
        .current = code
     };
 
-    SliceList* list = qualifiedIdentifier(&source, &diagnostics);
-    Slice expected =
-    {
-        .start = code,
-        .length = 3
-    };
-
-    assert(list != NULL);
-    assert(list->count == 1);
-    assert(compareSlices(&list->elements[0], &expected));
+    qualifiedIdentifier(&source, &diagnostics);
 
     assert(diagnostics.count == 1);
     assert(!strcmp(diagnostics.elements[0].description, "Identifier expected."));
@@ -442,9 +501,9 @@ void missingQualifiedIdentifierAfterNamespaceKeyword()
        .current = code
     };
 
-    SliceList* list = namespaceDirective(&source, &diagnostics);
+    char* namespace = namespaceDirective(&source, &diagnostics);
 
-    assert(list == NULL);
+    assert(namespace == NULL);
     assert(diagnostics.count == 1);
     assert(!strcmp(diagnostics.elements[0].description, "Qualified identifier expected."));
 }
@@ -468,12 +527,14 @@ void canParseANamespaceDirective()
     CompilationUnit* unit = &program.compilationUnits.elements[0];
 
     assert(unit->source == &source);
-    assert(unit->namespace != NULL);
+    assert(!strcmp("abc", unit->namespace));
 }
 
-void canParseAUseDirective()
+void canParseAnUseDirective()
 {
-    char* code = "use abc";
+    char* code = "namespace abc\n"
+                 "use abc";
+
     Source source =
     {
        .path = "main.owen",
@@ -495,7 +556,8 @@ void canParseAUseDirective()
 
 void canParseUseDirectives()
 {
-    char* code = "use abc\n"
+    char* code = "namespace Abc\n"
+                 "use abc\n"
                  "use def";
 
     Source source =
@@ -529,9 +591,9 @@ void missingQualifiedIdentifierAfterUseKeywordIssuesDiagnostic()
        .current = code
     };
 
-    SliceList* list = useDirective(&source, &diagnostics);
+    char* namespace = useDirective(&source, &diagnostics);
 
-    assert(list == NULL);
+    assert(namespace == NULL);
     assert(diagnostics.count == 1);
     assert(!strcmp(diagnostics.elements[0].description, "Qualified identifier expected."));
 }
@@ -598,7 +660,8 @@ void canParseAFunctionWithoutStatements()
 
 void canParseACompilationUnitWithAFunction()
 {
-    char* code = "function main\n"
+    char* code = "namespace Abc"
+                 "function main\n"
                  "end";
 
     Source source =
@@ -625,7 +688,7 @@ void parserTestSuite()
     canParseANamespaceDirective();
     missingQualifiedIdentifierAfterNamespaceKeyword();
 
-    canParseAUseDirective();
+    canParseAnUseDirective();
     canParseUseDirectives();
     missingQualifiedIdentifierAfterUseKeywordIssuesDiagnostic();
 

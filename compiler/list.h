@@ -25,4 +25,13 @@ void append##type(type##List* list, type element)                               
     list->elements[list->count++] = element;                                             \
 }
 
+typedef struct
+{
+    char** elements;
+    int32_t count;
+    int32_t capacity;
+} StringList;
+
+void appendString(StringList* strings, char* string);
+
 #endif

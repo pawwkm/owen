@@ -3,7 +3,7 @@
 
 int main(int argc, const char* argv[])
 {
-    //parserTestSuite();
+    parserTestSuite();
     semanticsTestSuite();
 
     return 0;

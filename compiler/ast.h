@@ -8,8 +8,8 @@
 
 typedef struct
 {
-    const char* path;
-    const char* code;
+    char* path;
+    char* code;
     char* current;
 } Source;
 
@@ -28,20 +28,30 @@ typedef struct
     Slice identifier;
 } FunctionSignature;
 
-typedef union
+typedef struct
 {
-    int i;
+    Slice function;
+} CallStatement;
+
+typedef struct
+{
+    Position declaredAt;
+    enum
+    {
+        STATEMENT_CALL
+    } type;
+
+    union
+    {
+        CallStatement call;
+    };
 } Statement;
 
-typedef struct
-{
-    Statement* elements;
-    int32_t count;
-    int32_t capacity;
-} StatementList;
+DECLARE_LIST(Statement)
 
 typedef struct
 {
+    Position declaredAt;
     FunctionSignature signature;
     StatementList body;
 } FunctionDeclaration;
@@ -51,8 +61,8 @@ DECLARE_LIST(FunctionDeclaration)
 typedef struct
 {
     const Source* source;
-    const SliceList* namespace;
-    const SliceListList* uses;
+    const char* namespace;
+    const StringList* uses;
     const FunctionDeclarationList* functions;
 } CompilationUnit;
 
@@ -65,5 +75,7 @@ typedef struct
 } Program;
 
 bool compareSlices(Slice* a, Slice* b);
+
+Position positionOf(const Source* source);
 
 #endif
