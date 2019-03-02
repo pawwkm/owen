@@ -45,7 +45,7 @@ declaration = functionDeclaration
             / enumerationDeclaration
             / unionDeclaration
             / propositionDeclaration
-            
+
 identifier = !keyword [A-Za-z] [A-Za-z0-9]* whitespace
 keyword = namespace
         / use
@@ -61,7 +61,6 @@ keyword = namespace
         / in
         / while
         / break
-        / continue
         / structure
         / proposition
         / enumeration
@@ -83,7 +82,6 @@ each = 'each' whitespace
 in = 'in' whitespace
 while = 'while' whitespace
 break = 'break' whitespace
-continue = 'continue' whitespace
 structure = 'structure' whitespace
 proposition = 'proposition' whitespace
 enumeration = 'enumeration' whitespace
@@ -128,9 +126,9 @@ argument = type indentifier</code></pre>
                 same scope as <span class="rule">statements</span>. Each
                 <span class="rule">identifier</span> must be unique unless it is
                 the function <span class="rule">identifer</span> and it is the
-                same as another function. Functions can be overloaded with 
-                different input. The <span class="rule">output</span> list is 
-                the types of the values that the function returns <b>in</b> the 
+                same as another function. Functions can be overloaded with
+                different input. The <span class="rule">output</span> list is
+                the types of the values that the function returns <b>in</b> the
                 order they are listed.
             </p>
 
@@ -213,7 +211,6 @@ statement = assignmentStatement
           / forEachStatement
           / whileStatement
           / breakStatement
-          / continueStatement
           / callStatement
           / returnStatement
           / assertStatement</code></pre>
@@ -226,7 +223,7 @@ statement = assignmentStatement
 
             <h2>3.1. Assignment Statements</h2>
             <pre><code>assignmentStatement = expressions assign expressions
-            
+
 assign = '=' whitespace</code></pre>
             <p>
                 Assigns <span class="rule">expressions</span> to another set of
@@ -316,18 +313,10 @@ range = (expression colon)? expression (colon expression)?</code></pre>
                 after the innermost loop.
             </p>
 
-            <h2>3.6. Continue Statements</h2>
-            <pre><code>continueStatement = continue</code></pre>
-            <p>
-                The <span class="rule">continueStatement</span> skips the
-                remaining statements in the innermost loop in which it is
-                declared and starts the next iteration if any.
-            </p>
-
-            <h2>3.7. Call Statements</h2>
+            <h2>3.6. Call Statements</h2>
             <pre><code>callStatement = callExpression</code></pre>
 
-            <h2>3.8. Return Statements</h2>
+            <h2>3.7. Return Statements</h2>
             <pre><code>returnStatement = return expressions?</code></pre>
             <p>
                 Returns the control the function that called the one that
@@ -341,7 +330,7 @@ range = (expression colon)? expression (colon expression)?</code></pre>
                 as the return type.
             </p>
 
-            <h2>3.9. Assert Statements</h2>
+            <h2>3.8. Assert Statements</h2>
             <pre><code>assertStatement = assert expression</code></pre>
             <p>
                 The <span class="rule">expression</span> must be type of
@@ -468,7 +457,7 @@ booleanOperator = '||' / '&#38;&#38;' / '&lt;' / '&gt;' whitespace</code></pre>
 
             <h2>4.3. Call Expressions</h2>
             <pre><code>callExpression = identifer leftParenthesis expressions? rightParenthesis
-            
+
 leftParenthesis = '(' whitespace
 rightParenthesis = ')' whitespace</code></pre>
             <p>
@@ -501,7 +490,7 @@ rightParenthesis = ')' whitespace</code></pre>
                     </tr>
                 </tbody>
             </table>
-            
+
             <h3>4.4.2. Integer Literals</h3>
             <pre><code>integerLiteral = '-'? [0-9]+ ('i' / 'u') ( '8' / '16' / '32' / '64' )</code></pre>
 
@@ -608,7 +597,7 @@ fieldInitializer = identifier equal expression</code></pre>
                 field's type. Fields that are not initialized have undefined
                 values.
             </p>
-            
+
             <h2>4.5. Size of Expressions</h2>
             <pre><code>sizeOfExpreassio = size of expression</code></pre>
             <p>
@@ -645,7 +634,7 @@ fieldInitializer = identifier equal expression</code></pre>
                 The identifier can either be a variable or a field on a variable
                 in scope.
             </p>
-            
+
             <h2>4.9. Parentherized Expressions</h2>
             <pre><code>parentherizedExpression = leftParenthesis expression rightParenthesis</code></pre>
             <p>
@@ -655,7 +644,7 @@ fieldInitializer = identifier equal expression</code></pre>
 
             <h1>5. Types</h1>
             <pre><code>type = pointerTo* (identifier / functionSignature)
-            
+
 pointerTo = '*' whitespace</code></pre>
         </main>
     </body>

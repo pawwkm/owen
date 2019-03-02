@@ -24,7 +24,6 @@ char* keywords[] =
     "in",
     "while",
     "break",
-    "continue",
     "structure",
     "proposition",
     "enumeration",
