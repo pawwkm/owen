@@ -220,21 +220,24 @@ char* useDirective(Source* source, DiagnosticList* diagnostics)
     return namespace;
 }
 
-StringList* useDirectives(Source* source, DiagnosticList* diagnostics)
+StringList useDirectives(Source* source, DiagnosticList* diagnostics)
 {
+    StringList directives =
+    {
+        .elements = NULL,
+        .count = 0,
+        .capacity = 0
+    };
+
     char* next = useDirective(source, diagnostics);
     if (next)
     {
-        StringList* list = calloc(1, sizeof(StringList));
-        appendString(list, next);
-
+        appendString(&directives, next);
         while (next = useDirective(source, diagnostics))
-            appendString(list, next);
-
-        return list;
+            appendString(&directives, next);
     }
-    else
-        return NULL;
+
+    return directives;
 }
 
 bool callStatement(Source* source, StatementList* statements)
@@ -558,8 +561,7 @@ void canParseAnUseDirective()
 
     CompilationUnit* unit = &program.compilationUnits.elements[0];
 
-    assert(unit->uses != NULL);
-    assert(unit->uses->count == 1);
+    assert(unit->uses.count == 1);
 }
 
 void canParseUseDirectives()
@@ -583,8 +585,7 @@ void canParseUseDirectives()
 
     CompilationUnit* unit = &program.compilationUnits.elements[0];
 
-    assert(unit->uses != NULL);
-    assert(unit->uses->count == 2);
+    assert(unit->uses.count == 2);
 }
 
 void missingQualifiedIdentifierAfterUseKeywordIssuesDiagnostic()

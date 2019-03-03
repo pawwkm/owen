@@ -66,7 +66,7 @@ typedef struct
 {
     const Source* source;
     const char* namespace;
-    const StringList* uses;
+    StringList uses;
     const FunctionDeclarationList* functions;
 } CompilationUnit;
 

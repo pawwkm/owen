@@ -60,11 +60,11 @@ SymbolList* findAvailableReferences(SymbolList* master, CompilationUnit* unit)
         Symbol* symbol = &master->elements[s];
         if (!strcmp(symbol->namespace, unit->namespace))
             appendSymbol(symbols, *symbol);
-        else if (unit->uses)
+        else
         {
-            for (int32_t u = 0; u < unit->uses->count; u++)
+            for (int32_t u = 0; u < unit->uses.count; u++)
             {
-                if (symbol->function->signature.access == ACCESS_PUBLIC && !strcmp(symbol->namespace, unit->uses->elements[u]))
+                if (symbol->function->signature.access == ACCESS_PUBLIC && !strcmp(symbol->namespace, unit->uses.elements[u]))
                     appendSymbol(symbols, *symbol);
             }
         }
