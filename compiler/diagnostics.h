@@ -1,5 +1,5 @@
-#ifndef DIAGNOSTICS_H
-#define DIAGNOSTICS_H
+#pragma once
+
 #include <stdbool.h>
 #include "list.h"
 
@@ -19,5 +19,3 @@ typedef struct
 DECLARE_LIST(Diagnostic)
 
 DiagnosticList initDiagnosticList();
-
-#endif

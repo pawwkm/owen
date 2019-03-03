@@ -1,5 +1,4 @@
-#ifndef AST_H
-#define AST_H
+#pragma once
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -81,5 +80,3 @@ typedef struct
 bool compareSlices(Slice* a, Slice* b);
 
 Position positionOf(const Source* source);
-
-#endif

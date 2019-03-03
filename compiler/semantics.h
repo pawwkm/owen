@@ -1,5 +1,4 @@
-#ifndef SEMANTICS_H
-#define SEMANTICS_H
+#pragma once
 
 #include "ast.h"
 
@@ -29,5 +28,3 @@ typedef struct SymbolList
 void appendSymbol(SymbolList* list, Symbol element);
 
 void semanticsTestSuite();
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef LIST_H
-#define LIST_H
+#pragma once
 
 #include <stdlib.h>
 #include <stdint.h>
@@ -33,5 +32,3 @@ typedef struct
 } StringList;
 
 void appendString(StringList* strings, char* string);
-
-#endif
