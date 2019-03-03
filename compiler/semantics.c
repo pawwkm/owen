@@ -45,8 +45,8 @@ SymbolList* symbolizeDeclarations(Program* program)
     for (int32_t u = 0; u < program->compilationUnits.count; u++)
     {
         CompilationUnit* unit = &program->compilationUnits.elements[u];
-        for (int32_t f = 0; f < unit->functions->count; f++)
-            appendSymbol(symbols, symbolizeFunction(unit->namespace, &unit->functions->elements[f]));
+        for (int32_t f = 0; f < unit->functions.count; f++)
+            appendSymbol(symbols, symbolizeFunction(unit->namespace, &unit->functions.elements[f]));
     }
 
     return symbols;
@@ -165,9 +165,9 @@ void unambiguousCallBindsToFunction()
     analyze(&program);
 
     assert(program.compilationUnits.count == 1);
-    assert(program.compilationUnits.elements[0].functions->count == 1);
+    assert(program.compilationUnits.elements[0].functions.count == 1);
 
-    FunctionDeclaration callee = program.compilationUnits.elements[0].functions->elements[0];
+    FunctionDeclaration callee = program.compilationUnits.elements[0].functions.elements[0];
     Statement caller = callee.body.elements[0];
 
     assert(caller.type == STATEMENT_CALL);

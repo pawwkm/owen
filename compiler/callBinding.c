@@ -134,6 +134,6 @@ void bindFunctionsCallsInBlock(StatementList* block, SymbolList* symbols,  Diagn
 
 void bindFunctionCalls(CompilationUnit* unit, SymbolList* symbols,  DiagnosticList* diagnostics)
 {
-    for (int32_t f = 0; f < unit->functions->count; f++)
-        bindFunctionsCallsInBlock(&unit->functions->elements[f].body, symbols, diagnostics);
+    for (int32_t f = 0; f < unit->functions.count; f++)
+        bindFunctionsCallsInBlock(&unit->functions.elements[f].body, symbols, diagnostics);
 }

@@ -338,13 +338,17 @@ CompilationUnit compilationUnit(Source* source, DiagnosticList* diagnostics)
 {
     whitespace(source);
 
-    FunctionDeclarationList* functions = calloc(1, sizeof(FunctionDeclarationList));
     CompilationUnit unit =
     {
         .source = source,
         .namespace = namespaceDirective(source, diagnostics),
         .uses = useDirectives(source, diagnostics),
-        .functions = functions
+        .functions = (FunctionDeclarationList)
+        {
+            .elements = NULL,
+            .count = 0,
+            .capacity = 0
+        }
     };
 
     while (*source->current)
@@ -362,7 +366,7 @@ CompilationUnit compilationUnit(Source* source, DiagnosticList* diagnostics)
             });
         }
         else
-            appendFunctionDeclaration(functions, function);
+            appendFunctionDeclaration(&unit.functions, function);
     }
 
     return unit;
@@ -681,7 +685,7 @@ void canParseACompilationUnitWithAFunction()
     };
 
     Program program = parse(&source, 1);
-    assert(program.compilationUnits.elements[0].functions->count == 1);
+    assert(program.compilationUnits.elements[0].functions.count == 1);
 }
 
 void parserTestSuite()
