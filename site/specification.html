@@ -42,8 +42,8 @@ qualifiedIdentifier = identifier (dot identifer)*
 
 declaration = functionDeclaration
             / structureDeclaration
-            / enumerationDeclaration
             / unionDeclaration
+            / enumerationDeclaration
             / propositionDeclaration
 
 identifier = !keyword [A-Za-z] [A-Za-z0-9]* whitespace
@@ -159,7 +159,18 @@ field = public? type identifier</code></pre>
                 either directly or indirectly.
             </p>
 
-            <h1>2.3. Enumerations</h1>
+            <h1>2.3. Unions</h1>
+            <pre><code>unionDeclaration = public? union identifier
+                       fields
+                   end</code></pre>
+
+            <p>
+                The fields of a union occupy the same memory which mean that the
+                size of the union is the size of the largest
+                <span class="rule">field</span>.
+            </p>
+
+            <h1>2.4. Enumerations</h1>
             <pre><code>enumerationDeclaration = public? enumeration identifier of type
                              enumerationConstants
                          end
@@ -178,17 +189,6 @@ enumerationConstant = identifier (assign integerLiteral)</code></pre>
                 <span class="rule">integerLiteral</span> then it is value of
                 the last constant + 1. If the first constant omits the
                 <span class="rule">integerLiteral</span> then its value is 0.
-            </p>
-
-            <h1>2.4. Unions</h1>
-            <pre><code>unionDeclaration = public? union identifier
-                       fields
-                   end</code></pre>
-
-            <p>
-                The fields of a union occupy the same memory which mean that the
-                size of the union is the size of the largest
-                <span class="rule">field</span>.
             </p>
 
             <h1>2.5. Propositions</h1>
