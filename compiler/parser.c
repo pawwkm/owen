@@ -68,6 +68,14 @@ bool literal(Source* source, char* literal)
         return false;
 }
 
+Access accessibility(Source* source)
+{
+    if (literal(source, "public"))
+        return ACCESS_PUBLIC;
+    else
+        return ACCESS_PRIVATE;
+}
+
 Slice identifier(Source* source)
 {
     bool isKeyword(char* start, size_t length)
@@ -282,12 +290,12 @@ StatementList statements(Source* source)
     return list;
 }
 
-FunctionSignature functionSignature(Source* source)
+FunctionSignature functionSignature(Access access, Source* source)
 {
     char* start = source->current;
     FunctionSignature signature =
     {
-        .isPublic =  literal(source, "public"),
+        .access = access,
         .identifier = (Slice)
         {
             .start = 0,
@@ -301,7 +309,7 @@ FunctionSignature functionSignature(Source* source)
     return signature;
 }
 
-FunctionDeclaration functionDeclaration(Source* source, DiagnosticList* diagnostics)
+FunctionDeclaration functionDeclaration(Access access, Source* source, DiagnosticList* diagnostics)
 {
     FunctionDeclaration declaration =
     {
@@ -311,7 +319,7 @@ FunctionDeclaration functionDeclaration(Source* source, DiagnosticList* diagnost
             .code = source->code,
             .index = source->current
         },
-        .signature = functionSignature(source),
+        .signature = functionSignature(access, source),
         .body = statements(source)
     };
 
@@ -338,9 +346,10 @@ CompilationUnit compilationUnit(Source* source, DiagnosticList* diagnostics)
 
     while (*source->current)
     {
+        Access access = accessibility(source);
         char* start = source->current;
 
-        FunctionDeclaration function = functionDeclaration(source, diagnostics);
+        FunctionDeclaration function = functionDeclaration(access, source, diagnostics);
         if (start == source->current)
         {
             appendDiagnostic(diagnostics, (Diagnostic)
@@ -607,7 +616,7 @@ void canParseAFunctionSignatureWithoutInputOrOutput()
        .current = code
     };
 
-    FunctionSignature signature = functionSignature(&source);
+    FunctionSignature signature = functionSignature(ACCESS_PRIVATE, &source);
     Slice expected =
     {
         .start = code + 9,
@@ -619,7 +628,7 @@ void canParseAFunctionSignatureWithoutInputOrOutput()
 
 void canParseAPublicFunctionSignatureWithoutInputOrOutput()
 {
-    char* code = "public function main";
+    char* code = "function main";
     Source source =
     {
        .path = "main.owen",
@@ -627,10 +636,10 @@ void canParseAPublicFunctionSignatureWithoutInputOrOutput()
        .current = code
     };
 
-    FunctionSignature signature = functionSignature(&source);
+    FunctionSignature signature = functionSignature(ACCESS_PRIVATE, &source);
     Slice expected =
     {
-        .start = code + 16,
+        .start = code + 9,
         .length = 4
     };
 
@@ -650,7 +659,7 @@ void canParseAFunctionWithoutStatements()
        .current = code
     };
 
-    FunctionDeclaration declaration = functionDeclaration(&source, &diagnostics);
+    FunctionDeclaration declaration = functionDeclaration(ACCESS_PRIVATE, &source, &diagnostics);
 
     assert(declaration.body.count == 0);
     assert(diagnostics.count == 0);

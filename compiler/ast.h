@@ -22,9 +22,15 @@ typedef struct
 DECLARE_LIST(Slice)
 DECLARE_LIST(SliceList)
 
+typedef enum
+{
+    ACCESS_PUBLIC,
+    ACCESS_PRIVATE
+} Access;
+
 typedef struct
 {
-    bool isPublic;
+    Access access;
     Slice identifier;
 } FunctionSignature;
 

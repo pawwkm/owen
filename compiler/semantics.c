@@ -64,7 +64,7 @@ SymbolList* findAvailableReferences(SymbolList* master, CompilationUnit* unit)
         {
             for (int32_t u = 0; u < unit->uses->count; u++)
             {
-                if (symbol->function->signature.isPublic && !strcmp(symbol->namespace, unit->uses->elements[u]))
+                if (symbol->function->signature.access == ACCESS_PUBLIC && !strcmp(symbol->namespace, unit->uses->elements[u]))
                     appendSymbol(symbols, *symbol);
             }
         }
@@ -143,7 +143,7 @@ void ambiguousCallIssuesDiagnostic()
     assert(program.diagnostics.count == 1);
 
     Diagnostic* diagnostic = &program.diagnostics.elements[0];
-    assert(!strcmp("a can be any of:\nfirst.owen:2:1\nsecond.owen:2:1", diagnostic->description));
+    assert(!strcmp("a can be any of:\nfirst.owen:2:8\nsecond.owen:2:8", diagnostic->description));
     assert(37 == diagnostic->occurredAt.index - callingCode);
 }
 

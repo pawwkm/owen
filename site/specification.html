@@ -40,11 +40,13 @@ namespaceDirective = namespace qualifiedIdentifier
 useDirective = use qualifiedIdentifier
 qualifiedIdentifier = identifier (dot identifer)*
 
-declaration = functionDeclaration
-            / structureDeclaration
-            / unionDeclaration
-            / enumerationDeclaration
-            / propositionDeclaration
+declaration = access? ( functionDeclaration
+                      / structureDeclaration
+                      / unionDeclaration
+                      / enumerationDeclaration
+                      / propositionDeclaration)
+
+access = public
 
 identifier = !keyword [A-Za-z] [A-Za-z0-9]* whitespace
 keyword = namespace
@@ -111,7 +113,7 @@ comment = '//' (!'\n' .)* '\n'?</code></pre>
                           statements?
                       end
 
-functionSignature = public? function identifier
+functionSignature = function identifier
                         (input arguments)?
                         (output type (comma type)*)?
 
@@ -141,12 +143,12 @@ argument = type indentifier</code></pre>
             </p>
 
             <h1>2.2. Structures</h1>
-            <pre><code>structureDeclaration = public? structure identifier
+            <pre><code>structureDeclaration = structure identifier
                            fields
                        end
 
 fields = field (comma field)*
-field = public? type identifier</code></pre>
+field = access? type identifier</code></pre>
 
             <p>
                 A structure is a sequence of fields laid out in memory as they
@@ -160,7 +162,7 @@ field = public? type identifier</code></pre>
             </p>
 
             <h1>2.3. Unions</h1>
-            <pre><code>unionDeclaration = public? union identifier
+            <pre><code>unionDeclaration = union identifier
                        fields
                    end</code></pre>
 
@@ -171,7 +173,7 @@ field = public? type identifier</code></pre>
             </p>
 
             <h1>2.4. Enumerations</h1>
-            <pre><code>enumerationDeclaration = public? enumeration identifier of type
+            <pre><code>enumerationDeclaration = enumeration identifier of type
                              enumerationConstants
                          end
 
