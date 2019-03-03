@@ -86,14 +86,14 @@ void bindFunctionsCallsInBlock(StatementList* block, SymbolList* symbols,  Diagn
     for (int32_t s = 0; s < block->count; s++)
     {
         Statement* statement = &block->elements[s];
-        if (statement->type == STATEMENT_CALL)
+        if (statement->type == STATEMENT_UNRESOLVED_CALL)
         {
-            SymbolList* matches = findSymbolsWithName(symbols, &statement->call.function);
+            SymbolList* matches = findSymbolsWithName(symbols, &statement->identifier);
             if (matches->count == 0)
             {
-                char* description = malloc(statement->call.function.length + 1);
-                description[statement->call.function.length] = 0;
-                strncpy(description, statement->call.function.start, statement->call.function.length);
+                char* description = malloc(statement->identifier.length + 1);
+                description[statement->identifier.length] = 0;
+                strncpy(description, statement->identifier.start, statement->identifier.length);
                 description = concatenate(description, " is undefined.");
 
                 appendDiagnostic(diagnostics, (Diagnostic)
@@ -104,9 +104,9 @@ void bindFunctionsCallsInBlock(StatementList* block, SymbolList* symbols,  Diagn
             }
             else if (matches->count > 1)
             {
-                char* description = malloc(statement->call.function.length + 1);
-                description[statement->call.function.length] = 0;
-                strncpy(description, statement->call.function.start, statement->call.function.length);
+                char* description = malloc(statement->identifier.length + 1);
+                description[statement->identifier.length] = 0;
+                strncpy(description, statement->identifier.start, statement->identifier.length);
 
                 description = concatenate(description, " can be any of:");
                 for (size_t i = 0; i < matches->count; i++)
@@ -122,6 +122,11 @@ void bindFunctionsCallsInBlock(StatementList* block, SymbolList* symbols,  Diagn
                     .description = description,
                     .occurredAt = statement->declaredAt
                 });
+            }
+            else
+            {
+                statement->type = STATEMENT_CALL;
+                statement->function = matches->elements[0].function;
             }
         }
     }

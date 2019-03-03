@@ -28,28 +28,26 @@ typedef struct
     Slice identifier;
 } FunctionSignature;
 
-typedef struct
-{
-    Slice function;
-} CallStatement;
-
+struct _FunctionDeclaration;
 typedef struct
 {
     Position declaredAt;
     enum
     {
+        STATEMENT_UNRESOLVED_CALL,
         STATEMENT_CALL
     } type;
 
     union
     {
-        CallStatement call;
+        Slice identifier;
+        struct _FunctionDeclaration* function;;
     };
 } Statement;
 
 DECLARE_LIST(Statement)
 
-typedef struct
+typedef struct _FunctionDeclaration
 {
     Position declaredAt;
     FunctionSignature signature;

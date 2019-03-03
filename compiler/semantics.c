@@ -147,8 +147,36 @@ void ambiguousCallIssuesDiagnostic()
     assert(37 == diagnostic->occurredAt.index - callingCode);
 }
 
+void unambiguousCallBindsToFunction()
+{
+    char* code = "namespace Test\n"
+                 "public function a\n"
+                 "    a()\n"
+                 "end";
+
+    Source source =
+    {
+        .path = "main.owen",
+        .code = code,
+        .current = code
+    };
+
+    Program program = parse(&source, 1);
+    analyze(&program);
+
+    assert(program.compilationUnits.count == 1);
+    assert(program.compilationUnits.elements[0].functions->count == 1);
+
+    FunctionDeclaration callee = program.compilationUnits.elements[0].functions->elements[0];
+    Statement caller = callee.body.elements[0];
+
+    assert(caller.type == STATEMENT_CALL);
+    assert(compareSlices(&callee.signature.identifier, &caller.function->signature.identifier));
+}
+
 void semanticsTestSuite()
 {
     callToUndefinedFunctionIssuesDiagnostic();
     ambiguousCallIssuesDiagnostic();
+    unambiguousCallBindsToFunction();
 }

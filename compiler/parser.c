@@ -255,8 +255,8 @@ bool callStatement(Source* source, StatementList* statements)
             .code = source->code,
             .index = start
         },
-        .type = STATEMENT_CALL,
-        .call = function
+        .type = STATEMENT_UNRESOLVED_CALL,
+        .identifier = function
     });
 
     return true;
