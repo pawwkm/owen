@@ -108,6 +108,10 @@ comment = '//' (!'\n' .)* '\n'?</code></pre>
             </p>
 
             <h1>2. Declarations</h1>
+            <p>
+				Nested <i>identifier</i>s cannot be the same as the declaration's <i>identifier</i>.
+				
+            </p>
             <h2>2.1 Functions</h2>
             <pre><code>functionDeclaration = functionSignature
                           statements?
@@ -152,13 +156,7 @@ field = access? type identifier</code></pre>
 
             <p>
                 A structure is a sequence of fields laid out in memory as they
-                are lexically declared. Compilers are allowed to insert padding
-                between the fields. Each structure identifier must be unique.
-                Each field must have an unique identifier. A field's identifier
-                cannot be the same as the structure's identifier. A structure
-                cannot have the same name as a function. Structures cannot have
-                fields with the same type as the structure they are declared in
-                either directly or indirectly.
+                are lexically declared. Padding may be inserted between fields.
             </p>
 
             <h1>2.3. Unions</h1>
@@ -183,8 +181,7 @@ enumerationConstant = identifier (assign integerLiteral)</code></pre>
             <p>
                 The <span class="rule">identifier</span> is the name of the
                 enumeration type. The <span class="rule">type</span> must be
-                an integer type. Each of the constants's
-                <span class="rule">identifier</span> must be unique.
+                an integer type.
                 <span class="rule">integerLiteral</span>'s must have the same
                 type as the the <span class="rule">type</span>. If an
                 <span class="rule">enumerationConstant</span> omits the
@@ -219,8 +216,7 @@ statement = assignmentStatement
 
             <p>
                 Each <span class="rule">statement</span> are executed in lexical
-                order. <span class="rule">statements</span> introduce block
-                scope. Names cannot be shadowed.
+                order.
             </p>
 
             <h2>3.1. Assignment Statements</h2>
