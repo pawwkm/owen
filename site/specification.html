@@ -109,7 +109,8 @@ comment = '//' (!'\n' .)* '\n'?</code></pre>
 
             <h1>2. Declarations</h1>
             <p>
-				Nested <i>identifier</i>s cannot be the same as the <i>declaration</i>'s <i>identifier</i>.
+				Nested <span class="rule">identifier</span>s cannot be the same as the 
+				<span class="rule">declaration</span>'s <span class="rule">identifier</span>.
 				
             </p>
             <h2>2.1 Functions</h2>
@@ -157,6 +158,8 @@ field = access? type identifier</code></pre>
             <p>
                 A structure is a sequence of fields laid out in memory as they
                 are lexically declared. Padding may be inserted between fields.
+				The size of the structure is the sum of its 
+				<span class="rule">field</span>s.
             </p>
 
             <h1>2.3. Unions</h1>
@@ -165,6 +168,10 @@ field = access? type identifier</code></pre>
                    end</code></pre>
 
             <p>
+				Works exactly like structures except that all <span class="rule">fields</span>
+				starts at the same address. The size of the union is the size
+				of the largest <span class="rule">field</span>
+			
                 The fields of a union occupy the same memory which mean that the
                 size of the union is the size of the largest
                 <span class="rule">field</span>.
