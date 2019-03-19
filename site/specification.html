@@ -145,8 +145,19 @@ argument = type indentifier</code></pre>
                 have any input. The return type of main must be
                 <span class="type">i32</span>.
             </p>
+            
+            <h1>2.2. Propositions</h1>
+            <pre><code>propositionDeclaration = proposition
+                             statements?
+                         end</code></pre>
 
-            <h1>2.2. Structures</h1>
+            <p>
+                Propositions are nameless functions that returns no values. They 
+                are run before the <i>main</i> function if they are included 
+                using the <b>--test</b> command line argument.
+            </p>
+            
+            <h1>2.3. Structures</h1>
             <pre><code>structureDeclaration = structure identifier
                            fields
                        end
@@ -161,7 +172,7 @@ field = access? type identifier</code></pre>
 				<span class="rule">field</span>s and padding.
             </p>
 
-            <h1>2.3. Unions</h1>
+            <h1>2.4. Unions</h1>
             <pre><code>unionDeclaration = union identifier
                        fields
                    end</code></pre>
@@ -172,7 +183,7 @@ field = access? type identifier</code></pre>
 				of the largest <span class="rule">field</span>.
             </p>
 
-            <h1>2.4. Enumerations</h1>
+            <h1>2.5. Enumerations</h1>
             <pre><code>enumerationDeclaration = enumeration identifier of type
                              enumerationConstants
                          end
@@ -190,17 +201,6 @@ enumerationConstant = identifier (assign integerLiteral)</code></pre>
                 <span class="rule">integerLiteral</span> then it is the value of
                 the last constant + 1. If the first constant omits the
                 <span class="rule">integerLiteral</span> then its value is 0.
-            </p>
-
-            <h1>2.5. Propositions</h1>
-            <pre><code>propositionDeclaration = proposition
-                             statements?
-                         end</code></pre>
-
-            <p>
-                Propositions are nameless functions that returns no values. They 
-                are run before the <i>main</i> function if they are included 
-                using the <b>--test</b> command line argument.
             </p>
 
             <h1>3. Statements</h1>
