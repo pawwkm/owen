@@ -618,10 +618,9 @@ fieldInitializer = identifier equal expression</code></pre>
                 The <span class="rule">expression</span> must be an array type.
                 Each expression in <span class="rule">expressions</span> must be
                 an integer type. Each value must be within 0 and the size of the
-                dimension it is used to index into. If an expression is out of
-                bound the program is stopped and then a message is displayed to
-                the programmer explaining where the error occured. In
-                <i>Release</i> mode there are no bounds check. Going out of
+                dimension it is used to index into. Going out of bounds in Debug
+                mode the program is stopped and then a message is displayed to
+                the programmer explaining where the error occured. Going out of
                 bounds in Release mode results in undefined behaviour.
             </p>
 
