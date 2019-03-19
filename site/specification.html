@@ -416,7 +416,7 @@ booleanOperator = '||' / '&#38;&#38;' / '&lt;' / '&gt;' whitespace</code></pre>
             <h3>4.2.2. Second Precedence</h3>
             <p>
                 The <b>&#38;&#38;</b> operator is logical and. Both operands
-                must be type of <span class="rule">bool</span>.
+                must be type of <span class="type">bool</span>.
             </p>
 
             <h3>4.2.3. Third Precedence</h3>
@@ -436,19 +436,20 @@ booleanOperator = '||' / '&#38;&#38;' / '&lt;' / '&gt;' whitespace</code></pre>
                 operands. Both operands must be of the same type. The result of
                 the operation is the same type as the operands. The <b>|</b> is
                 the bitwise or operator. Both operands must be of the same
-                integer type. The result of the operation is the same type as
-                the operands.
+                <span class="type">iXX</span> type. The result of the operation 
+                is the same type as the operands.
             </p>
 
             <h3>4.2.5. Fifth Pecedence</h3>
             <p>
                 The <b>*</b>, <b>/</b> and <b>%</b> are the multiply, divide
                 and the modulus operators respectively. Both operands must be of
-                the same <span class="type">iXX</span> and <span class="type">fXX</span> type. 
-                The <b>&lt;&lt;</b> and <b>&gt;&gt;</b> are the right shift and 
-                left shift operators respectively. Both operands must be of the 
-                same integer type. The <b>&#38;</b> operator is bitwise and. 
-                Both operands must be of the same integer type.
+                the same <span class="type">iXX</span> and <span class="type">fXX</span> 
+                type. The <b>&lt;&lt;</b> and <b>&gt;&gt;</b> are the right 
+                shift and left shift operators respectively. Both operands must
+                be of the same <span class="type">iXX</span> type. The 
+                <b>&#38;</b> operator is bitwise and. Both operands must be of 
+                the same <span class="type">iXX</span> type.
             </p>
 
             <h2>4.3. Call Expressions</h2>
