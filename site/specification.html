@@ -335,11 +335,9 @@ range = (expression colon)? expression (colon expression)?</code></pre>
                 <span class="type">bool</span>. If the expression is
                 <span class="keyword">true</span> then nothing happens. If the
                 <span class="rule">expression</span> is
-                <span class="keyword">false</span> then the programmer is told
-                which assertion failed then the execution of the proposition
-                stops. If there are untested propositions left then another one
-                is executed. This statement is only allowed in the body of a
-                proposition.
+                <span class="keyword">false</span> then the current proposition
+                stops execution and a description of the failing assertion is 
+                given.
             </p>
 
             <h1>4. Expressions</h1>
