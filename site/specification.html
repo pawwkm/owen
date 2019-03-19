@@ -41,10 +41,10 @@ useDirective = use qualifiedIdentifier
 qualifiedIdentifier = identifier (dot identifer)*
 
 declaration = access? ( functionDeclaration
+                      / propositionDeclaration
                       / structureDeclaration
                       / unionDeclaration
-                      / enumerationDeclaration
-                      / propositionDeclaration)
+                      / enumerationDeclaration)
 
 access = public
 
