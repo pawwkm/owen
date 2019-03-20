@@ -193,8 +193,7 @@ enumerationConstant = identifier (assign integerLiteral)</code></pre>
 
             <p>
                 The <span class="rule">identifier</span> is the name of the
-                enumeration type. The <span class="rule">type</span> must be
-                an integer type.
+                enumeration. The <span class="rule">type</span> must be an <span class="type">iXX</span>.
                 <span class="rule">integerLiteral</span>'s must have the same
                 type as the the <span class="rule">type</span>. If an
                 <span class="rule">enumerationConstant</span> omits the
@@ -266,7 +265,7 @@ range = (expression colon)? expression (colon expression)?</code></pre>
                 the <span class="rule">range</span> and has the same scope as
                 the <span class="rule">statements</span>. The
                 <span class="rule">range</span> can either result in an array or
-                integer type.
+                <span class="type">iXX</span>.
             </p>
 
             <p>
@@ -281,7 +280,7 @@ range = (expression colon)? expression (colon expression)?</code></pre>
                 range inclusivly. The last <span class="rule">expression</span>
                 is the value that the identifier is incremented by per
                 iteration. All 3 <span class="rule">expression</span>s must be
-                of the same integer type.
+                of the same <span class="type">iXX</span> type.
             </p>
 
             <h2>3.4. While Statements</h2>
@@ -404,7 +403,7 @@ booleanOperator = '||' / '&#38;&#38;' / '&lt;' / '&gt;' whitespace</code></pre>
             <h3>4.2.1. First Precedence</h3>
             <p>
                 The <b>||</b> operator is logical or. Both operands must be type
-                of <span class="keyword">bool</span>. If one of the operands are
+                of <span class="type">bool</span>. If one of the operands are
                 is <span class="keyword">true</span> then the
                 <span class="rule">expression</span> is
                 <span class="keyword">true</span>; otherwise
@@ -617,7 +616,7 @@ fieldInitializer = identifier equal expression</code></pre>
             <p>
                 The <span class="rule">expression</span> must be an array type.
                 Each expression in <span class="rule">expressions</span> must be
-                an integer type. Each value must be within 0 and the size of the
+                an <span class="type">iXX</span>. Each value must be within 0 and the size of the
                 dimension it is used to index into. Going out of bounds in Debug
                 mode the program is stopped and then a message is displayed to
                 the programmer explaining where the error occured. Going out of
