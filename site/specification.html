@@ -26,7 +26,7 @@
             <h1>The Owen Language Specification 0.1.0</h1>
             <p>
                 The specification is versioned using <a href="https://semver.org/spec/v2.0.0.html">Semver 2.0</a>.
-                <a href="http://bford.info/pub/lang/peg.pdf">Parser Expressiong Grammar</a>
+                <a href="http://bford.info/pub/lang/peg.pdf">Parser Expression Grammar</a>
                 is used to define the syntax of Owen. All source code is encoded
                 using UTF-8. Source files uses the <b>.owen</b> extension.
             </p>
@@ -38,7 +38,7 @@ directives = namespaceDirective useDirective*
 
 namespaceDirective = namespace qualifiedIdentifier
 useDirective = use qualifiedIdentifier
-qualifiedIdentifier = identifier (dot identifer)*
+qualifiedIdentifier = identifier (dot identifier)*
 
 declaration = access? ( functionDeclaration
                       / propositionDeclaration
@@ -195,7 +195,7 @@ enumerationConstant = identifier (assign integerLiteral)</code></pre>
                 The <span class="rule">identifier</span> is the name of the
                 enumeration. The <span class="rule">type</span> must be an <span class="type">iXX</span>.
                 <span class="rule">integerLiteral</span>'s must have the same
-                type as the the <span class="rule">type</span>. If an
+                type as the <span class="rule">type</span>. If an
                 <span class="rule">enumerationConstant</span> omits the
                 <span class="rule">integerLiteral</span> then it is the value of
                 the last constant + 1. If the first constant omits the
@@ -261,7 +261,7 @@ range = (expression colon)? expression (colon expression)?</code></pre>
             <p>
                 The <span class="rule">statements</span> are executed for each
                 value in the <span class="rule">range</span>. The
-                <span class="rule">identifer</span> is set to the next value in
+                <span class="rule">identifier</span> is set to the next value in
                 the <span class="rule">range</span> and has the same scope as
                 the <span class="rule">statements</span>. The
                 <span class="rule">range</span> can either result in an array or
@@ -269,7 +269,7 @@ range = (expression colon)? expression (colon expression)?</code></pre>
             </p>
 
             <p>
-                If the middle <span class="rule">expression</span> is an array
+                If the middle <span class="rule">expression</span> is an array,
                 then the first and last <span class="rule">expression</span>s
                 must be omitted. The elements of the array are traversed from
                 the first to the last. If the middle
@@ -277,7 +277,7 @@ range = (expression colon)? expression (colon expression)?</code></pre>
                 <span class="rule">expression</span> is the start of the range.
                 If omitted the range starts from 0. The middle
                 <span class="rule">expression</span> is the last value in the
-                range inclusivly. The last <span class="rule">expression</span>
+                range inclusively. The last <span class="rule">expression</span>
                 is the value that the identifier is incremented by per
                 iteration. All 3 <span class="rule">expression</span>s must be
                 of the same <span class="type">iXX</span> type.
@@ -292,12 +292,12 @@ range = (expression colon)? expression (colon expression)?</code></pre>
                 The <span class="rule">expression</span> must be of type of
                 <span class="type">bool</span>. If the
                 <span class="rule">expression</span> is
-                <span class="keyword">true</span> then the
+                <span class="keyword">true</span>, then the
                 <span class="rule">statements</span> are executed. After the
                 <span class="rule">statements</span> have executed, the
                 expression is evaluated again, and if
                 <span class="keyword">true</span> the
-                <span class="rule">statements</span> are executed again. This
+                <span class="rule">statements</span> are executed again. This 
                 continues until the expression is
                 <span class="keyword">false</span>.
             </p>
@@ -318,11 +318,11 @@ range = (expression colon)? expression (colon expression)?</code></pre>
             <p>
                 Returns the control the function that called the one that
                 contains the return statement. If the function containing the
-                return statement doesn't specify any output then the statement
+                return statement doesn't specify any output, then the statement
                 cannot specify any <span class="rule">expressions</span> to
                 return and the function may omit the statement entirely. Since
                 in that case the control is returned to the caller after the
-                last statement. If output is specified then all code paths must
+                last statement. If output is specified, then all code paths must
                 end with a return statement with an expression of the same type
                 as the return type.
             </p>
@@ -332,9 +332,9 @@ range = (expression colon)? expression (colon expression)?</code></pre>
             <p>
                 The <span class="rule">expression</span> must be type of
                 <span class="type">bool</span>. If the expression is
-                <span class="keyword">true</span> then nothing happens. If the
+                <span class="keyword">true</span>, then nothing happens. If the
                 <span class="rule">expression</span> is
-                <span class="keyword">false</span> then the current proposition
+                <span class="keyword">false</span>, then the current proposition
                 stops execution and a description of the failing assertion is 
                 given.
             </p>
@@ -404,12 +404,10 @@ booleanOperator = '||' / '&#38;&#38;' / '&lt;' / '&gt;' whitespace</code></pre>
             <p>
                 The <b>||</b> operator is logical or. Both operands must be type
                 of <span class="type">bool</span>. If one of the operands are
-                is <span class="keyword">true</span> then the
+                is <span class="keyword">true</span>, then the
                 <span class="rule">expression</span> is
                 <span class="keyword">true</span>; otherwise
-                <span class="keyword">false</span>. If the left hand side is
-                <span class="keyword">true</span> then the
-                right hand side is not executed.
+                <span class="keyword">false</span>. The operator short circuits.
             </p>
 
             <h3>4.2.2. Second Precedence</h3>
@@ -452,7 +450,7 @@ booleanOperator = '||' / '&#38;&#38;' / '&lt;' / '&gt;' whitespace</code></pre>
             </p>
 
             <h2>4.3. Call Expressions</h2>
-            <pre><code>callExpression = identifer leftParenthesis expressions? rightParenthesis
+            <pre><code>callExpression = identifier leftParenthesis expressions? rightParenthesis
 
 leftParenthesis = '(' whitespace
 rightParenthesis = ')' whitespace</code></pre>
@@ -565,7 +563,7 @@ rightSquareBracket = ']' whitespace</code></pre>
                 <span class="rule">elements</span> in the innermost dimension.
                 Each <span class="rule">expression</span>, which must be an
                 integer type, in <span class="rule">dimensions</span> specifies
-                the size of each dimension. The maximum size of a dimention is
+                the size of each dimension. The maximum size of a dimension is
                 implementation specific. The smallest dimension size is 0.
             </p>
 
@@ -573,7 +571,7 @@ rightSquareBracket = ']' whitespace</code></pre>
                 If only the <span class="rule">elements</span> are declared then
                 the first element of the innermost dimension declares the type
                 of the array. The <span class="rule">elements</span> also
-                specifies the size of each dimention.
+                specifies the size of each dimension.
             </p>
 
             <h3>4.4.5. Structure Literals</h3>
@@ -587,7 +585,7 @@ fieldInitializer = identifier equal expression</code></pre>
                 The <span class="rule">structureLiteral</span>'s identifier is
                 the name of the structure to initialize.
                 The <span class="rule">fieldInitializer</span>'s
-                <span class="rule">identifer</span> is the name of the field to
+                <span class="rule">identifier</span> is the name of the field to
                 initialize. The <span class="rule">expression</span> is the
                 value of the given field. The type of the expression must match
                 field's type. Fields that are not initialized have undefined
@@ -606,7 +604,7 @@ fieldInitializer = identifier equal expression</code></pre>
             <pre><code>dotExpression = expression dot expression</code></pre>
             <p>
                 The left <span class="rule">expression</span>'s type must be a
-                structure, enum or union. The right
+                structure, enumeration or union. The right
                 <span class="rule">expression</span> must be a member on that
                 type.
             </p>
@@ -619,14 +617,15 @@ fieldInitializer = identifier equal expression</code></pre>
                 an <span class="type">iXX</span>. Each value must be within 0 and the size of the
                 dimension it is used to index into. Going out of bounds in Debug
                 mode the program is stopped and then a message is displayed to
-                the programmer explaining where the error occured. Going out of
+                the programmer explaining where the error occurred. Going out of
                 bounds in Release mode results in undefined behaviour.
             </p>
 
             <h2>4.8. Identifier Expressions</h2>
             <pre><code>identifierExpression = identifier</code></pre>
             <p>
-                The identifier can either be a variable, field or enum constant.
+                The identifier can either be a variable, field or enumeration 
+                constant.
             </p>
 
             <h2>4.9. Parentherized Expressions</h2>
