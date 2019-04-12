@@ -5,8 +5,35 @@
 #include <ctype.h>
 #include <string.h>
 #include <assert.h>
-
 #include "parser.h"
+
+typedef enum
+{
+    TokenType_Comma,
+    TokenType_Namespace,
+    TokenType_Use,
+    TokenType_Public,
+    TokenType_Function,
+    TokenType_Input,
+    TokenType_Output,
+    TokenType_End,
+    TokenType_If,
+    TokenType_Else,
+    TokenType_For,
+    TokenType_Each,
+    TokenType_In,
+    TokenType_While,
+    TokenType_Break,
+    TokenType_Structure,
+    TokenType_Proposition,
+    TokenType_Enumeration,
+    TokenType_Of,
+    TokenType_Size,
+    TokenType_Union,
+    TokenType_Identifier,
+    TokenType_LeftParenthesis,
+    TokenType_RightParenthesis
+} TokenType;
 
 char* keywords[] =
 {
@@ -32,6 +59,8 @@ char* keywords[] =
     "union",
     0
 };
+
+Slice identifier(Source* source);
 
 bool whitespace(Source* source)
 {
@@ -66,6 +95,74 @@ bool literal(Source* source, char* literal)
     }
     else
         return false;
+}
+
+bool contains(TokenType* list, int32_t listLength, TokenType type)
+{
+    for (int32_t i = 0; i < listLength; i++)
+    {
+        if (list[i] == type)
+            return true;
+    }
+
+    return false;
+}
+
+void skip(Source* source)
+{
+    const char* delimiters = " \n\t";
+    while (source->current && strchr(delimiters, source->current[0]) == NULL)
+        source->current++;
+
+    whitespace(source);
+}
+
+TokenType peek(Source* source)
+{
+    char* start = source->current;
+    TokenType type = TokenType_Of;
+
+    if (identifier(source).length != 0)
+        type = TokenType_Identifier;
+    else if (literal(source, "function"))
+        type = TokenType_Function;
+    else if (literal(source, "proposition"))
+        type = TokenType_Proposition;
+    else if (literal(source, "structure"))
+        type = TokenType_Structure;
+    else if (literal(source, "union"))
+        type = TokenType_Union;
+    else if (literal(source, "enumeration"))
+        type = TokenType_Enumeration;
+    else if (literal(source, "end"))
+        type = TokenType_End;
+    else if (literal(source, "("))
+        type = TokenType_LeftParenthesis;
+    else if (literal(source, ")"))
+        type = TokenType_RightParenthesis;
+
+    source->current = start;
+
+    return type;
+}
+
+void panicIfUnsynchronized(Source* source, TokenType* admissible, int32_t admissibleLength, TokenType* stops, int32_t stopsLength, DiagnosticList* diagnostics, char* description)
+{
+    TokenType next = peek(source);
+    if (!contains(admissible, admissibleLength, next))
+    {
+        appendDiagnostic(diagnostics, (Diagnostic)
+        {
+            .description = description,
+            .occurredAt = positionOf(source)
+        });
+
+        while (*source->current && !contains(admissible, admissibleLength, next) || !contains(stops, stopsLength, next))
+        {
+            skip(source);
+            next = peek(source);
+        }
+    }
 }
 
 Access accessibility(Source* source)
@@ -240,7 +337,7 @@ StringList useDirectives(Source* source, DiagnosticList* diagnostics)
     return directives;
 }
 
-bool callStatement(Source* source, StatementList* statements)
+bool callStatement(Source* source, StatementList* statements, DiagnosticList* diagnostics)
 {
     char* start = source->current;
     Slice function = identifier(source);
@@ -248,15 +345,11 @@ bool callStatement(Source* source, StatementList* statements)
     if (function.length == 0)
         return false;
 
-    if (!literal(source, "("))
-    {
+    panicIfUnsynchronized(source, (TokenType[]){ TokenType_LeftParenthesis }, 1, (TokenType[]){ TokenType_RightParenthesis, TokenType_If, TokenType_For, TokenType_While, TokenType_Identifier, TokenType_End }, 6, diagnostics, "( expected.");
+    literal(source, "(");
 
-    }
-
-    if (!literal(source, ")"))
-    {
-
-    }
+    panicIfUnsynchronized(source, (TokenType[]){ TokenType_RightParenthesis }, 1, (TokenType[]){ TokenType_If, TokenType_For, TokenType_While, TokenType_Identifier, TokenType_End }, 5, diagnostics, ") expected.");
+    literal(source, ")");
 
     appendStatement(statements, (Statement)
     {
@@ -273,12 +366,12 @@ bool callStatement(Source* source, StatementList* statements)
     return true;
 }
 
-bool statement(Source* source, StatementList* statements)
+bool statement(Source* source, StatementList* statements, DiagnosticList* diagnostics)
 {
-    return callStatement(source, statements);
+    return callStatement(source, statements, diagnostics);
 }
 
-StatementList statements(Source* source)
+StatementList statements(Source* source, DiagnosticList* diagnostics)
 {
     StatementList list =
     {
@@ -287,29 +380,10 @@ StatementList statements(Source* source)
         .capacity = 0
     };
 
-    while (*source->current && statement(source, &list))
+    while (*source->current && statement(source, &list, diagnostics))
         ;
 
     return list;
-}
-
-FunctionSignature functionSignature(Access access, Source* source)
-{
-    char* start = source->current;
-    FunctionSignature signature =
-    {
-        .access = access,
-        .identifier = (Slice)
-        {
-            .start = 0,
-            .length = 0
-        }
-    };
-
-    if (literal(source, "function"))
-        signature.identifier = identifier(source);
-
-    return signature;
 }
 
 FunctionDeclaration functionDeclaration(Access access, Source* source, DiagnosticList* diagnostics)
@@ -322,14 +396,16 @@ FunctionDeclaration functionDeclaration(Access access, Source* source, Diagnosti
             .code = source->code,
             .index = source->current
         },
-        .signature = functionSignature(access, source),
-        .body = statements(source)
+        .signature = (FunctionSignature)
+        {
+            .access = access,
+            .identifier = identifier(source)
+        },
+        .body = statements(source, diagnostics)
     };
 
-    if (!literal(source, "end"))
-    {
-
-    }
+    panicIfUnsynchronized(source, (TokenType[]){ TokenType_End }, 1, (TokenType[]){TokenType_Function, TokenType_Proposition, TokenType_Structure, TokenType_Union, TokenType_Enumeration }, 5, diagnostics, "end expected.");
+    literal(source, "end");
 
     return declaration;
 }
@@ -354,10 +430,9 @@ CompilationUnit compilationUnit(Source* source, DiagnosticList* diagnostics)
     while (*source->current)
     {
         Access access = accessibility(source);
-        char* start = source->current;
-
-        FunctionDeclaration function = functionDeclaration(access, source, diagnostics);
-        if (start == source->current)
+        if (literal(source, "function"))
+            appendFunctionDeclaration(&unit.functions, functionDeclaration(access, source, diagnostics));
+        else
         {
             appendDiagnostic(diagnostics, (Diagnostic)
             {
@@ -365,8 +440,6 @@ CompilationUnit compilationUnit(Source* source, DiagnosticList* diagnostics)
                 .occurredAt = positionOf(source)
             });
         }
-        else
-            appendFunctionDeclaration(&unit.functions, function);
     }
 
     return unit;
@@ -611,50 +684,10 @@ void missingQualifiedIdentifierAfterUseKeywordIssuesDiagnostic()
     assert(!strcmp(diagnostics.elements[0].description, "Qualified identifier expected."));
 }
 
-void canParseAFunctionSignatureWithoutInputOrOutput()
-{
-    char* code = "function main";
-    Source source =
-    {
-       .path = "main.owen",
-       .code = code,
-       .current = code
-    };
-
-    FunctionSignature signature = functionSignature(ACCESS_PRIVATE, &source);
-    Slice expected =
-    {
-        .start = code + 9,
-        .length = 4
-    };
-
-    assert(compareSlices(&expected, &signature.identifier));
-}
-
-void canParseAPublicFunctionSignatureWithoutInputOrOutput()
-{
-    char* code = "function main";
-    Source source =
-    {
-       .path = "main.owen",
-       .code = code,
-       .current = code
-    };
-
-    FunctionSignature signature = functionSignature(ACCESS_PRIVATE, &source);
-    Slice expected =
-    {
-        .start = code + 9,
-        .length = 4
-    };
-
-    assert(compareSlices(&expected, &signature.identifier));
-}
-
-void canParseAFunctionWithoutStatements()
+void canParseAnEmptyFunction()
 {
     DiagnosticList diagnostics = initDiagnosticList();
-    char* code = "function main\n"
+    char* code = "main\n"
                  "end";
 
     Source source =
@@ -669,11 +702,14 @@ void canParseAFunctionWithoutStatements()
     assert(declaration.body.count == 0);
     assert(diagnostics.count == 0);
     assert(*source.current == 0);
+
+    assert(declaration.signature.access == ACCESS_PRIVATE);
+    assert(declaration.body.count == 0);
 }
 
 void canParseACompilationUnitWithAFunction()
 {
-    char* code = "namespace Abc"
+    char* code = "namespace Abc\n"
                  "function main\n"
                  "end";
 
@@ -686,6 +722,29 @@ void canParseACompilationUnitWithAFunction()
 
     Program program = parse(&source, 1);
     assert(program.compilationUnits.elements[0].functions.count == 1);
+}
+
+void canParseACompilationUnitWithAnEmptyPublicFunction()
+{
+    char* code = "namespace Abc\n"
+                 "public function main\n"
+                 "end";
+
+    Source source =
+    {
+       .path = "main.owen",
+       .code = code,
+       .current = code
+    };
+
+    Program program = parse(&source, 1);
+    assert(*source.current == 0);
+    assert(program.diagnostics.count == 0);
+    assert(program.compilationUnits.elements[0].functions.count == 1);
+
+    FunctionDeclaration declaration = program.compilationUnits.elements[0].functions.elements[0];
+    assert(declaration.signature.access == ACCESS_PUBLIC);
+    assert(declaration.body.count == 0);
 }
 
 void parserTestSuite()
@@ -705,9 +764,7 @@ void parserTestSuite()
     canParseUseDirectives();
     missingQualifiedIdentifierAfterUseKeywordIssuesDiagnostic();
 
-    canParseAFunctionSignatureWithoutInputOrOutput();
-    canParseAPublicFunctionSignatureWithoutInputOrOutput();
-
-    canParseAFunctionWithoutStatements();
+    canParseAnEmptyFunction();
     canParseACompilationUnitWithAFunction();
+    canParseACompilationUnitWithAnEmptyPublicFunction();
 }

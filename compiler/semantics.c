@@ -143,7 +143,7 @@ void ambiguousCallIssuesDiagnostic()
     assert(program.diagnostics.count == 1);
 
     Diagnostic* diagnostic = &program.diagnostics.elements[0];
-    assert(!strcmp("a can be any of:\nfirst.owen:2:8\nsecond.owen:2:8", diagnostic->description));
+    assert(!strcmp("a can be any of:\nfirst.owen:2:17\nsecond.owen:2:17", diagnostic->description));
     assert(37 == diagnostic->occurredAt.index - callingCode);
 }
 
