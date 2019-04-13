@@ -17,14 +17,6 @@ typedef struct
     };
 } Symbol;
 
-typedef struct SymbolList
-{
-    struct SymbolList* parent;
-    Symbol* elements;
-    int32_t count;
-    int32_t capacity;
-} SymbolList;
-
-void appendSymbol(SymbolList* list, Symbol element);
+DECLARE_LIST(Symbol)
 
 void semanticsTestSuite();
