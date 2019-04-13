@@ -75,9 +75,6 @@ SymbolList* findAvailableReferences(SymbolList* master, CompilationUnit* unit)
 
 void analyze(Program* program)
 {
-    if (program->diagnostics.count)
-        return;
-
     SymbolList* master = symbolizeDeclarations(program);
     for (int32_t u = 0; u < program->compilationUnits.count; u++)
     {
