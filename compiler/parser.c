@@ -32,7 +32,8 @@ typedef enum
     TokenType_Union,
     TokenType_Identifier,
     TokenType_LeftParenthesis,
-    TokenType_RightParenthesis
+    TokenType_RightParenthesis,
+    TokenType_AssignmentOperator
 } TokenType;
 
 char* keywords[] =
@@ -140,6 +141,8 @@ TokenType peek(Source* source)
         type = TokenType_LeftParenthesis;
     else if (literal(source, ")"))
         type = TokenType_RightParenthesis;
+    else if (literal(source, "="))
+        type = TokenType_AssignmentOperator;
 
     source->current = start;
 
@@ -157,7 +160,7 @@ void panicIfUnsynchronized(Source* source, TokenType* admissible, int32_t admiss
             .occurredAt = positionOf(source)
         });
 
-        while (*source->current && !contains(admissible, admissibleLength, next) || !contains(stops, stopsLength, next))
+        while (*source->current && (!contains(admissible, admissibleLength, next) || !contains(stops, stopsLength, next)))
         {
             skip(source);
             next = peek(source);
@@ -337,6 +340,124 @@ StringList useDirectives(Source* source, DiagnosticList* diagnostics)
     return directives;
 }
 
+Number number(Source* source)
+{
+    Number number =
+    {
+        .tag = NUMBER_INTEGER_TO_BE_INFERRED,
+        .value = (Slice)
+        {
+            .start = NULL,
+            .length = 0
+        }
+    };
+
+    if (isdigit(*source->current))
+    {
+        number.value.start = source->current;
+        while (isdigit(*source->current))
+            source->current++;
+
+        if (literal(source, "."))
+        {
+            if (isdigit(*source->current))
+            {
+                while (isdigit(*source->current))
+                    source->current++;
+
+                number.value.length = source->current - number.value.start;
+                if (literal(source, "f32"))
+                    number.tag = NUMBER_F32;
+                else if (literal(source, "f64"))
+                    number.tag = NUMBER_F64;
+                else
+                    number.tag = NUMBER_FLOAT_TO_BE_INFERRED;
+            }
+            else
+            {
+                // decimal part expected. PANIC!
+            }
+        }
+        else
+        {
+            number.value.length = source->current - number.value.start;
+            if (literal(source, "i8"))
+                number.tag = NUMBER_I8;
+            else if (literal(source, "i16"))
+                number.tag = NUMBER_I16;
+            else if (literal(source, "i32"))
+                number.tag = NUMBER_I32;
+            else if (literal(source, "i64"))
+                number.tag = NUMBER_I64;
+            else if (literal(source, "u8"))
+                number.tag = NUMBER_U8;
+            else if (literal(source, "u16"))
+                number.tag = NUMBER_U16;
+            else if (literal(source, "u32"))
+                number.tag = NUMBER_U32;
+            else if (literal(source, "u64"))
+                number.tag = NUMBER_U64;
+        }
+    }
+
+    return number;
+}
+
+Expression expression(Source* source)
+{
+    Expression value;
+    if ((value.identifier = identifier(source)).length != 0)
+        value.tag = EXPRESSION_IDENTIFIER;
+    else if ((value.number = number(source)).value.length != 0)
+        value.tag = EXPRESSION_NUMBER;
+    else
+        value.tag = EXPRESSION_NULL;
+
+    return value;
+}
+
+ExpressionList expressionList(Source* source)
+{
+    ExpressionList list =
+    {
+        .elements = NULL,
+        .count = 0,
+        .capacity = 0
+    };
+
+    Expression next = expression(source);
+    if (next.tag != EXPRESSION_NULL)
+    {
+        appendExpression(&list, next);
+    }
+
+    return list;
+}
+
+bool assignmentStatement(Source* source, StatementList* statements, DiagnosticList* diagnostics)
+{
+    char* start = source->current;
+
+    ExpressionList variables = expressionList(source);
+    if (variables.count && literal(source, "="))
+    {
+        appendStatement(statements, (Statement)
+        {
+            .tag = STATEMENT_ASSIGNMENT,
+            .assignment.variables = variables,
+            .assignment.values = expressionList(source)
+        });
+
+        return true;
+    }
+    else
+    {
+        source->current = start;
+
+        return false;
+    }
+}
+
 bool callStatement(Source* source, StatementList* statements, DiagnosticList* diagnostics)
 {
     char* start = source->current;
@@ -359,7 +480,7 @@ bool callStatement(Source* source, StatementList* statements, DiagnosticList* di
             .code = source->code,
             .index = start
         },
-        .type = STATEMENT_UNRESOLVED_CALL,
+        .tag = STATEMENT_UNRESOLVED_CALL,
         .identifier = function
     });
 
@@ -368,7 +489,8 @@ bool callStatement(Source* source, StatementList* statements, DiagnosticList* di
 
 bool statement(Source* source, StatementList* statements, DiagnosticList* diagnostics)
 {
-    return callStatement(source, statements, diagnostics);
+    return assignmentStatement(source, statements, diagnostics) ||
+           callStatement(source, statements, diagnostics);
 }
 
 StatementList statements(Source* source, DiagnosticList* diagnostics)
@@ -747,6 +869,28 @@ void canParseACompilationUnitWithAnEmptyPublicFunction()
     assert(declaration.body.count == 0);
 }
 
+void canParseASingularValidVariableDeclaration()
+{
+    char* code = "namespace Abc\n"
+                 "function main\n"
+                 "    a = 0i32\n"
+                 "end";
+
+    Source source =
+    {
+       .path = "main.owen",
+       .code = code,
+       .current = code
+    };
+
+    Program program = parse(&source, 1);
+    assert(*source.current == 0);
+    assert(program.diagnostics.count == 0);
+    assert(program.compilationUnits.elements[0].functions.count == 1);
+
+    FunctionDeclaration declaration = program.compilationUnits.elements[0].functions.elements[0];
+}
+
 void parserTestSuite()
 {
     identifiersCantBeKeywords();
@@ -767,4 +911,8 @@ void parserTestSuite()
     canParseAnEmptyFunction();
     canParseACompilationUnitWithAFunction();
     canParseACompilationUnitWithAnEmptyPublicFunction();
+
+    canParseASingularValidVariableDeclaration();
+
+    canParseASingularValidVariableDeclaration();
 }

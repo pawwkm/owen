@@ -86,7 +86,7 @@ void bindFunctionsCallsInBlock(StatementList* block, SymbolList* symbols,  Diagn
     for (int32_t s = 0; s < block->count; s++)
     {
         Statement* statement = &block->elements[s];
-        if (statement->type == STATEMENT_UNRESOLVED_CALL)
+        if (statement->tag == STATEMENT_UNRESOLVED_CALL)
         {
             SymbolList* matches = findSymbolsWithName(symbols, &statement->identifier);
             if (matches->count == 0)
@@ -125,7 +125,7 @@ void bindFunctionsCallsInBlock(StatementList* block, SymbolList* symbols,  Diagn
             }
             else
             {
-                statement->type = STATEMENT_CALL;
+                statement->tag = STATEMENT_CALL;
                 statement->function = matches->elements[0].function;
             }
         }

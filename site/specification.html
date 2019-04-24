@@ -189,7 +189,7 @@ field = access? type identifier</code></pre>
                          end
 
 enumerationConstants = enumerationConstant (comma enumerationConstant)*
-enumerationConstant = identifier (assign integerLiteral)</code></pre>
+enumerationConstant = identifier (assign integerLiteral)?</code></pre>
 
             <p>
                 The <span class="rule">identifier</span> is the name of the
@@ -463,8 +463,13 @@ rightParenthesis = ')' whitespace</code></pre>
 
             <h2>4.4. Literals</h2>
             <h3>4.4.1. Floating Point Literals</h3>
-            <pre><code>floatLiteral = '-'? [0-9]+ '.' [0-9]+ 'f' ( '32' / '64' )</code></pre>
-            <p>Floating point values are defined as in IEEE 754.</p>
+            <pre><code>floatLiteral = '-'? [0-9]+ '.' [0-9]+ ('f' ( '32' / '64' ))?</code></pre>
+            <p>
+                Floating point values are defined as in IEEE 754. The specific 
+                type of a literal is inferred when the type is known elsewhere
+                in the same context.
+
+            </p>
 
             <table>
                 <thead>
@@ -486,8 +491,11 @@ rightParenthesis = ')' whitespace</code></pre>
             </table>
 
             <h3>4.4.2. Integer Literals</h3>
-            <pre><code>integerLiteral = '-'? [0-9]+ ('i' / 'u') ( '8' / '16' / '32' / '64' )</code></pre>
-
+            <pre><code>integerLiteral = '-'? [0-9]+ (('i' / 'u') ( '8' / '16' / '32' / '64' ))?</code></pre>
+            <p>
+                The specific type of a literal is inferred when the type is 
+                known elsewhere in the same context.
+            </p>
             <table>
                 <thead>
                     <tr>

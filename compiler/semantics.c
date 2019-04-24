@@ -167,7 +167,7 @@ void unambiguousCallBindsToFunction()
     FunctionDeclaration callee = program.compilationUnits.elements[0].functions.elements[0];
     Statement caller = callee.body.elements[0];
 
-    assert(caller.type == STATEMENT_CALL);
+    assert(caller.tag == STATEMENT_CALL);
     assert(compareSlices(&callee.signature.identifier, &caller.function->signature.identifier));
 }
 
