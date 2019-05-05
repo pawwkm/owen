@@ -33,10 +33,11 @@ typedef struct
         NUMBER_U16,
         NUMBER_U32,
         NUMBER_U64,
-        NUMBER_INTEGER_TO_BE_INFERRED,
         NUMBER_F32,
         NUMBER_F64,
-        NUMBER_FLOAT_TO_BE_INFERRED
+        NUMBER_FLOAT_TO_BE_INFERRED,
+        NUMBER_INTEGER_TO_BE_INFERRED,
+        NUMBER_POISONED
     } tag;
     Slice value;
 } Number;
@@ -46,6 +47,7 @@ typedef struct
     enum
     {
         EXPRESSION_NULL,
+        EXPRESSION_CALL,
         EXPRESSION_NUMBER,
         EXPRESSION_IDENTIFIER,
         EXPRESSION_VARIABLE_DECLARATION,
@@ -59,6 +61,16 @@ typedef struct
 } Expression;
 
 DECLARE_LIST(Expression)
+struct _FunctionDeclaration;
+
+typedef struct
+{
+    Position declaredAt;
+    Slice identifier;
+    ExpressionList input;
+
+    struct _FunctionDeclaration* callee;
+} Call;
 
 typedef enum
 {
@@ -72,21 +84,17 @@ typedef struct
     Slice identifier;
 } FunctionSignature;
 
-struct _FunctionDeclaration;
 typedef struct
 {
-    Position declaredAt;
     enum
     {
-        STATEMENT_UNRESOLVED_CALL,
         STATEMENT_CALL,
         STATEMENT_ASSIGNMENT
     } tag;
 
     union
     {
-        Slice identifier;
-        struct _FunctionDeclaration* function;
+        Call call;
         struct
         {
             ExpressionList variables;

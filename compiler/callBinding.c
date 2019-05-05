@@ -1,32 +1,32 @@
 #include <stdint.h>
-#include <stdio.h>
 #include <string.h>
 #include "semantics.h"
+#include "diagnostics.h"
 
 char* itoa(int32_t number)
 {
-  char buffer[12];
-  memset(buffer, 0, 12);
+    char buffer[12];
+    memset(buffer, 0, 12);
 
-  int8_t index = 0;
-  while (number)
-  {
-    buffer[index++] = number % 10 + '0';
-    number /= 10;
-  }
+    int8_t index = 0;
+    while (number)
+    {
+        buffer[index++] = number % 10 + '0';
+        number /= 10;
+    }
 
-  size_t length = strlen(buffer);
-  for (uint8_t i = 0, j = length - 1; i < j; i++, j--)
-  {
-    char c = buffer[i];
-    buffer[i] = buffer[j];
-    buffer[j] = c;
-  }
+    size_t length = strlen(buffer);
+    for (uint8_t i = 0, j = length - 1; i < j; i++, j--)
+    {
+        char c = buffer[i];
+        buffer[i] = buffer[j];
+        buffer[j] = c;
+    }
 
-  char* string = malloc(length);
-  strcpy(string, buffer);
+    char* string = malloc(length);
+    strcpy(string, buffer);
 
-  return string;
+    return string;
 }
 
 char* concatenate(char* a, char* b)
@@ -68,72 +68,45 @@ char* positionAsString(const Position* position)
     return string;
 }
 
-SymbolList* findSymbolsWithName(SymbolList* symbols, Slice* name)
+void bindCall(Call* call, SymbolList* symbols, DiagnosticList* diagnostics)
 {
-    SymbolList* matches = calloc(1, sizeof(SymbolList));
-    for (int32_t s = 0; s < symbols->count; s++)
+    SymbolList* matches = findSymbolsWithName(symbols, &call->identifier);
+    if (matches->count == 0)
     {
-        Symbol* symbol = &symbols->elements[s];
-        if (compareSlices(&symbol->function->signature.identifier, name))
-            appendSymbol(matches, *symbol);
-    }
+        char* description = malloc(call->identifier.length + 1);
+        description[call->identifier.length] = 0;
+        strncpy(description, call->identifier.start, call->identifier.length);
+        description = concatenate(description, " is undefined.");
 
-    return matches;
-}
-
-void bindFunctionsCallsInBlock(StatementList* block, SymbolList* symbols,  DiagnosticList* diagnostics)
-{
-    for (int32_t s = 0; s < block->count; s++)
-    {
-        Statement* statement = &block->elements[s];
-        if (statement->tag == STATEMENT_UNRESOLVED_CALL)
+        appendDiagnostic(diagnostics, (Diagnostic)
         {
-            SymbolList* matches = findSymbolsWithName(symbols, &statement->identifier);
-            if (matches->count == 0)
-            {
-                char* description = malloc(statement->identifier.length + 1);
-                description[statement->identifier.length] = 0;
-                strncpy(description, statement->identifier.start, statement->identifier.length);
-                description = concatenate(description, " is undefined.");
-
-                appendDiagnostic(diagnostics, (Diagnostic)
-                {
-                    .description = description,
-                    .occurredAt = statement->declaredAt
-                });
-            }
-            else if (matches->count > 1)
-            {
-                char* description = malloc(statement->identifier.length + 1);
-                description[statement->identifier.length] = 0;
-                strncpy(description, statement->identifier.start, statement->identifier.length);
-
-                description = concatenate(description, " can be any of:");
-                for (size_t i = 0; i < matches->count; i++)
-                {
-                    Symbol* symbol = &matches->elements[i];
-
-                    description = concatenate(description, "\n");
-                    description = concatenate(description, positionAsString(&symbol->function->declaredAt));
-                }
-
-                appendDiagnostic(diagnostics, (Diagnostic)
-                {
-                    .description = description,
-                    .occurredAt = statement->declaredAt
-                });
-            }
-            else
-            {
-                statement->tag = STATEMENT_CALL;
-                statement->function = matches->elements[0].function;
-            }
-        }
+            .description = description,
+            .occurredAt = call->declaredAt
+        });
     }
-}
+    else if (matches->count > 1)
+    {
+        char* description = malloc(call->identifier.length + 1);
+        description[call->identifier.length] = 0;
+        strncpy(description, call->identifier.start, call->identifier.length);
 
-void bindFunctionCalls(CompilationUnit* unit, SymbolList* symbols,  DiagnosticList* diagnostics)
-{
-    for (int32_t f = 0; f < unit->functions.count; f++)
-        bindFunctionsCallsInBlock(&unit->functions.elements[f].body, symbols, diagnostics);
+        description = concatenate(description, " can be any of:");
+        for (size_t i = 0; i < matches->count; i++)
+        {
+            Symbol* symbol = &matches->elements[i];
+
+            description = concatenate(description, "\n");
+            description = concatenate(description, positionAsString(&symbol->function.declaration->declaredAt));
+        }
+
+        appendDiagnostic(diagnostics, (Diagnostic)
+        {
+            .description = description,
+            .occurredAt = call->declaredAt
+        });
+    }
+    else
+    {
+        call->callee = matches->elements[0].function.declaration;
+    }
 }

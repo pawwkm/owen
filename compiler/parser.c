@@ -474,14 +474,23 @@ bool callStatement(Source* source, StatementList* statements, DiagnosticList* di
 
     appendStatement(statements, (Statement)
     {
-        .declaredAt = (Position)
+        .tag = STATEMENT_CALL,
+        .call = (Call)
         {
-            .path = source->path,
-            .code = source->code,
-            .index = start
-        },
-        .tag = STATEMENT_UNRESOLVED_CALL,
-        .identifier = function
+            .declaredAt = (Position)
+            {
+                .path = source->path,
+                .code = source->code,
+                .index = start
+            },
+            .identifier = function,
+            .input = (ExpressionList)
+            {
+                .elements = NULL,
+                .count = 0,
+                .capacity = 0
+            }
+        }
     });
 
     return true;

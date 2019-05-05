@@ -109,9 +109,9 @@ comment = '//' (!'\n' .)* '\n'?</code></pre>
 
             <h1>2. Declarations</h1>
             <p>
-				Nested <span class="rule">identifier</span>s cannot be the same as the 
+				Nested <span class="rule">identifier</span>s cannot be the same as the
 				<span class="rule">declaration</span>'s <span class="rule">identifier</span>.
-				
+
             </p>
             <h2>2.1 Functions</h2>
             <pre><code>functionDeclaration = functionSignature
@@ -131,9 +131,9 @@ argument = type indentifier</code></pre>
                 defines a list of arguments that a caller must pass to the
                 function. The <span class="rule">arguments</span> are in the
                 same scope as <span class="rule">statements</span>.
-                Functions can be overloaded with different order of input types 
-                otherwise each <span class="rule">identifier</span> must be 
-                unique. The <span class="rule">output</span> list is the types 
+                Functions can be overloaded with different order of input types
+                otherwise each <span class="rule">identifier</span> must be
+                unique. The <span class="rule">output</span> list is the types
                 of the values that the function returns <b>in</b> the order they
                 are listed.
             </p>
@@ -145,18 +145,18 @@ argument = type indentifier</code></pre>
                 have any input. The return type of main must be
                 <span class="type">i32</span>.
             </p>
-            
+
             <h2>2.2. Propositions</h2>
             <pre><code>propositionDeclaration = proposition
                              statements?
                          end</code></pre>
 
             <p>
-                Propositions are nameless functions that returns no values. They 
-                are run before the <i>main</i> function if they are included 
+                Propositions are nameless functions that returns no values. They
+                are run before the <i>main</i> function if they are included
                 using the <b>--test</b> command line argument.
             </p>
-            
+
             <h2>2.3. Structures</h2>
             <pre><code>structureDeclaration = structure identifier
                            fields
@@ -168,7 +168,7 @@ field = access? type identifier</code></pre>
             <p>
                 A structure is a sequence of fields laid out in memory as they
                 are lexically declared. Padding may be inserted between fields.
-				The size of the structure is the sum of its 
+				The size of the structure is the sum of its
 				<span class="rule">field</span>s and padding.
             </p>
 
@@ -231,8 +231,7 @@ assign = '=' whitespace</code></pre>
                 function was called. Each <span class="rule">expression</span>
                 on the left hand side must be assignable. If an expression on
                 the left hand side is an undefined identifier it is declared as
-                a variable of the same type as the expression being assigned to
-                the identifier.
+                a variable of the same type as the assigned expression.
             </p>
 
             <h2>3.2. If Statements</h2>
@@ -297,7 +296,7 @@ range = (expression colon)? expression (colon expression)?</code></pre>
                 <span class="rule">statements</span> have executed, the
                 expression is evaluated again, and if
                 <span class="keyword">true</span> the
-                <span class="rule">statements</span> are executed again. This 
+                <span class="rule">statements</span> are executed again. This
                 continues until the expression is
                 <span class="keyword">false</span>.
             </p>
@@ -335,7 +334,7 @@ range = (expression colon)? expression (colon expression)?</code></pre>
                 <span class="keyword">true</span>, then nothing happens. If the
                 <span class="rule">expression</span> is
                 <span class="keyword">false</span>, then the current proposition
-                stops execution and a description of the failing assertion is 
+                stops execution and a description of the failing assertion is
                 given.
             </p>
 
@@ -433,7 +432,7 @@ booleanOperator = '||' / '&#38;&#38;' / '&lt;' / '&gt;' whitespace</code></pre>
                 operands. Both operands must be of the same type. The result of
                 the operation is the same type as the operands. The <b>|</b> is
                 the bitwise or operator. Both operands must be of the same
-                <span class="type">iXX</span> type. The result of the operation 
+                <span class="type">iXX</span> type. The result of the operation
                 is the same type as the operands.
             </p>
 
@@ -441,11 +440,11 @@ booleanOperator = '||' / '&#38;&#38;' / '&lt;' / '&gt;' whitespace</code></pre>
             <p>
                 The <b>*</b>, <b>/</b> and <b>%</b> are the multiply, divide
                 and the modulus operators respectively. Both operands must be of
-                the same <span class="type">iXX</span> and <span class="type">fXX</span> 
-                type. The <b>&lt;&lt;</b> and <b>&gt;&gt;</b> are the right 
+                the same <span class="type">iXX</span> and <span class="type">fXX</span>
+                type. The <b>&lt;&lt;</b> and <b>&gt;&gt;</b> are the right
                 shift and left shift operators respectively. Both operands must
-                be of the same <span class="type">iXX</span> type. The 
-                <b>&#38;</b> operator is bitwise and. Both operands must be of 
+                be of the same <span class="type">iXX</span> type. The
+                <b>&#38;</b> operator is bitwise and. Both operands must be of
                 the same <span class="type">iXX</span> type.
             </p>
 
@@ -465,10 +464,9 @@ rightParenthesis = ')' whitespace</code></pre>
             <h3>4.4.1. Floating Point Literals</h3>
             <pre><code>floatLiteral = '-'? [0-9]+ '.' [0-9]+ ('f' ( '32' / '64' ))?</code></pre>
             <p>
-                Floating point values are defined as in IEEE 754. The specific 
+                Floating point values are defined as in IEEE 754. The specific
                 type of a literal is inferred when the type is known elsewhere
                 in the same context.
-
             </p>
 
             <table>
@@ -493,7 +491,7 @@ rightParenthesis = ')' whitespace</code></pre>
             <h3>4.4.2. Integer Literals</h3>
             <pre><code>integerLiteral = '-'? [0-9]+ (('i' / 'u') ( '8' / '16' / '32' / '64' ))?</code></pre>
             <p>
-                The specific type of a literal is inferred when the type is 
+                The specific type of a literal is inferred when the type is
                 known elsewhere in the same context.
             </p>
             <table>
@@ -632,7 +630,7 @@ fieldInitializer = identifier equal expression</code></pre>
             <h2>4.8. Identifier Expressions</h2>
             <pre><code>identifierExpression = identifier</code></pre>
             <p>
-                The identifier can either be a variable, field or enumeration 
+                The identifier can either be a variable, field or enumeration
                 constant.
             </p>
 
