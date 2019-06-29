@@ -345,6 +345,8 @@ void analyzeBlock(Scope* file, Scope* local, StatementList* body, Symbol* functi
 
                             typeOfValue = analyzeExpression(local, value)->type;
                         }
+                        else if (value->tag == EXPRESSION_BOOL)
+                            typeOfValue.tag = TYPE_BOOL;
 
                         variable->tag = EXPRESSION_VARIABLE_DECLARATION;
                         appendSymbol(&local->symbols, (Symbol)
