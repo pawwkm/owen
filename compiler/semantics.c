@@ -383,8 +383,22 @@ void analyzeBlock(Scope* file, Scope* local, StatementList* body, Symbol* functi
                     }
 
                     analyzeBlock(file, &block->scope, &block->body, functionSymbol);
+
+                    break;
                 }
+            case STATEMENT_WHILE:
+            {
+                ConditionalBlock* block = statement->whileBlock;
+                block->scope.parent = local;
+
+                analyzeExpression(&block->scope, &block->condition);
+                if (block->condition.tag != EXPRESSION_BOOL)
+                    errorAt(positionOfExpression(&block->condition), "Boolean expression expected.");
+
+                analyzeBlock(file, &block->scope, &block->body, functionSymbol);
+
                 break;
+            }
             default:
                 error("Unsupported Statement type");
         }

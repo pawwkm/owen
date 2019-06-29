@@ -382,6 +382,30 @@ void ifStatement(Source* source, StringList* table, Statement* statement)
         errorAt(source, "end expected.");
 }
 
+void whileStatement(Source* source, StringList* table, Statement* statement)
+{
+    statement->tag = STATEMENT_WHILE;
+    statement->whileBlock = malloc(sizeof(ConditionalBlock));
+    *statement->whileBlock = (ConditionalBlock)
+    {
+        .body = NEW_LIST(),
+        .scope = (Scope)
+        {
+            .parent = NULL,
+            .symbols = NEW_LIST()
+        }
+    };
+
+    expression(source, table, &statement->whileBlock->condition);
+    if (statement->whileBlock->condition.tag == EXPRESSION_NONE)
+        errorAt(source, "Boolean expression expected.");
+    else
+        statements(source, table, &statement->whileBlock->body);
+
+    if (!literal(source, "end"))
+        errorAt(source, "end expected.");
+}
+
 void statements(Source* source, StringList* table, StatementList* list)
 {
     while (true)
@@ -391,6 +415,8 @@ void statements(Source* source, StringList* table, StatementList* list)
             ;
         else if (literal(source, "if"))
             ifStatement(source, table, &statement);
+        else if (literal(source, "while"))
+            whileStatement(source, table, &statement);
         else if (literal(source, "return"))
         {
             expression(source, table, &statement.value);

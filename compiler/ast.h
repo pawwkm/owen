@@ -145,7 +145,8 @@ typedef struct
         STATEMENT_ASSIGNMENT,
         STATEMENT_EXPRESSION,
         STATEMENT_RETURN,
-        STATEMENT_IF
+        STATEMENT_IF,
+        STATEMENT_WHILE
     } tag;
 
     union
@@ -157,12 +158,13 @@ typedef struct
             ExpressionList values;
         } assignment;
         struct ConditionalBlockList* ifs;
+        struct ConditionalBlock* whileBlock;
     };
 } Statement;
 
 DECLARE_LIST(Statement)
 
-typedef struct
+typedef struct ConditionalBlock
 {
     Expression condition;
     StatementList body;

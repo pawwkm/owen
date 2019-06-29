@@ -99,6 +99,18 @@ void generateStatements(Scope*scope, StatementList* statements, StringBuilder* c
                     buildFromString(c, "}\n");
                 }
                 break;
+            case STATEMENT_WHILE:
+            {
+                ConditionalBlock* block = statement->whileBlock;
+                buildFromString(c, "while (");
+                generateExpression(&block->condition, c);
+                buildFromString(c, ") {\n");
+
+                generateStatements(&block->scope, &block->body, c);
+
+                buildFromString(c, "}\n");
+                break;
+            }
         }
     }
 }
