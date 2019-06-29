@@ -71,6 +71,8 @@ keyword = namespace
         / union
         / return
         / ctfe
+        / true
+        / false
 
 namespace = 'namespace' whitespace
 use = 'use' whitespace
@@ -94,9 +96,10 @@ size = 'size' whitespace
 union = 'union' whitespace
 return = 'return' whitespace
 ctfe = 'ctfe' whitespace
+true = 'true' whitespace
+false = 'false' whitespace
 
 dot = '.' whitespace
-
 whitespace = (' ' / '\n' / comment)*
 comment = '//' (!'\n' .)* '\n'?</code></pre>
 
@@ -235,7 +238,7 @@ assign = '=' whitespace</code></pre>
                 function was called. Each <span class="rule">expression</span>
                 on the left hand side must be assignable. If an expression on
                 the left hand side is an undefined identifier it is declared as
-                a variable of the same type as the assigned expression. 
+                a variable of the same type as the assigned expression.
                 Number types are infered from the defined identifiers.
             </p>
 

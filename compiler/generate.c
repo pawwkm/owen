@@ -23,6 +23,11 @@ void generateExpression(Expression* expression, StringBuilder* c)
         case EXPRESSION_NUMBER:
             buildFromSlice(c, &expression->number.value);
             break;
+        case EXPRESSION_BOOL:
+            if (expression->boolean)
+                buildFromString(c, "true");
+            else
+                buildFromString(c, "false");
         default:
             break;
     }

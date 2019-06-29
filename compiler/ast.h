@@ -109,6 +109,7 @@ typedef struct Expression
         EXPRESSION_NONE,
         EXPRESSION_CALL,
         EXPRESSION_NUMBER,
+        EXPRESSION_BOOL,
         EXPRESSION_IDENTIFIER,
         EXPRESSION_CTFE,
         EXPRESSION_VARIABLE_DECLARATION,
@@ -117,6 +118,7 @@ typedef struct Expression
 
     union
     {
+        bool boolean;
         Number number;
         Identifier identifier;
         struct Expression* expression;

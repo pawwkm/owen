@@ -335,7 +335,7 @@ void analyzeBlock(Scope* file, Scope* local, StatementList* body, Symbol* functi
                         else if (value->tag == EXPRESSION_IDENTIFIER)
                         {
                             value->tag = EXPRESSION_VARIABLE_REFERENCE;
-                            typeOfValue = resolve(local, value->identifier.value)->type;;
+                            typeOfValue = resolve(local, value->identifier.value)->type;
                         }
                         else if (value->tag == EXPRESSION_CALL)
                         {

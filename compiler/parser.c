@@ -32,6 +32,8 @@ char* keywords[] =
     "union",
     "return",
     "ctfe",
+    "true",
+    "false",
     0
 };
 
@@ -226,10 +228,20 @@ void expression(Source* source, StringList* table, Expression* value)
         value->expression = malloc(sizeof(Expression));
         expression(source, table, value->expression);
     }
-    else if (isdigit(*source->current))
-        number(source, value);
     else if (callExpression(source, table, value))
         ;
+    else if (isdigit(*source->current))
+        number(source, value);
+    else if (literal(source, "true"))
+    {
+        value->tag = EXPRESSION_BOOL;
+        value->boolean = true;
+    }
+    else if (literal(source, "false"))
+    {
+        value->tag = EXPRESSION_BOOL;
+        value->boolean = false;
+    }
     else if (isalpha(*source->current))
     {
         if (identifier(source, table, &value->identifier))
