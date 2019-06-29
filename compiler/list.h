@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 #define DECLARE_LIST(type)                        \
 typedef struct                                    \
@@ -24,6 +25,8 @@ void append##type(type##List* list, type element)                               
     list->elements[list->count++] = element;                                             \
 }
 
+#define NEW_LIST() { NULL, 0, 0 }
+
 typedef struct
 {
     char** elements;
@@ -32,3 +35,5 @@ typedef struct
 } StringList;
 
 void appendString(StringList* strings, char* string);
+
+bool stringListContains(StringList* list, char* string);

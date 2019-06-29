@@ -1,29 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <title>The Owen Language Specification 0.1.0</title>
+        <title>Owen Specification 0.1.0</title>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="description" content="This is the Owen programming language specification.">
         <meta name="keywords" content="Owen, programming language, specification, reference">
-        <link rel="icon" type="image/x-icon" href="images/logo.ico" />
+        <link rel="icon" type="image/x-icon" href="images/owen.ico" />
         <link rel="stylesheet" type="text/css" href="css/global.css">
     </head>
     <body>
         <nav>
-            <div id="hamburger" onclick="this.parentNode.classList.toggle('open')">
-                <div></div>
-                <div></div>
-                <div></div>
-            </div>
-            <img src="images/logo.svg" alt="Owen Logo"/>
-            <a href="index.html">Home</a>
-            <a href="blog.html">Blog</a>
-            <a href="specification.html" class="active">Specification</a>
-            <a href="https://github.com/pawwkm/owen">GitHub</a>
+            <a title="Home" href="index.html">
+                <img class="owen" src="images/owen.svg" alt="Home"/>
+            </a>
+            <a title="Blog About Owen" href="blog.html">
+                <img src="images/blog.svg" alt="Blog"/>
+            </a>
+            <a title="Owen Specification" href="specification.html">
+                <img src="images/book.svg" alt="Specification"/>
+            </a>
+            <a title="Owen's GitHub Repository" href="https://github.com/pawwkm/owen">
+                <img src="images/github.svg" alt="GitHub"/>
+            </a>
         </nav>
         <main>
-            <h1>The Owen Language Specification 0.1.0</h1>
+            <h1>Owen Specification 0.1.0</h1>
             <p>
                 The specification is versioned using <a href="https://semver.org/spec/v2.0.0.html">Semver 2.0</a>.
                 <a href="http://bford.info/pub/lang/peg.pdf">Parser Expression Grammar</a>
@@ -31,8 +33,8 @@
                 using UTF-8. Source files uses the <b>.owen</b> extension.
             </p>
 
-            <h1>1. Compilation Units</h1>
-            <pre><code>compilationUnit = whitespace directives declaration*
+            <h1>1. Files</h1>
+            <pre><code>file = whitespace directives declaration*
 
 directives = namespaceDirective useDirective*
 
@@ -40,13 +42,11 @@ namespaceDirective = namespace qualifiedIdentifier
 useDirective = use qualifiedIdentifier
 qualifiedIdentifier = identifier (dot identifier)*
 
-declaration = access? ( functionDeclaration
+declaration = public? ( functionDeclaration
                       / propositionDeclaration
                       / structureDeclaration
                       / unionDeclaration
                       / enumerationDeclaration)
-
-access = public
 
 identifier = !keyword [A-Za-z] [A-Za-z0-9]* whitespace
 keyword = namespace
@@ -69,6 +69,8 @@ keyword = namespace
         / of
         / size
         / union
+        / return
+        / ctfe
 
 namespace = 'namespace' whitespace
 use = 'use' whitespace
@@ -90,6 +92,8 @@ enumeration = 'enumeration' whitespace
 of = 'of' whitespace
 size = 'size' whitespace
 union = 'union' whitespace
+return = 'return' whitespace
+ctfe = 'ctfe' whitespace
 
 dot = '.' whitespace
 
@@ -99,12 +103,12 @@ comment = '//' (!'\n' .)* '\n'?</code></pre>
             <p>
                 The <span class="rule">namespaceDirective</span> specifies that
                 all <span class="rule">declarations</span> in the
-                <span class="rule">compilationUnit</span> are in the given name
+                <span class="rule">file</span> are in the given name
                 space. The <span class="rule">useDirective</span> and
                 <span class="rule">namespaceDirective</span> makes all the
                 <span class="keyword">public</span> <span class="rule">declarations</span>
                 in the given name space available to the
-                <span class="rule">compilationUnit</span>.
+                <span class="rule">file</span>.
             </p>
 
             <h1>2. Declarations</h1>
@@ -154,7 +158,7 @@ argument = type indentifier</code></pre>
             <p>
                 Propositions are nameless functions that returns no values. They
                 are run before the <i>main</i> function if they are included
-                using the <b>--test</b> command line argument.
+                using the <b>--propositions</b> command line argument.
             </p>
 
             <h2>2.3. Structures</h2>
@@ -163,7 +167,7 @@ argument = type indentifier</code></pre>
                        end
 
 fields = field (comma field)*
-field = access? type identifier</code></pre>
+field = type identifier</code></pre>
 
             <p>
                 A structure is a sequence of fields laid out in memory as they
@@ -209,7 +213,7 @@ statement = assignmentStatement
           / forEachStatement
           / whileStatement
           / breakStatement
-          / callStatement
+          / expressionStatement
           / returnStatement
           / assertStatement</code></pre>
 
@@ -231,7 +235,8 @@ assign = '=' whitespace</code></pre>
                 function was called. Each <span class="rule">expression</span>
                 on the left hand side must be assignable. If an expression on
                 the left hand side is an undefined identifier it is declared as
-                a variable of the same type as the assigned expression.
+                a variable of the same type as the assigned expression. 
+                Number types are infered from the defined identifiers.
             </p>
 
             <h2>3.2. If Statements</h2>
@@ -309,8 +314,8 @@ range = (expression colon)? expression (colon expression)?</code></pre>
                 after the innermost loop.
             </p>
 
-            <h2>3.6. Call Statements</h2>
-            <pre><code>callStatement = callExpression</code></pre>
+            <h2>3.6. Expression Statements</h2>
+            <pre><code>expressionStatement = expression</code></pre>
 
             <h2>3.7. Return Statements</h2>
             <pre><code>returnStatement = return expressions?</code></pre>
@@ -323,7 +328,7 @@ range = (expression colon)? expression (colon expression)?</code></pre>
                 in that case the control is returned to the caller after the
                 last statement. If output is specified, then all code paths must
                 end with a return statement with an expression of the same type
-                as the return type.
+                as the return type. Number types are infered from the output.
             </p>
 
             <h2>3.8. Assert Statements</h2>
@@ -341,6 +346,7 @@ range = (expression colon)? expression (colon expression)?</code></pre>
             <h1>4. Expressions</h1>
             <pre><code>expressions = expression (comma expression)*
 expression = notExpression
+           / ctfeExpression
            / negateExpression
            / binaryExpression
            / primaryExpression
@@ -359,8 +365,8 @@ literalExpression = floatLiteral
                   / arrayLiteral
                   / structureLiteral</code></pre>
             <p>
-                The <span class="rule">expressions</span> are evaluated from
-                left to right. If an integer or floating point
+                The order of evaluating <span class="rule">expressions</span> is
+                unspecified except where noted. If an integer or floating point
                 <span class="rule">expression</span> overflows at run time the
                 behaviour is undefined. If the expression is constant and
                 overflows it is a compile time error.
@@ -376,8 +382,14 @@ not = '!' whitespace</code></pre>
                 expression from <span class="keyword">true</span> to
                 <span class="keyword">false</span> and vice versa.
             </p>
+            <h3>4.1.2. CTFE Expressions</h3>
+            <pre><code>ctfeExpression = ctfe expression</code></pre>
+            <p>
+                Executes the <span class="rule">expression</span> at compile
+                time.
+            </p>
 
-            <h3>4.1.2. Negate Expressions</h3>
+            <h3>4.1.3. Negate Expressions</h3>
             <pre><code>negateExpression = negate expression
 negate = '-' whitespace</code></pre>
             <p>
@@ -393,11 +405,11 @@ binaryOperator = mathOperator
                / relationalOperator
                / booleanOperator
 
-mathOperator = '+' / '-' / '*' / '/' / '%' / '|' / '&#38;' / '&lt;&lt;' / '&gt;&gt;' whitespace
+mathOperator = ('+' / '-' / '*' / '/' / '%' / '|' / '&#38;' / '&lt;&lt;' / '&gt;&gt;') whitespace
 
-relationalOperator = '==' / '!=' / '&lt;=' / '&gt;=' whitespace
+relationalOperator = ('==' / '!=' / '&lt;=' / '&gt;=' / '&lt;' / '&gt;') whitespace
 
-booleanOperator = '||' / '&#38;&#38;' / '&lt;' / '&gt;' whitespace</code></pre>
+booleanOperator = ('||' / '&#38;&#38;') whitespace</code></pre>
 
             <h3>4.2.1. First Precedence</h3>
             <p>
@@ -599,7 +611,7 @@ fieldInitializer = identifier equal expression</code></pre>
             </p>
 
             <h2>4.5. Size of Expressions</h2>
-            <pre><code>sizeOfExpreassio = size of expression</code></pre>
+            <pre><code>sizeOfExpreassion = size of expression</code></pre>
             <p>
                 Results the size of the <span class="rule">expression</span> as
                 a <span class="type">u32</span> in bytes. The

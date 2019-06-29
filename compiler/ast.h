@@ -1,25 +1,78 @@
 #pragma once
 
-#include <stdint.h>
 #include <stdbool.h>
 #include "list.h"
-#include "diagnostics.h"
 
 typedef struct
 {
     char* path;
-    char* code;
+    char* contents;
     char* current;
 } Source;
 
+DECLARE_LIST(Source)
+
 typedef struct
 {
+    char* path;
     char* start;
     int32_t length;
 } Slice;
 
 DECLARE_LIST(Slice)
-DECLARE_LIST(SliceList)
+
+struct Symbol;
+typedef struct
+{
+    struct Symbol* elements;
+    int32_t count;
+    int32_t capacity;
+} SymbolList;
+
+struct FunctionDeclaration;
+
+typedef struct Type
+{
+    enum
+    {
+        TYPE_I8,
+        TYPE_I16,
+        TYPE_I32,
+        TYPE_I64,
+        TYPE_U8,
+        TYPE_U16,
+        TYPE_U32,
+        TYPE_U64,
+        TYPE_F32,
+        TYPE_F64,
+        TYPE_BOOL,
+        TYPE_FUNCTION,
+        TYPE_ENUMERATION,
+        TYPE_STRUCTURE,
+        TYPE_UNION
+    } tag;
+    union
+    {
+        struct
+        {
+            struct FunctionDeclaration* declaration;
+            SymbolList input;
+            SymbolList output;
+        } function;
+    };
+} Type;
+
+typedef struct Symbol
+{
+    char* name;
+    Type type;
+} Symbol;
+
+typedef struct Scope
+{
+    struct Scope* parent;
+    SymbolList symbols;
+} Scope;
 
 typedef struct
 {
@@ -36,65 +89,60 @@ typedef struct
         NUMBER_F32,
         NUMBER_F64,
         NUMBER_FLOAT_TO_BE_INFERRED,
-        NUMBER_INTEGER_TO_BE_INFERRED,
-        NUMBER_POISONED
+        NUMBER_INTEGER_TO_BE_INFERRED
     } tag;
     Slice value;
+    Source position;
 } Number;
 
 typedef struct
 {
+    char* value;
+    Source position;
+} Identifier;
+DECLARE_LIST(Identifier)
+
+typedef struct Expression
+{
     enum
     {
-        EXPRESSION_NULL,
+        EXPRESSION_NONE,
         EXPRESSION_CALL,
         EXPRESSION_NUMBER,
         EXPRESSION_IDENTIFIER,
+        EXPRESSION_CTFE,
         EXPRESSION_VARIABLE_DECLARATION,
         EXPRESSION_VARIABLE_REFERENCE
     } tag;
+
     union
     {
-        Slice identifier;
         Number number;
+        Identifier identifier;
+        struct Expression* expression;
+        struct
+        {
+            Identifier name;
+        } call;
     };
+
+    void* ctfeValue;
 } Expression;
 
 DECLARE_LIST(Expression)
-struct _FunctionDeclaration;
-
-typedef struct
-{
-    Position declaredAt;
-    Slice identifier;
-    ExpressionList input;
-
-    struct _FunctionDeclaration* callee;
-} Call;
-
-typedef enum
-{
-    ACCESS_PUBLIC,
-    ACCESS_PRIVATE
-} Access;
-
-typedef struct
-{
-    Access access;
-    Slice identifier;
-} FunctionSignature;
 
 typedef struct
 {
     enum
     {
-        STATEMENT_CALL,
-        STATEMENT_ASSIGNMENT
+        STATEMENT_ASSIGNMENT,
+        STATEMENT_EXPRESSION,
+        STATEMENT_RETURN
     } tag;
 
     union
     {
-        Call call;
+        Expression value;
         struct
         {
             ExpressionList variables;
@@ -105,31 +153,29 @@ typedef struct
 
 DECLARE_LIST(Statement)
 
-typedef struct _FunctionDeclaration
+typedef struct FunctionDeclaration
 {
-    Position declaredAt;
-    FunctionSignature signature;
+    bool isPublic;
+    Identifier name;
+    IdentifierList output;
     StatementList body;
+    Scope scope;
+    bool analyzed;
 } FunctionDeclaration;
 
 DECLARE_LIST(FunctionDeclaration)
 
 typedef struct
 {
-    const Source* source;
-    const char* namespace;
+    char* namespace;
     StringList uses;
     FunctionDeclarationList functions;
-} CompilationUnit;
+    Scope scope;
+} File;
 
-DECLARE_LIST(CompilationUnit)
-
+DECLARE_LIST(File)
 typedef struct
 {
-    CompilationUnitList compilationUnits;
-    DiagnosticList diagnostics;
+    StringList interned;
+    FileList files;
 } Program;
-
-bool compareSlices(Slice* a, Slice* b);
-
-Position positionOf(const Source* source);

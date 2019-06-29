@@ -1,364 +1,394 @@
-#include <stdlib.h>
-#include <string.h>
 #include <stdio.h>
-#include <assert.h>
+#include "ast.h"
+#include "errors.h"
+#include "string.h"
+#include "interpreter.h"
 
-#include "list.h"
-#include "parser.h"
-#include "semantics.h"
-#include "callBinding.h"
+char* i8;
+char* i16;
+char* i32;
+char* i64;
+char* u8;
+char* u16;
+char* u32;
+char* u64;
+char* f32;
+char* f64;
+char* boolean;
 
 DECLARE_LIST_APPEND(Symbol)
 
-SymbolList* findSymbolsWithName(SymbolList* symbols, Slice* name)
+char* typeToString(Type* type)
 {
-    SymbolList* matches = calloc(1, sizeof(SymbolList));
-    for (int32_t s = 0; s < symbols->count; s++)
+    switch (type->tag)
     {
-        bool isMatch = false;
-        Symbol* symbol = &symbols->elements[s];
-
-        switch (symbol->tag)
-        {
-            case TYPE_FUNCTION:
-                isMatch = compareSlices(&symbol->function.declaration->signature.identifier, name);
-                break;
-            default:
-                isMatch = compareSlices(&symbol->variable, name);
-                break;
-        }
-
-        if (isMatch)
-            appendSymbol(matches, *symbol);
+        case TYPE_I8:
+            return i8;
+        case TYPE_I16:
+            return i16;
+        case TYPE_I32:
+            return i32;
+        case TYPE_I64:
+            return i64;
+        case TYPE_U8:
+            return u8;
+        case TYPE_U16:
+            return u16;
+        case TYPE_U32:
+            return u32;
+        case TYPE_U64:
+            return u64;
+        case TYPE_F32:
+            return f32;
+        case TYPE_F64:
+            return f64;
+        case TYPE_BOOL:
+            return boolean;
+        case TYPE_FUNCTION:
+            error("typeToString TYPE_FUNCTION\n");
+        case TYPE_ENUMERATION:
+            error("typeToString TYPE_ENUMERATION\n");
+        case TYPE_STRUCTURE:
+            error("typeToString TYPE_STRUCTURE\n");
+        case TYPE_UNION:
+            error("typeToString TYPE_UNION\n");
     }
 
-    return matches;
+    return NULL;
 }
 
-int32_t lengthOfQualifiedIdentifier(const SliceList* list)
+Symbol* resolve(Scope* scope, char* name)
 {
-    if (list == NULL)
-        return 0;
-
-    int32_t length = list->count;
-    for (int32_t i = 0; i < list->count; i++)
-        length += list->elements[i].length;
-
-    return length;
-}
-
-Symbol symbolizeFunction(const char* namespace, FunctionDeclaration* function)
-{
-    int32_t sizeOfName = strlen(namespace) + function->signature.identifier.length + 1;
-    char* name = malloc(sizeOfName);
-
-    Slice* identifier = &function->signature.identifier;
-    strncpy(name + sizeOfName, identifier->start, identifier->length);
-    name[sizeOfName + identifier->length] = 0;
-
-    Symbol symbol;
-    symbol.tag = TYPE_FUNCTION;
-    symbol.function.namespace = namespace;
-    symbol.function.declaration = function;
-
-    return symbol;
-}
-
-SymbolList* symbolizeDeclarations(Program* program)
-{
-    SymbolList* symbols = calloc(1, sizeof(SymbolList));
-    for (int32_t u = 0; u < program->compilationUnits.count; u++)
+    for (int32_t i = 0; i < scope->symbols.count; i++)
     {
-        CompilationUnit* unit = &program->compilationUnits.elements[u];
-        for (int32_t f = 0; f < unit->functions.count; f++)
-            appendSymbol(symbols, symbolizeFunction(unit->namespace, &unit->functions.elements[f]));
+        if (scope->symbols.elements[i].name == name)
+            return &scope->symbols.elements[i];
     }
 
-    return symbols;
+    if (scope->parent == NULL)
+        return NULL;
+    else
+        return resolve(scope->parent, name);
 }
 
-SymbolList* findAvailableReferences(SymbolList* master, CompilationUnit* unit)
+bool compareSymbols(Symbol* a, Symbol* b)
 {
-    SymbolList* symbols = calloc(1, sizeof(SymbolList));
-    for (int32_t s = 0; s < master->count; s++)
-    {
-        Symbol* symbol = &master->elements[s];
-        switch (symbol->tag)
-        {
-            case TYPE_FUNCTION:
-                if (!strcmp(symbol->function.namespace, unit->namespace))
-                    appendSymbol(symbols, *symbol);
-                else
-                {
-                    for (int32_t u = 0; u < unit->uses.count; u++)
-                    {
-                        if (symbol->function.declaration->signature.access == ACCESS_PUBLIC && !strcmp(symbol->function.namespace, unit->uses.elements[u]))
-                            appendSymbol(symbols, *symbol);
-                    }
-                }
-                break;
-        }
-    }
-
-    return symbols;
+    return a == NULL && b == NULL ||
+           a != NULL && b != NULL &&
+           a->type.tag == b->type.tag;
 }
 
-void analyzeExpression(Expression* expression, SymbolList* symbols, SymbolList* context, DiagnosticList* diagnostics)
+Source* positionOfExpression(Expression* expression)
 {
     switch (expression->tag)
     {
+        case EXPRESSION_IDENTIFIER:
+        case EXPRESSION_VARIABLE_DECLARATION:
+        case EXPRESSION_VARIABLE_REFERENCE:
+            return &expression->identifier.position;
         case EXPRESSION_NUMBER:
-            if (expression->number.tag == NUMBER_INTEGER_TO_BE_INFERRED)
-            {
-                if (context == NULL)
-                {
-                    // error cannot infer integer type
-                    expression->number.tag = NUMBER_POISONED;
-                }
-                else if (context->count > 1)
-                {
-                    // error there are more than one
-                }
-                else if (context->count == 1)
-                    expression->number.tag = context->elements[0].tag;
-                else
-                {
-                    // error cannot infer integer type
-                    expression->number.tag = NUMBER_POISONED;
-                }
-            }
-            break;
+            return &expression->number.position;
+        default:
+            error("Could not get position of expression.");
+            return NULL;
     }
 }
 
-void analyzeBlock(StatementList* block, SymbolList* symbols, DiagnosticList* diagnostics)
+void putDeclarationsIntoScope(Program* program)
 {
-    for (int32_t s = 0; s < block->count; s++)
+    void addPrimitive(SymbolList* list, char* name, int32_t tag)
     {
-        Statement* statement = &block->elements[s];
-        switch (statement->tag)
+        appendSymbol(list, (Symbol)
         {
-            case STATEMENT_ASSIGNMENT:
-                for (int32_t v = 0; v < statement->assignment.values.count; v++)
+            .name = name,
+            .type = (Type)
+            {
+                .tag = tag
+            }
+        });
+    }
+
+    Scope* primitives = calloc(1, sizeof(Scope));
+    i8 = internString(&program->interned, "i8");
+    i16 = internString(&program->interned, "i16");
+    i32 = internString(&program->interned, "i32");
+    i64 = internString(&program->interned, "i64");
+    u8 = internString(&program->interned, "u8");
+    u16 = internString(&program->interned, "u16");
+    u32 = internString(&program->interned, "u32");
+    u64 = internString(&program->interned, "u64");
+    f32 = internString(&program->interned, "f32");
+    f64 = internString(&program->interned, "f64");
+    boolean = internString(&program->interned, "bool");
+
+    addPrimitive(&primitives->symbols, i8, TYPE_I8);
+    addPrimitive(&primitives->symbols, i16, TYPE_I16);
+    addPrimitive(&primitives->symbols, i32, TYPE_I32);
+    addPrimitive(&primitives->symbols, i64, TYPE_I64);
+    addPrimitive(&primitives->symbols, u8, TYPE_I8);
+    addPrimitive(&primitives->symbols, u16, TYPE_I16);
+    addPrimitive(&primitives->symbols, u32, TYPE_I32);
+    addPrimitive(&primitives->symbols, u64, TYPE_I64);
+    addPrimitive(&primitives->symbols, f32, TYPE_F32);
+    addPrimitive(&primitives->symbols, f64, TYPE_F64);
+    addPrimitive(&primitives->symbols, boolean, TYPE_BOOL);
+
+    for (int32_t a = 0; a < program->files.count; a++)
+    {
+        File* file = &program->files.elements[a];
+        file->scope.parent = primitives;
+
+        for (int32_t f = 0; f < file->functions.count; f++)
+        {
+            FunctionDeclaration* declaration = &file->functions.elements[f];
+            Symbol symbol =
+            {
+                .name = declaration->name.value,
+                .type.tag = TYPE_FUNCTION,
+                .type.function.declaration = declaration,
+                .type.function.input = (SymbolList) NEW_LIST(),
+                .type.function.output = (SymbolList) NEW_LIST()
+            };
+
+            for (int32_t i = 0; i < declaration->output.count; i++)
+            {
+                Symbol* type = resolve(&file->scope, declaration->output.elements[i].value);
+                if (type == NULL)
+                    errorAt(&declaration->output.elements[i].position, "%s is undefined.", declaration->output.elements[i].value);
+                else
+                    appendSymbol(&symbol.type.function.output, *type);
+            }
+
+            appendSymbol(&file->scope.symbols, symbol);
+        }
+    }
+
+    for (int32_t u = 0; u < program->files.count; u++)
+    {
+        for (int32_t o = 0; o < program->files.count; o++)
+        {
+            if (u != o)
+            {
+                File* file = &program->files.elements[u];
+                File* other = &program->files.elements[o];
+                if (file->namespace == other->namespace || stringListContains(&file->uses, other->namespace))
                 {
-                    // context is a really bad name since the symbols are also context?
-                    SymbolList* context = NULL;
-                    Expression* variable = NULL;
-                    Expression* value = &statement->assignment.values.elements[v];
-
-                    if (statement->assignment.variables.count >= v && statement->assignment.variables.elements[v].tag == EXPRESSION_IDENTIFIER)
+                    for (int32_t s = 0; s < other->scope.symbols.count; s++)
                     {
-                        variable = &statement->assignment.variables.elements[v];
-                        context = findSymbolsWithName(symbols, &variable->identifier);
-                    }
+                        Symbol* symbol = &other->scope.symbols.elements[s];
+                        bool canAddSymbol = symbol->type.tag && symbol->type.function.declaration->isPublic;
 
-                    analyzeExpression(value, symbols, context, diagnostics);
-                    if (variable != NULL)
-                    {
-                        if (context->count == 0)
-                        {
-                            variable->tag = EXPRESSION_VARIABLE_DECLARATION;
-                            appendSymbol(symbols, (Symbol)
-                            {
-                                .tag = value->number.tag,
-                                .variable = variable->identifier
-                            });
-                        }
-                        else
-                            variable->tag = EXPRESSION_VARIABLE_REFERENCE;
+                        if (canAddSymbol)
+                            appendSymbol(&file->scope.symbols, *symbol);
                     }
                 }
+            }
+        }
+    }
+}
+
+void inferNumberType(Expression* expression, Symbol* expected)
+{
+    if (expression->number.tag == NUMBER_INTEGER_TO_BE_INFERRED)
+    {
+        switch (expected->type.tag)
+        {
+            case TYPE_I8:
+            case TYPE_I16:
+            case TYPE_I32:
+            case TYPE_I64:
+                expression->number.tag = expected->type.tag;
                 break;
-            case STATEMENT_CALL:
-                bindCall(&statement->call, symbols, diagnostics);
+            default:
+                errorAt(&expression->number.position, "%s expected.\n", expected->name);
                 break;
         }
     }
+    else if (expression->number.tag == NUMBER_FLOAT_TO_BE_INFERRED)
+    {
+        switch (expected->type.tag)
+        {
+            case TYPE_F32:
+            case TYPE_F64:
+                expression->number.tag = expected->type.tag;
+                break;
+            default:
+                errorAt(&expression->number.position, "%s expected.\n", expected->name);
+                break;
+        }
+    }
+}
+
+Symbol* analyzeExpression(Scope* scope, Expression* expression)
+{
+    if (expression->tag == EXPRESSION_IDENTIFIER)
+    {
+        Symbol* symbol = resolve(scope, expression->identifier.value);
+        if (symbol == NULL)
+            errorAt(&expression->identifier.position, "Undefined reference to %s.", expression->identifier.value);
+        else
+            return symbol;
+    }
+    else if (expression->tag == EXPRESSION_CALL)
+    {
+        // Remember that there can be overloads.
+        // Pass a list of input types to the resolve
+        // function to be able to resolve the function call.
+
+        Symbol* callee = resolve(scope, expression->call.name.value);
+        if (callee == NULL)
+            errorAt(&expression->call.name.position, "Call to undefined function %s.", &expression->call.name.value);
+        else if (callee->type.tag != TYPE_FUNCTION)
+            errorAt(&expression->call.name.position, "%s is not a function.", &expression->call.name.value);
+
+        if (callee->type.function.output.count == 0)
+            return NULL;
+        else
+            return &callee->type.function.output.elements[0];
+    }
+    else
+    {
+        switch (expression->number.tag)
+        {
+            case NUMBER_I8:
+                return resolve(scope, i8);
+            case NUMBER_I16:
+                return resolve(scope, i16);
+            case NUMBER_I32:
+                return resolve(scope, i32);
+            case NUMBER_I64:
+                return resolve(scope, i64);
+            case NUMBER_U8:
+                return resolve(scope, u8);
+            case NUMBER_U16:
+                return resolve(scope, u16);
+            case NUMBER_U32:
+                return resolve(scope, u32);
+            case NUMBER_U64:
+                return resolve(scope, u64);
+            case NUMBER_F32:
+                return resolve(scope, f32);
+            case NUMBER_F64:
+                return resolve(scope, f64);
+            default:
+                break;
+        }
+    }
+
+    return NULL;
+}
+
+void checkExpectedExpressionType(Expression* expression, Symbol* expected, Symbol* actual)
+{
+    if (!compareSymbols(expected, actual))
+        errorAt(positionOfExpression(expression), "Expected %s found %s.", typeToString(&expected->type), typeToString(&actual->type));
+}
+
+void analyzeBlock(Scope* file, Scope* local, StatementList* body, Symbol* functionSymbol)
+{
+    for (int32_t i = 0; i < body->count; i++)
+    {
+        Statement* statement = &body->elements[i];
+        switch (statement->tag)
+        {
+            case STATEMENT_ASSIGNMENT:
+                for (int32_t v = 0; v < statement->assignment.variables.count; v++)
+                {
+                    Expression* variable = &statement->assignment.variables.elements[v];
+                    if (variable->tag != EXPRESSION_IDENTIFIER)
+                        error("Can only assign to variables");
+
+                    Expression* value = &statement->assignment.values.elements[v];
+                    if (value->tag == EXPRESSION_CTFE)
+                    {
+                        // Call an interpreter. The interpreter returns an
+                        // ExpressionList Then check if the return expressions
+                        // match in length and types. If the list of returned
+                        // expreessions are longer than there are variables left
+                        // mark the ctfe expression as an error.
+
+                        ExpressionList result = interpret(file, local, value->expression);
+                        statement->assignment.values.elements[v] = result.elements[0];
+                    }
+
+                    Symbol* variableSymbol = resolve(local, variable->identifier.value);
+                    if (variableSymbol)
+                    {
+                        if (value->tag == EXPRESSION_NUMBER && (value->number.tag == NUMBER_INTEGER_TO_BE_INFERRED || value->number.tag == NUMBER_FLOAT_TO_BE_INFERRED))
+                            inferNumberType(value, variableSymbol);
+
+                        checkExpectedExpressionType(value, variableSymbol, analyzeExpression(local, value));
+                        variable->tag = EXPRESSION_VARIABLE_REFERENCE;
+                    }
+                    else
+                    {
+                        Type typeOfValue;
+                        if (value->tag == EXPRESSION_NUMBER)
+                        {
+                            if (value->number.tag == NUMBER_INTEGER_TO_BE_INFERRED)
+                                errorAt(&value->number.position, "Integer type cannot be infered.");
+                            else if (value->number.tag == NUMBER_FLOAT_TO_BE_INFERRED)
+                                errorAt(&value->number.position, "Float type cannot be infered.");
+                            else
+                                typeOfValue = analyzeExpression(local, value)->type;
+                        }
+                        else if (value->tag == EXPRESSION_IDENTIFIER)
+                        {
+                            value->tag = EXPRESSION_VARIABLE_REFERENCE;
+                            typeOfValue = resolve(local, value->identifier.value)->type;;
+                        }
+                        else if (value->tag == EXPRESSION_CALL)
+                        {
+                            Symbol* symbol = analyzeExpression(local, value);
+                            if (symbol == NULL)
+                                errorAt(&value->call.name.position, "%s doesn't return a value.", value->call.name.value);
+
+                            typeOfValue = analyzeExpression(local, value)->type;
+                        }
+
+                        variable->tag = EXPRESSION_VARIABLE_DECLARATION;
+                        appendSymbol(&local->symbols, (Symbol)
+                        {
+                            .name = variable->identifier.value,
+                            .type = typeOfValue
+                        });
+                    }
+                }
+                break;
+            case STATEMENT_RETURN:
+                for (int32_t x = 0; x < functionSymbol->type.function.output.count; x++)
+                {
+                    Symbol* expected = &functionSymbol->type.function.output.elements[x];
+                    inferNumberType(&statement->value, expected);
+
+                    checkExpectedExpressionType(&statement->value, expected, analyzeExpression(local, &statement->value));
+                }
+                break;
+            case STATEMENT_EXPRESSION:
+                analyzeExpression(local, &statement->value);
+                break;
+            default:
+                error("Unsupported Statement type");
+        }
+    }
+}
+
+void analyzeFunction(Scope* file, FunctionDeclaration* declaration)
+{
+    Symbol* functionSymbol = resolve(file, declaration->name.value);
+    declaration->scope.parent = file;
+
+    analyzeBlock(file, &declaration->scope, &declaration->body, functionSymbol);
+    declaration->analyzed = true;
 }
 
 void analyze(Program* program)
 {
-    SymbolList* master = symbolizeDeclarations(program);
-    for (int32_t u = 0; u < program->compilationUnits.count; u++)
+    putDeclarationsIntoScope(program);
+    for (int32_t i = 0; i < program->files.count; i++)
     {
-        CompilationUnit* unit = &program->compilationUnits.elements[u];
-        SymbolList* unitSymbols = findAvailableReferences(master, unit);
-
-        for (int32_t f = 0; f < unit->functions.count; f++)
-            analyzeBlock(&unit->functions.elements[f].body, unitSymbols, &program->diagnostics);
+        File* file = &program->files.elements[i];
+        for (int32_t f = 0; f < file->functions.count; f++)
+            analyzeFunction(&file->scope, &file->functions.elements[f]);
     }
-}
-
-void callToUndefinedFunctionIssuesDiagnostic()
-{
-    char* code = "namespace Test\n"
-                 "public function a\n"
-                 "    b()\n"
-                 "end";
-
-    Source source =
-    {
-        .path = "main.owen",
-        .code = code,
-        .current = code
-    };
-
-    Program program = parse(&source, 1);
-    analyze(&program);
-
-    assert(program.diagnostics.count == 1);
-
-    Diagnostic* diagnostic = &program.diagnostics.elements[0];
-    assert(!strcmp("b is undefined.", diagnostic->description));
-    assert(37 == diagnostic->occurredAt.index - code);
-}
-
-void ambiguousCallIssuesDiagnostic()
-{
-    char* callingCode = "namespace Test\n"
-                        "public function a\n"
-                        "    a()\n"
-                        "end";
-
-    char* code = "namespace Test\n"
-                 "public function a\n"
-                 "end";
-
-    Source sources[] =
-    {
-        {
-            .path = "first.owen",
-            .code = callingCode,
-            .current = callingCode
-        },
-        {
-            .path = "second.owen",
-            .code = code,
-            .current = code
-        }
-    };
-
-    Program program = parse(sources, 2);
-    analyze(&program);
-
-    assert(program.diagnostics.count == 1);
-
-    Diagnostic* diagnostic = &program.diagnostics.elements[0];
-    assert(!strcmp("a can be any of:\nfirst.owen:2:17\nsecond.owen:2:17", diagnostic->description));
-    assert(37 == diagnostic->occurredAt.index - callingCode);
-}
-
-void unambiguousCallBindsToFunction()
-{
-    char* code = "namespace Test\n"
-                 "public function a\n"
-                 "    a()\n"
-                 "end";
-
-    Source source =
-    {
-        .path = "main.owen",
-        .code = code,
-        .current = code
-    };
-
-    Program program = parse(&source, 1);
-    analyze(&program);
-
-    assert(program.compilationUnits.count == 1);
-    assert(program.compilationUnits.elements[0].functions.count == 1);
-
-    FunctionDeclaration callee = program.compilationUnits.elements[0].functions.elements[0];
-    Statement statement = callee.body.elements[0];
-
-    assert(statement.tag == STATEMENT_CALL);
-    assert(compareSlices(&callee.signature.identifier, &statement.call.callee->signature.identifier));
-}
-
-void cannotDeclareAnIntegerVariableWithoutSize()
-{
-    char* code = "namespace Abc\n"
-                 "function main\n"
-                 "    a = 0\n"
-                 "end";
-
-    Source source =
-    {
-       .path = "main.owen",
-       .code = code,
-       .current = code
-    };
-
-    Program program = parse(&source, 1);
-    analyze(&program);
-
-    assert(program.compilationUnits.count == 1);
-    assert(program.compilationUnits.elements[0].functions.count == 1);
-
-    FunctionDeclaration function = program.compilationUnits.elements[0].functions.elements[0];
-    Statement declaration = function.body.elements[0];
-
-    assert(declaration.tag == STATEMENT_ASSIGNMENT);
-    assert(declaration.assignment.variables.count == 1);
-    assert(declaration.assignment.values.count == 1);
-
-    Expression variable = declaration.assignment.variables.elements[0];
-    assert(variable.tag == EXPRESSION_VARIABLE_DECLARATION);
-
-    Expression value = declaration.assignment.values.elements[0];
-    assert(value.tag == EXPRESSION_NUMBER);
-    assert(value.number.tag == NUMBER_POISONED);
-}
-
-void canAssignAnIntegerVariableWithoutSize()
-{
-    char* code = "namespace Abc\n"
-                 "function main\n"
-                 "    a = 0i32\n"
-                 "    a = 3\n"
-                 "end";
-
-    Source source =
-    {
-       .path = "main.owen",
-       .code = code,
-       .current = code
-    };
-
-    Program program = parse(&source, 1);
-    analyze(&program);
-
-    assert(program.compilationUnits.count == 1);
-    assert(program.compilationUnits.elements[0].functions.count == 1);
-
-    FunctionDeclaration function = program.compilationUnits.elements[0].functions.elements[0];
-    Statement declaration = function.body.elements[0];
-    assert(declaration.tag == STATEMENT_ASSIGNMENT);
-    assert(declaration.assignment.variables.count == 1);
-    assert(declaration.assignment.values.count == 1);
-
-    Expression variable = declaration.assignment.variables.elements[0];
-    assert(variable.tag == EXPRESSION_VARIABLE_DECLARATION);
-
-    Expression value = declaration.assignment.values.elements[0];
-    assert(value.tag == EXPRESSION_NUMBER);
-    assert(value.number.tag == NUMBER_I32);
-
-    Statement assignment = function.body.elements[1];
-    variable = assignment.assignment.variables.elements[0];
-    assert(variable.tag == EXPRESSION_VARIABLE_REFERENCE);
-
-    value = assignment.assignment.values.elements[0];
-    assert(value.tag == EXPRESSION_NUMBER);
-    assert(value.number.tag == NUMBER_I32);
-}
-
-void semanticsTestSuite()
-{
-    callToUndefinedFunctionIssuesDiagnostic();
-    ambiguousCallIssuesDiagnostic();
-    unambiguousCallBindsToFunction();
-
-    cannotDeclareAnIntegerVariableWithoutSize();
-    canAssignAnIntegerVariableWithoutSize();
 }
