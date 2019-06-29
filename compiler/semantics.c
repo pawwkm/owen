@@ -369,6 +369,22 @@ void analyzeBlock(Scope* file, Scope* local, StatementList* body, Symbol* functi
             case STATEMENT_EXPRESSION:
                 analyzeExpression(local, &statement->value);
                 break;
+            case STATEMENT_IF:
+                for (int32_t i = 0; i < statement->ifs->count; i++)
+                {
+                    ConditionalBlock* block = &statement->ifs->elements[i];
+                    block->scope.parent = local;
+
+                    if (block->condition.tag != EXPRESSION_NONE)
+                    {
+                        analyzeExpression(&block->scope, &block->condition);
+                        if (block->condition.tag != EXPRESSION_BOOL)
+                            errorAt(positionOfExpression(&block->condition), "Boolean expression expected.");
+                    }
+
+                    analyzeBlock(file, &block->scope, &block->body, functionSymbol);
+                }
+                break;
             default:
                 error("Unsupported Statement type");
         }

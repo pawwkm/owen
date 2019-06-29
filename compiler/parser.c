@@ -8,6 +8,8 @@
 #include "errors.h"
 #include "string.h"
 
+void statements(Source* source, StringList* table, StatementList* list);
+
 char* keywords[] =
 {
     "namespace",
@@ -43,6 +45,17 @@ DECLARE_LIST_APPEND(Identifier)
 DECLARE_LIST_APPEND(File)
 DECLARE_LIST_APPEND(Statement)
 DECLARE_LIST_APPEND(Expression)
+
+void appendConditionalBlock(ConditionalBlockList* list, ConditionalBlock element)
+{
+    if (list->count == list->capacity)
+    {
+        list->capacity = list->capacity < 4 ? 4 : list->capacity * 2;
+        list->elements = (ConditionalBlock *)realloc(list->elements, list->capacity * sizeof(ConditionalBlock));
+    }
+
+    list->elements[list->count++] = element;
+}
 
 void whitespace(Source* source)
 {
@@ -219,6 +232,7 @@ bool callExpression(Source* source, StringList* table, Expression* expression)
 
 void expression(Source* source, StringList* table, Expression* value)
 {
+    char* start = source->current;
     if (literal(source, "ctfe"))
     {
         while (literal(source, "ctfe"))
@@ -235,12 +249,16 @@ void expression(Source* source, StringList* table, Expression* value)
     else if (literal(source, "true"))
     {
         value->tag = EXPRESSION_BOOL;
-        value->boolean = true;
+        value->boolean.value = true;
+        value->boolean.position = *source;
+        value->boolean.position.current = start;
     }
     else if (literal(source, "false"))
     {
         value->tag = EXPRESSION_BOOL;
-        value->boolean = false;
+        value->boolean.value = false;
+        value->boolean.position = *source;
+        value->boolean.position.current = start;
     }
     else if (isalpha(*source->current))
     {
@@ -306,6 +324,64 @@ bool assignmentStatement(Source* source, StringList* table, Statement* statement
     }
 }
 
+void ifStatement(Source* source, StringList* table, Statement* statement)
+{
+    statement->tag = STATEMENT_IF;
+    statement->ifs = malloc(sizeof(ConditionalBlockList));
+    *statement->ifs = (ConditionalBlockList)NEW_LIST();
+
+    ConditionalBlock block =
+    {
+        .body = NEW_LIST(),
+        .scope = (Scope)
+        {
+            .parent = NULL,
+            .symbols = NEW_LIST()
+        }
+    };
+
+    expression(source, table, &block.condition);
+    if (block.condition.tag == EXPRESSION_NONE)
+        errorAt(source, "Boolean expression expected.");
+    else
+    {
+        statements(source, table, &block.body);
+        appendConditionalBlock(statement->ifs, block);
+    }
+
+    while (literal(source, "else"))
+    {
+        block = (ConditionalBlock)
+        {
+            .body = NEW_LIST(),
+            .scope = (Scope)
+            {
+                .parent = NULL,
+                .symbols = NEW_LIST()
+            }
+        };
+
+        bool hasCondition = literal(source, "if");
+        if (hasCondition)
+        {
+            expression(source, table, &block.condition);
+            if (block.condition.tag == EXPRESSION_NONE)
+                errorAt(source, "Boolean expression expected.");
+        }
+        else
+            block.condition.tag == EXPRESSION_NONE;
+
+        statements(source, table, &block.body);
+        appendConditionalBlock(statement->ifs, block);
+
+        if (!hasCondition)
+            break;
+    }
+
+    if (!literal(source, "end"))
+        errorAt(source, "end expected.");
+}
+
 void statements(Source* source, StringList* table, StatementList* list)
 {
     while (true)
@@ -313,6 +389,8 @@ void statements(Source* source, StringList* table, StatementList* list)
         Statement statement;
         if (assignmentStatement(source, table, &statement))
             ;
+        else if (literal(source, "if"))
+            ifStatement(source, table, &statement);
         else if (literal(source, "return"))
         {
             expression(source, table, &statement.value);
@@ -332,7 +410,6 @@ void statements(Source* source, StringList* table, StatementList* list)
                 statement.value = e;
             }
         }
-
 
         appendStatement(list, statement);
     }

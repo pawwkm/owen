@@ -24,7 +24,7 @@ void generateExpression(Expression* expression, StringBuilder* c)
             buildFromSlice(c, &expression->number.value);
             break;
         case EXPRESSION_BOOL:
-            if (expression->boolean)
+            if (expression->boolean.value)
                 buildFromString(c, "true");
             else
                 buildFromString(c, "false");
@@ -74,6 +74,30 @@ void generateStatements(Scope*scope, StatementList* statements, StringBuilder* c
             case STATEMENT_EXPRESSION:
                 generateExpression(&statement->value, c);
                 buildFromString(c, ";\n");
+                break;
+            case STATEMENT_IF:
+                for (int32_t i = 0; i < statement->ifs->count; i++)
+                {
+                    ConditionalBlock* block = &statement->ifs->elements[i];
+                    if (i == 0)
+                        buildFromString(c, "if (");
+                    else if (block->condition.tag != EXPRESSION_NONE)
+                        buildFromString(c, "else if (");
+                    else
+                        buildFromString(c, "else");
+
+                    if (block->condition.tag != EXPRESSION_NONE)
+                    {
+                        generateExpression(&block->condition, c);
+                        buildFromString(c, ")");
+                    }
+
+                    buildFromString(c, " {\n");
+
+                    generateStatements(&block->scope, &block->body, c);
+
+                    buildFromString(c, "}\n");
+                }
                 break;
         }
     }

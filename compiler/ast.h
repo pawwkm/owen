@@ -118,7 +118,11 @@ typedef struct Expression
 
     union
     {
-        bool boolean;
+        struct
+        {
+            bool value;
+            Source position;
+        } boolean;
         Number number;
         Identifier identifier;
         struct Expression* expression;
@@ -133,13 +137,15 @@ typedef struct Expression
 
 DECLARE_LIST(Expression)
 
+struct ConditionalBlockList;
 typedef struct
 {
     enum
     {
         STATEMENT_ASSIGNMENT,
         STATEMENT_EXPRESSION,
-        STATEMENT_RETURN
+        STATEMENT_RETURN,
+        STATEMENT_IF
     } tag;
 
     union
@@ -150,10 +156,25 @@ typedef struct
             ExpressionList variables;
             ExpressionList values;
         } assignment;
+        struct ConditionalBlockList* ifs;
     };
 } Statement;
 
 DECLARE_LIST(Statement)
+
+typedef struct
+{
+    Expression condition;
+    StatementList body;
+    Scope scope;
+} ConditionalBlock;
+
+typedef struct ConditionalBlockList
+{
+    ConditionalBlock* elements;
+    int32_t count;
+    int32_t capacity;
+} ConditionalBlockList;
 
 typedef struct FunctionDeclaration
 {
