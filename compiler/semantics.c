@@ -246,6 +246,8 @@ Symbol* analyzeExpression(Scope* scope, Expression* expression)
         else
             return &callee->type.function.output.elements[0];
     }
+    else if (expression->tag == EXPRESSION_BOOL)
+        return resolve(scope, boolean);
     else
     {
         switch (expression->number.tag)
@@ -383,9 +385,8 @@ void analyzeBlock(Scope* file, Scope* local, StatementList* body, Symbol* functi
                     }
 
                     analyzeBlock(file, &block->scope, &block->body, functionSymbol);
-
-                    break;
                 }
+                break;
             case STATEMENT_WHILE:
             {
                 ConditionalBlock* block = statement->whileBlock;
