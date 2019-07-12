@@ -379,8 +379,8 @@ void analyzeBlock(Scope* file, Scope* local, StatementList* body, Symbol* functi
 
                     if (block->condition.tag != EXPRESSION_NONE)
                     {
-                        analyzeExpression(&block->scope, &block->condition);
-                        if (block->condition.tag != EXPRESSION_BOOL)
+                        Symbol* symbol = analyzeExpression(&block->scope, &block->condition);
+                        if (symbol->type.tag != TYPE_BOOL)
                             errorAt(positionOfExpression(&block->condition), "Boolean expression expected.");
                     }
 
@@ -392,8 +392,8 @@ void analyzeBlock(Scope* file, Scope* local, StatementList* body, Symbol* functi
                 ConditionalBlock* block = statement->whileBlock;
                 block->scope.parent = local;
 
-                analyzeExpression(&block->scope, &block->condition);
-                if (block->condition.tag != EXPRESSION_BOOL)
+                Symbol* symbol = analyzeExpression(&block->scope, &block->condition);
+                if (symbol->type.tag != TYPE_BOOL)
                     errorAt(positionOfExpression(&block->condition), "Boolean expression expected.");
 
                 analyzeBlock(file, &block->scope, &block->body, functionSymbol);
