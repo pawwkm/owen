@@ -102,6 +102,31 @@ typedef struct
 } Identifier;
 DECLARE_LIST(Identifier)
 
+typedef struct
+{
+    Source position;
+    enum
+    {
+        OPERATOR_PLUS,
+        OPERATOR_MINUS,
+        OPERATOR_MULTIPLY,
+        OPERATOR_DIVIDE,
+        OPERATOR_MODULUS,
+        OPERATOR_BITWISE_OR,
+        OPERATOR_BITWISE_AND,
+        OPERATOR_SHIFT_RIGHT,
+        OPERATOR_SHIFT_LEFT,
+        OPERATOR_EQUAL,
+        OPERATOR_NOT_EQUAL,
+        OPERATOR_GREATER_THAN_OR_EQUAL,
+        OPERATOR_LESS_THAN_OR_EQUAL,
+        OPERATOR_GREATER_THAN,
+        OPERATOR_LESS_THAN,
+        OPERATOR_LOGICAL_OR,
+        OPERATOR_LOGICAL_AND,
+    } tag;
+} Operator;
+
 typedef struct Expression
 {
     enum
@@ -111,6 +136,7 @@ typedef struct Expression
         EXPRESSION_NUMBER,
         EXPRESSION_BOOL,
         EXPRESSION_IDENTIFIER,
+        EXPRESSION_BINARY,
         EXPRESSION_CTFE,
         EXPRESSION_VARIABLE_DECLARATION,
         EXPRESSION_VARIABLE_REFERENCE
@@ -130,6 +156,12 @@ typedef struct Expression
         {
             Identifier name;
         } call;
+        struct
+        {
+            struct Expression* left;
+            Operator operator;
+            struct Expression* right;
+        } binary;
     };
 
     void* ctfeValue;

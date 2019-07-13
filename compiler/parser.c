@@ -74,6 +74,8 @@ void whitespace(Source* source)
                     while (*source->current != '\n')
                         source->current++;
                 }
+                else
+                    return;
                 break;
             default:
                 return;
@@ -230,7 +232,7 @@ bool callExpression(Source* source, StringList* table, Expression* expression)
     return false;
 }
 
-void expression(Source* source, StringList* table, Expression* value)
+void expression(Source* source, StringList* table, Expression* left, int32_t minimumPrecedence)
 {
     char* start = source->current;
     if (literal(source, "ctfe"))
@@ -238,39 +240,157 @@ void expression(Source* source, StringList* table, Expression* value)
         while (literal(source, "ctfe"))
             ;
 
-        value->tag = EXPRESSION_CTFE;
-        value->expression = malloc(sizeof(Expression));
-        expression(source, table, value->expression);
+        left->tag = EXPRESSION_CTFE;
+        left->expression = malloc(sizeof(Expression));
+        expression(source, table, left->expression, minimumPrecedence);
     }
-    else if (callExpression(source, table, value))
+    else if (callExpression(source, table, left))
         ;
     else if (isdigit(*source->current))
-        number(source, value);
+        number(source, left);
     else if (literal(source, "true"))
     {
-        value->tag = EXPRESSION_BOOL;
-        value->boolean.value = true;
-        value->boolean.position = *source;
-        value->boolean.position.current = start;
+        left->tag = EXPRESSION_BOOL;
+        left->boolean.value = true;
+        left->boolean.position = *source;
+        left->boolean.position.current = start;
     }
     else if (literal(source, "false"))
     {
-        value->tag = EXPRESSION_BOOL;
-        value->boolean.value = false;
-        value->boolean.position = *source;
-        value->boolean.position.current = start;
+        left->tag = EXPRESSION_BOOL;
+        left->boolean.value = false;
+        left->boolean.position = *source;
+        left->boolean.position.current = start;
     }
     else if (isalpha(*source->current))
     {
-        if (identifier(source, table, &value->identifier))
-            value->tag = EXPRESSION_IDENTIFIER;
+        if (identifier(source, table, &left->identifier))
+            left->tag = EXPRESSION_IDENTIFIER;
         else
-            value->tag = EXPRESSION_NONE;
+            left->tag = EXPRESSION_NONE;
     }
     else
-        value->tag = EXPRESSION_NONE;
+        left->tag = EXPRESSION_NONE;
 
-    value->ctfeValue = NULL;
+    left->ctfeValue = NULL;
+    while (true)
+    {
+        int32_t precedence;
+        Operator operator;
+
+        start = source->current;
+        if (literal(source, "||"))
+        {
+            precedence = 0;
+            operator = (Operator) { .position = start, .tag = OPERATOR_LOGICAL_OR };
+        }
+        else if (literal(source, "&&"))
+        {
+            precedence = 1;
+            operator = (Operator) { .position = start, .tag = OPERATOR_LOGICAL_AND };
+        }
+        else if (literal(source, "=="))
+        {
+            precedence = 2;
+            operator = (Operator) { .position = start, .tag = OPERATOR_EQUAL };
+        }
+        else if (literal(source, "!="))
+        {
+            precedence = 2;
+            operator = (Operator) { .position = start, .tag = OPERATOR_NOT_EQUAL };
+        }
+        else if (literal(source, "<="))
+        {
+            precedence = 2;
+            operator = (Operator) { .position = start, .tag = OPERATOR_LESS_THAN_OR_EQUAL };
+        }
+        else if (literal(source, "<"))
+        {
+            precedence = 2;
+            operator = (Operator) { .position = start, .tag = OPERATOR_LESS_THAN };
+        }
+        else if (literal(source, ">="))
+        {
+            precedence = 2;
+            operator = (Operator) { .position = start, .tag = OPERATOR_GREATER_THAN_OR_EQUAL };
+        }
+        else if (literal(source, ">"))
+        {
+            precedence = 2;
+            operator = (Operator) { .position = start, .tag = OPERATOR_GREATER_THAN };
+        }
+        else if (literal(source, "+"))
+        {
+            precedence = 3;
+            operator = (Operator) { .position = start, .tag = OPERATOR_PLUS };
+        }
+        else if (literal(source, "-"))
+        {
+            precedence = 3;
+            operator = (Operator) { .position = start, .tag = OPERATOR_MINUS };
+        }
+        else if (literal(source, "|"))
+        {
+            precedence = 3;
+            operator = (Operator) { .position = start, .tag = OPERATOR_BITWISE_OR };
+        }
+        else if (literal(source, "*"))
+        {
+            precedence = 4;
+            operator = (Operator) { .position = start, .tag = OPERATOR_MULTIPLY };
+        }
+        else if (literal(source, "/"))
+        {
+            precedence = 4;
+            operator = (Operator) { .position = start, .tag = OPERATOR_DIVIDE };
+        }
+        else if (literal(source, "%"))
+        {
+            precedence = 4;
+            operator = (Operator) { .position = start, .tag = OPERATOR_MODULUS };
+        }
+        else if (literal(source, ">>"))
+        {
+            precedence = 4;
+            operator = (Operator) { .position = start, .tag = OPERATOR_SHIFT_RIGHT };
+        }
+        else if (literal(source, "<<"))
+        {
+            precedence = 4;
+            operator = (Operator) { .position = start, .tag = OPERATOR_SHIFT_LEFT };
+        }
+        else if (literal(source, "%"))
+        {
+            precedence = 4;
+            operator = (Operator) { .position = start, .tag = OPERATOR_BITWISE_AND };
+        }
+        else
+            return;
+
+        if (precedence < minimumPrecedence)
+        {
+            source->current = start;
+            return;
+        }
+        else
+        {
+            Expression e =
+            {
+                .tag = EXPRESSION_BINARY,
+                .binary.left = malloc(sizeof(Expression)),
+                .binary.operator = operator,
+                .binary.right = malloc(sizeof(Expression))
+            };
+
+            *e.binary.left = *left;
+            expression(source, table, e.binary.right, minimumPrecedence + 1);
+
+            if (e.binary.right->tag == EXPRESSION_NONE)
+                errorAt(source, "Expression expected.");
+
+            *left = e;
+        }
+    }
 }
 
 bool assignmentStatement(Source* source, StringList* table, Statement* statement)
@@ -279,7 +399,7 @@ bool assignmentStatement(Source* source, StringList* table, Statement* statement
     statement->assignment.variables = (ExpressionList) NEW_LIST();
     Expression e;
 
-    expression(source, table, &e);
+    expression(source, table, &e, 0);
     if (e.tag == EXPRESSION_NONE)
         return false;
     else
@@ -287,7 +407,7 @@ bool assignmentStatement(Source* source, StringList* table, Statement* statement
         appendExpression(&statement->assignment.variables, e);
         while (literal(source, ","))
         {
-            expression(source, table, &e);
+            expression(source, table, &e, 0);
             if (e.tag == EXPRESSION_NONE)
                 errorAt(source, "Expression expected.");
 
@@ -298,14 +418,14 @@ bool assignmentStatement(Source* source, StringList* table, Statement* statement
         {
             statement->assignment.values = (ExpressionList) NEW_LIST();
 
-            expression(source, table, &e);
+            expression(source, table, &e, 0);
             if (e.tag == EXPRESSION_NONE)
                 errorAt(source, "Expression expected.");
 
             appendExpression(&statement->assignment.values, e);
             while (literal(source, ","))
             {
-                expression(source, table, &e);
+                expression(source, table, &e, 0);
                 if (e.tag == EXPRESSION_NONE)
                     errorAt(source, "Expression expected.");
 
@@ -340,7 +460,7 @@ void ifStatement(Source* source, StringList* table, Statement* statement)
         }
     };
 
-    expression(source, table, &block.condition);
+    expression(source, table, &block.condition, 0);
     if (block.condition.tag == EXPRESSION_NONE)
         errorAt(source, "Boolean expression expected.");
     else
@@ -364,7 +484,7 @@ void ifStatement(Source* source, StringList* table, Statement* statement)
         bool hasCondition = literal(source, "if");
         if (hasCondition)
         {
-            expression(source, table, &block.condition);
+            expression(source, table, &block.condition, 0);
             if (block.condition.tag == EXPRESSION_NONE)
                 errorAt(source, "Boolean expression expected.");
         }
@@ -396,7 +516,7 @@ void whileStatement(Source* source, StringList* table, Statement* statement)
         }
     };
 
-    expression(source, table, &statement->whileBlock->condition);
+    expression(source, table, &statement->whileBlock->condition, 0);
     if (statement->whileBlock->condition.tag == EXPRESSION_NONE)
         errorAt(source, "Boolean expression expected.");
     else
@@ -419,14 +539,14 @@ void statements(Source* source, StringList* table, StatementList* list)
             whileStatement(source, table, &statement);
         else if (literal(source, "return"))
         {
-            expression(source, table, &statement.value);
+            expression(source, table, &statement.value, 0);
             statement.tag = STATEMENT_RETURN;
         }
         else
         {
             Expression e;
             e.tag = EXPRESSION_NONE;
-            expression(source, table, &e);
+            expression(source, table, &e, 0);
 
             if (e.tag == EXPRESSION_NONE)
                 break;

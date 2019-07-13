@@ -88,6 +88,10 @@ Source* positionOfExpression(Expression* expression)
             return &expression->identifier.position;
         case EXPRESSION_NUMBER:
             return &expression->number.position;
+        case EXPRESSION_BINARY:
+            return positionOfExpression(expression->binary.left);
+        case EXPRESSION_BOOL:
+            return &expression->boolean.position;
         default:
             error("Could not get position of expression.");
             return NULL;
@@ -217,6 +221,11 @@ void inferNumberType(Expression* expression, Symbol* expected)
                 break;
         }
     }
+    else if (expression->tag == EXPRESSION_BINARY)
+    {
+        inferNumberType(expression->binary.left, expected);
+        inferNumberType(expression->binary.right, expected);
+    }
 }
 
 Symbol* analyzeExpression(Scope* scope, Expression* expression)
@@ -248,6 +257,57 @@ Symbol* analyzeExpression(Scope* scope, Expression* expression)
     }
     else if (expression->tag == EXPRESSION_BOOL)
         return resolve(scope, boolean);
+    else if (expression->tag == EXPRESSION_BINARY)
+    {
+        Symbol* left = analyzeExpression(scope, expression->binary.left);
+        Symbol* right = analyzeExpression(scope, expression->binary.right);
+
+        if (!compareSymbols(left, right))
+            errorAt(positionOfExpression(expression->binary.right), "Expected a %s but was %s", typeToString(&left->type), typeToString(&right->type));
+
+        bool isOperatorCompatible = false;
+        switch (left->type.tag)
+        {
+            case TYPE_BOOL:
+                isOperatorCompatible = expression->binary.operator.tag == OPERATOR_LOGICAL_AND || expression->binary.operator.tag == OPERATOR_LOGICAL_OR;
+                break;
+            case TYPE_I8:
+            case TYPE_I16:
+            case TYPE_I32:
+            case TYPE_I64:
+            case TYPE_U8:
+            case TYPE_U16:
+            case TYPE_U32:
+            case TYPE_U64:
+            case TYPE_F32:
+            case TYPE_F64:
+                switch (expression->binary.operator.tag)
+                {
+                    case OPERATOR_PLUS:
+                    case OPERATOR_MINUS:
+                    case OPERATOR_MULTIPLY:
+                    case OPERATOR_DIVIDE:
+                    case OPERATOR_MODULUS:
+                    case OPERATOR_BITWISE_OR:
+                    case OPERATOR_BITWISE_AND:
+                    case OPERATOR_SHIFT_RIGHT:
+                    case OPERATOR_SHIFT_LEFT:
+                    case OPERATOR_EQUAL:
+                    case OPERATOR_NOT_EQUAL:
+                    case OPERATOR_GREATER_THAN_OR_EQUAL:
+                    case OPERATOR_LESS_THAN_OR_EQUAL:
+                    case OPERATOR_GREATER_THAN:
+                        isOperatorCompatible = true;
+                        break;
+                }
+                break;
+        }
+
+        if (!isOperatorCompatible)
+            errorAt(&expression->binary.operator.position, "Cannot apply operator to %s", typeToString(&left->type));
+
+        return left;
+    }
     else
     {
         switch (expression->number.tag)

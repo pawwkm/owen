@@ -28,6 +28,69 @@ void generateExpression(Expression* expression, StringBuilder* c)
                 buildFromString(c, "true");
             else
                 buildFromString(c, "false");
+            break;
+        case EXPRESSION_BINARY:
+            buildFromString(c, "(");
+            generateExpression(expression->binary.left, c);
+
+            switch (expression->binary.operator.tag)
+            {
+                case OPERATOR_PLUS:
+                    buildFromString(c, "+");
+                    break;
+                case OPERATOR_MINUS:
+                    buildFromString(c, "-");
+                    break;
+                case OPERATOR_MULTIPLY:
+                    buildFromString(c, "*");
+                    break;
+                case OPERATOR_DIVIDE:
+                    buildFromString(c, "/");
+                    break;
+                case OPERATOR_MODULUS:
+                    buildFromString(c, "%");
+                    break;
+                case OPERATOR_BITWISE_OR:
+                    buildFromString(c, "|");
+                    break;
+                case OPERATOR_BITWISE_AND:
+                    buildFromString(c, "&");
+                    break;
+                case OPERATOR_SHIFT_RIGHT:
+                    buildFromString(c, ">>");
+                    break;
+                case OPERATOR_SHIFT_LEFT:
+                    buildFromString(c, ">>");
+                    break;
+                case OPERATOR_EQUAL:
+                    buildFromString(c, "==");
+                    break;
+                case OPERATOR_NOT_EQUAL:
+                    buildFromString(c, "!=");
+                    break;
+                case OPERATOR_GREATER_THAN_OR_EQUAL:
+                    buildFromString(c, ">=");
+                    break;
+                case OPERATOR_LESS_THAN_OR_EQUAL:
+                    buildFromString(c, "<=");
+                    break;
+                case OPERATOR_GREATER_THAN:
+                    buildFromString(c, ">");
+                    break;
+                case OPERATOR_LESS_THAN:
+                    buildFromString(c, "<");
+                    break;
+                case OPERATOR_LOGICAL_OR:
+                    buildFromString(c, "||");
+                    break;
+                case OPERATOR_LOGICAL_AND:
+                    buildFromString(c, "&&");
+                    break;
+            }
+
+            generateExpression(expression->binary.right, c);
+            buildFromString(c, ")");
+            break;
         default:
             break;
     }
