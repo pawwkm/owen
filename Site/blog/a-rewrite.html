@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="Why rewrite the compiler in C#?">
+        <meta name="keywords" content="C#, D, C, Debugging">
+        <title>A Rewrite</title>
+        <link rel="icon" type="image/x-icon" href="../images/owen.png" />
+        <link rel="stylesheet" type="text/css" href="../css/global.css">
+    </head>
+    <body>
+        <nav>
+            <a title="Home" href="../index.html">
+                <img class="owen" src="../images/owen.svg" alt="Home"/>
+            </a>
+            <a title="Blog About Owen" href="../blog.html">
+                <img src="../images/blog.svg" alt="Blog"/>
+            </a>
+            <a title="Owen Specification" href="../specification.html">
+                <img src="../images/book.svg" alt="Specification"/>
+            </a>
+            <a title="Owen's GitHub Repository" href="https://github.com/pawwkm/owen">
+                <img src="../images/github.svg" alt="GitHub"/>
+            </a>
+        </nav>
+        <main>
+            <h1>A Rewrite</h1>
+            <time datetime="2019-11-10">November 10, 2019</time>
+            <p>
+                Lately a few problems have become more apparent:
+            </p>
+            
+            <ul>
+                <li>
+                    The code base is getting a bit messy because of the list macros
+                    and the hoops that have to be made for referencing structs 
+                    before they are defined. 
+                </li>
+                <li>
+                    The above is also a problem when transpiling to C since structs 
+                    in Owen can refer to structs further down.
+                </li>
+                <li>
+                    Compiling debug information is not a picnic either.
+                </li>
+            </ul>
+            
+            <p>
+                The primary problem is debugging compiled programs on Windows. 
+                This could be solved in 3 ways. Use LLVM, reverse engeneer the 
+                .pdb format like LLVM <a href="http://llvm.org/docs/PDB/index.html">did</a>
+                 or use .NET which has an API for this. <a href="https://blogs.msdn.microsoft.com/jmstall/2005/02/03/debugging-dynamically-generated-code-reflection-emit/">Here</a> 
+                is an example. Programming the compiler in C# might be the fastest 
+                way since it is the language I know best by far.
+            </p>
+            
+            <p>
+                So I have chosen to rewrite the compiler in C# and transpile 
+                release builds to D since it is much easier to transpile to a subset 
+                of D than it is to fit Owen in C. Debug builds are compiled to 
+                MSIL. This should result in optimized release builds, 
+                pleasant debugging and a bit smaller code base.
+            </p>
+        </main>
+    </body>
+</html>

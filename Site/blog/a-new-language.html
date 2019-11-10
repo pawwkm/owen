@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="Why I decided to make a programming language.">
+        <meta name="keywords" content="Owen, programming language, design">
+        <title>A New Language</title>
+        <link rel="icon" type="image/x-icon" href="../images/owen.png" />
+        <link rel="stylesheet" type="text/css" href="../css/global.css">
+    </head>
+    <body>
+        <nav>
+            <a title="Home" href="../index.html">
+                <img class="owen" src="../images/owen.svg" alt="Home"/>
+            </a>
+            <a title="Blog About Owen" href="../blog.html">
+                <img src="../images/blog.svg" alt="Blog"/>
+            </a>
+            <a title="Owen Specification" href="../specification.html">
+                <img src="../images/book.svg" alt="Specification"/>
+            </a>
+            <a title="Owen's GitHub Repository" href="https://github.com/pawwkm/owen">
+                <img src="../images/github.svg" alt="GitHub"/>
+            </a>
+        </nav>
+        <main>
+            <h1>A New Language</h1>
+            <time datetime="2019-01-30">January 30, 2019</time>
+
+            <p>
+                About 8 months ago I was in the middle of writing an API in C#.
+                The API took a <a href="http://bford.info/pub/lang/peg.pdf">Parser Expression Grammar</a>
+                as input then generated each valid string within some parameters.
+                The caller specified the maximum number of repetitions and such.
+                The idea was to use it for testing handwritten parsers. The API
+                generated code using reflection to up the performance and
+                analyzed the PEG so it could optimize the generated code. It was
+                also there I realized that in real world scenarios the tests
+                would run for a really long time. I mildly succeeded in using
+                <code><span class="type">Parallel</span>.ForEach</code> to
+                squeeze out more performance. In ideal situations execution time
+                was halved. Out of curiosity I ported the single threaded
+                generated code to C which was nearly identical anyway.
+                Single thread performance doubled.
+                The reason being that in C# I used an array of characters,
+                changed them as needed and then new'ed up a <span class="type">string</span>
+                from the array. That meant trillions of string constructions,
+                garbage collecting them and so on. In C I just used the same array
+                and poof, solid performance bump. Since then I have been
+                obsessed with performance and efficiency.
+            </p>
+
+            <p>
+                I began looking for another programming language to use for my
+                low level stuff. I already knew C... I like the power C has it's
+                just clunky to program in. C++, a waterfall of no. Then D... you
+                get the point, I could not find something that satisfied my
+                needs. I could not find any language with the syntax, semantics
+                and tooling (compilation process, refactoring etc.) I wanted.
+                Looking back I think its weird that I had to see Jonathan Blow's
+                <a href="https://www.youtube.com/watch?v=TH9VCN6UkyQ">Ideas about a new programming language for games</a>
+                video before realizing that implementing my own programming
+                language was an option considering that I have made several
+                compilers from scratch before watching that video.
+            </p>
+
+            <p>
+                Kevlin Henney has definitely influenced my language design and
+                my programming in general. His talk <a href="https://www.youtube.com/watch?v=yOYkzecsunQ">Software Is Details</a>
+                is excellent IMHO. Inspired by his talks I've tried to improve
+                documenting unit tests and line length. At least compared to
+                what I'm used to. One thing that has bugged me since day one of unit testing is
+                naming tests: <code>summary_of_test_description</code> or
+                <code>Method_State_Expectation</code> etc.
+                IMHO these names become hard to read and maintain not to mention
+                that they often stray from the naming convention normally used
+                in the code base. I chose to do what D does but instead of having
+                the <span class="keyword">unittest</span> keyword, I chose
+                <span class="keyword">proposition</span>:
+            </p>
+
+            <pre><code><span class="comment">// Detailed explanation of the behaviour being tested.</span>
+<span class="keyword">proposition</span>
+    <span class="comment">// Asserting behaviour...</span>
+<span class="keyword">end</span></code></pre>
+
+            <p>
+                The <span class="keyword">proposition</span> keyword avoids
+                the awkward use of <span class="keyword">unittest</span> for
+                other kinds of tests such as Integration tests that says <q>Hey! I'm a unit test!</q> but isn't.
+                A really nice thing about the D way is that unit test have no
+                names which removes the need for writing documentation abstracts
+                as function names. There is only a detailed explanation as a comment if needed.
+            </p>
+
+            <p>
+                I've also used line length as a guide line for designing Owen.
+                It is often recommended that lines in a text doesn't exceed 60
+                characters. Function signatures can get long quickly. You can in
+                many languages split them into multiple lines but that looks
+                weird to me. Especially when <code>{</code> comes into play.
+                This is where the <span class="keyword">input</span> and
+                <span class="keyword">output</span> keywords comes in:
+            </p>
+
+            <pre><code><span class="keyword">function</span> test
+    <span class="keyword">input</span> <span class="type">i32</span> a,
+          <span class="type">i32</span> b
+
+    <span class="keyword">output</span> <span class="type">i32</span>,
+           <span class="type">i32</span>
+
+    <span class="keyword">return</span> a,
+           b
+<span class="keyword">end</span></code></pre>
+
+            <p>
+                In a C like language this would look like:
+            </p>
+
+            <pre><code>(<span class="type">i32</span>, <span class="type">i32</span>) test(<span class="type">i32</span> a, <span class="type">i32</span> b)
+{
+    <span class="keyword">return</span> (a, b);
+}</code></pre>
+
+            <p>
+                This is a trivial example but put on some generics and longer
+                type names then the C like function signature will have
+                different weather systems at each end of the line. Owen's
+                solution comes at a cost of more lines but I'm very curious if
+                it is a problem in practice. Note that
+                <span class="keyword">input</span> and
+                <span class="keyword">output</span> are not statements but are
+                part of the function signature.
+            </p>
+
+            <p>
+                The next big question is how memory is managed? I experimented
+                with Rust since it can figure out when to allocate and free
+                memory at compile time due to <a href="https://doc.rust-lang.org/1.30.0/book/second-edition/ch04-01-what-is-ownership.html">Ownership</a>.
+                I started programming a <a href="https://en.wikipedia.org/wiki/PL/0">PL/0</a>
+                compiler to get a sense of how to use it. While I did get the
+                parser going I could not shake the feeling that there was too
+                much friction getting there. This could very well just have been
+                me fighting the Borrow Checker which seems to be common for
+                beginners. Manual memory management it is then. However it might
+                be useful to have owned and borrowed pointers be distinct types
+                but work the same way. The idea being that the APIs can
+                explicitly say who is in charge of the memory but as in clasic C
+                its your job to free it if you want to.
+            </p>
+        </main>
+    </body>
+</html>
