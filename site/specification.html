@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <title>Owen Specification 0.1.0</title>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="description" content="This is the Owen programming language specification.">
         <meta name="keywords" content="Owen, programming language, specification, reference">
-        <link rel="icon" type="image/x-icon" href="images/owen.ico" />
+        <title>Owen Specification 0.2.0</title>
+        <link rel="icon" type="image/x-icon" href="images/owen.png" />
         <link rel="stylesheet" type="text/css" href="css/global.css">
     </head>
     <body>
@@ -25,7 +25,7 @@
             </a>
         </nav>
         <main>
-            <h1>Owen Specification 0.1.0</h1>
+            <h1>Owen Specification 0.2.0</h1>
             <p>
                 The specification is versioned using <a href="https://semver.org/spec/v2.0.0.html">Semver 2.0</a>.
                 <a href="http://bford.info/pub/lang/peg.pdf">Parser Expression Grammar</a>
@@ -34,22 +34,27 @@
             </p>
 
             <h1>1. Files</h1>
-            <pre><code>file = whitespace directives declaration*
+            <pre><code>file ← whitespace 
+       directives 
+       (declaration / ctfeExpression / mixinExpression)*
 
-directives = namespaceDirective useDirective*
+directives ← namespaceDirective 
+             useDirective*
 
-namespaceDirective = namespace qualifiedIdentifier
-useDirective = use qualifiedIdentifier
-qualifiedIdentifier = identifier (dot identifier)*
+namespaceDirective ← namespace qualifiedIdentifier
+useDirective ← use qualifiedIdentifier
+qualifiedIdentifier ← identifier (dot identifier)*
 
-declaration = public? ( functionDeclaration
+declaration ← public? ( functionDeclaration
+                      / externalFunctionDeclaration
                       / propositionDeclaration
                       / structureDeclaration
                       / unionDeclaration
-                      / enumerationDeclaration)
+                      / enumerationDeclaration
+                      / versionDeclaration)
 
-identifier = !keyword [A-Za-z] [A-Za-z0-9]* whitespace
-keyword = namespace
+identifier ← !keyword [A-Za-z] [A-Za-z0-9]* whitespace
+keyword ← namespace
         / use
         / public
         / function
@@ -59,8 +64,6 @@ keyword = namespace
         / if
         / else
         / for
-        / each
-        / in
         / while
         / break
         / structure
@@ -73,39 +76,45 @@ keyword = namespace
         / ctfe
         / true
         / false
+        / assert
+        / null
+        / generalize
+        / version
 
-namespace = 'namespace' whitespace
-use = 'use' whitespace
-public = 'public' whitespace
-function = 'function' whitespace
-input = 'input' whitespace
-output = 'output' whitespace
-end = 'end' whitespace
-if = 'if' whitespace
-else = 'else' whitespace
-for = 'for' whitespace
-each = 'each' whitespace
-in = 'in' whitespace
-while = 'while' whitespace
-break = 'break' whitespace
-structure = 'structure' whitespace
-proposition = 'proposition' whitespace
-enumeration = 'enumeration' whitespace
-of = 'of' whitespace
-size = 'size' whitespace
-union = 'union' whitespace
-return = 'return' whitespace
-ctfe = 'ctfe' whitespace
-true = 'true' whitespace
-false = 'false' whitespace
+namespace ← 'namespace' whitespace
+use ← 'use' whitespace
+public ← 'public' whitespace
+function ← 'function' whitespace
+input ← 'input' whitespace
+output ← 'output' whitespace
+end ← 'end' whitespace
+if ← 'if' whitespace
+else ← 'else' whitespace
+for ← 'for' whitespace
+while ← 'while' whitespace
+break ← 'break' whitespace
+structure ← 'structure' whitespace
+proposition ← 'proposition' whitespace
+enumeration ← 'enumeration' whitespace
+of ← 'of' whitespace
+size ← 'size' whitespace
+union ← 'union' whitespace
+return ← 'return' whitespace
+ctfe ← 'ctfe' whitespace
+true ← 'true' whitespace
+false ← 'false' whitespace
+assert ← 'assert' whitespace
+null ← 'null' whitespace
+generalize ← 'generalize' whitespace
+version ← 'version' whitespace
 
-dot = '.' whitespace
-whitespace = (' ' / '\n' / comment)*
-comment = '//' (!'\n' .)* '\n'?</code></pre>
+dot ← '.' whitespace
+whitespace ← (' ' / '\n' / comment)*
+comment ← '//' (!'\n' .)* '\n'?</code></pre>
 
             <p>
                 The <span class="rule">namespaceDirective</span> specifies that
-                all <span class="rule">declarations</span> in the
+                all <span class="rule">declaration</span>s in the
                 <span class="rule">file</span> are in the given name
                 space. The <span class="rule">useDirective</span> and
                 <span class="rule">namespaceDirective</span> makes all the
@@ -116,21 +125,22 @@ comment = '//' (!'\n' .)* '\n'?</code></pre>
 
             <h1>2. Declarations</h1>
             <p>
-				Nested <span class="rule">identifier</span>s cannot be the same as the
-				<span class="rule">declaration</span>'s <span class="rule">identifier</span>.
-
+                Shadowing is not allowed.
             </p>
+            
             <h2>2.1 Functions</h2>
-            <pre><code>functionDeclaration = functionSignature
-                          statements?
+            <pre><code>functionDeclaration ← functionSignature
+                          statement*
                       end
 
-functionSignature = function identifier
+functionSignature ← function identifier
+                        (generalize identifierList)?
                         (input arguments)?
                         (output type (comma type)*)?
 
-arguments = argument (comma argument)*
-argument = type indentifier</code></pre>
+identifierList = identifier (comma identifier)*
+arguments ← argument (comma argument)*
+argument ← type identifier</code></pre>
 
             <p>
                 Declares a function named <span class="rule">identifier</span>.
@@ -138,24 +148,29 @@ argument = type indentifier</code></pre>
                 defines a list of arguments that a caller must pass to the
                 function. The <span class="rule">arguments</span> are in the
                 same scope as <span class="rule">statements</span>.
-                Functions can be overloaded with different order of input types
-                otherwise each <span class="rule">identifier</span> must be
-                unique. The <span class="rule">output</span> list is the types
-                of the values that the function returns <b>in</b> the order they
+                Functions can be overloaded with different order of input types. 
+                The <span class="rule">output</span> list is the types of the 
+                values that the function returns <b>in</b> the order they
                 are listed.
             </p>
 
-            <h3>2.1.1 The Main Function</h3>
+            <h3>2.1.1. The Main Function</h3>
             <p>
-                A package can have one function called <i>main</i>. If declared
-                it is the entry point of the program. The main function cannot
-                have any input. The return type of main must be
-                <span class="type">i32</span>.
+                The <i>main</i> function is the entry point of the program. It 
+                is the entry point of the program. The return type of main must 
+                be <span class="type">i32</span>.
+            </p>
+
+            <h3>2.1.2. Foreign Function Interface</h3>
+            <pre><code>externalFunctionDeclaration ← external functionSignature string</code></pre>
+            <p>
+                Defines a reference to a C function in a library. The 
+                <span class="rule">string</span> is the path to the library.
             </p>
 
             <h2>2.2. Propositions</h2>
-            <pre><code>propositionDeclaration = proposition
-                             statements?
+            <pre><code>propositionDeclaration ← proposition
+                             statement*
                          end</code></pre>
 
             <p>
@@ -165,60 +180,72 @@ argument = type indentifier</code></pre>
             </p>
 
             <h2>2.3. Structures</h2>
-            <pre><code>structureDeclaration = structure identifier
-                           fields
+            <pre><code>structureDeclaration ← structure identifier
+                           (generalize identifierList)?
+                           field*
                        end
 
-fields = field (comma field)*
-field = type identifier</code></pre>
+field ← type identifier</code></pre>
 
             <p>
-                A structure is a sequence of fields laid out in memory as they
-                are lexically declared. Padding may be inserted between fields.
-				The size of the structure is the sum of its
-				<span class="rule">field</span>s and padding.
+                The <span class="rule">field</span>s are laid out in memory as 
+                they are lexically declared. Padding may be inserted between 
+                fields. The size of the structure is the sum of its 
+                <span class="rule">field</span>s and padding.
             </p>
 
             <h2>2.4. Unions</h2>
-            <pre><code>unionDeclaration = union identifier
-                       fields
+            <pre><code>unionDeclaration ← union identifier
+                       (generalize identifierList)?
+                       field*
                    end</code></pre>
 
             <p>
-				Works exactly like structures except that all <span class="rule">fields</span>
+				Works exactly like structures except that all <span class="rule">field</span>s
 				starts at the same address. The size of the union is the size
 				of the largest <span class="rule">field</span>.
             </p>
 
             <h2>2.5. Enumerations</h2>
-            <pre><code>enumerationDeclaration = enumeration identifier of type
-                             enumerationConstants
+            <pre><code>enumerationDeclaration ← enumeration identifier of type
+                             enumerationConstant*
                          end
 
-enumerationConstants = enumerationConstant (comma enumerationConstant)*
-enumerationConstant = identifier (assign integerLiteral)?</code></pre>
+enumerationConstant ← identifier (assign integerLiteral)?</code></pre>
 
             <p>
                 The <span class="rule">identifier</span> is the name of the
                 enumeration. The <span class="rule">type</span> must be an <span class="type">iXX</span>.
-                <span class="rule">integerLiteral</span>'s must have the same
+                <span class="rule">integerLiteral</span>s must have the same
                 type as the <span class="rule">type</span>. If an
                 <span class="rule">enumerationConstant</span> omits the
                 <span class="rule">integerLiteral</span> then it is the value of
                 the last constant + 1. If the first constant omits the
                 <span class="rule">integerLiteral</span> then its value is 0.
             </p>
-
+            
+            <h2>2.6. Versions</h2>
+            <pre><code>versionDeclaration ← version identifier
+                         declaration*
+                     end</code></pre>
+            
+            <p>
+                Conditionally compiles <span class="rule">declaration</span>s
+                if the <span class="rule">identifier</span> has been declared in 
+                the command line. The <span class="rule">identifier</span> is 
+                not part of the program's scope.
+            </p>
+            
             <h1>3. Statements</h1>
-            <pre><code>statements = statement+
-statement = assignmentStatement
+            <pre><code>statement ← assignmentStatement
+          / expressionStatement
           / ifStatement
-          / forEachStatement
+          / forStatement
           / whileStatement
           / breakStatement
-          / expressionStatement
           / returnStatement
-          / assertStatement</code></pre>
+          / assertStatement
+          / versionStatement</code></pre>
 
             <p>
                 Each <span class="rule">statement</span> are executed in lexical
@@ -226,73 +253,84 @@ statement = assignmentStatement
             </p>
 
             <h2>3.1. Assignment Statements</h2>
-            <pre><code>assignmentStatement = expressions assign expressions
+            <pre><code>assignmentStatement ← expressionList assignmentOperator expressionList
+expressionList ← expression (comma expression)*
+assignmentOperator ← ([+-*/&amp;|^%] / '&lt;&lt;' / '&gt;&gt;')? '=' whitespace</code></pre>
 
-assign = '=' whitespace</code></pre>
             <p>
-                Assigns <span class="rule">expressions</span> to another set of
-                <span class="rule">expressions</span>. Both lists must be equal
+                Assigns an <span class="rule">expressionList</span> to another
+                <span class="rule">expressionList</span>. Both lists must be equal
                 in length. If an <span class="rule">expression</span> on the
                 right hand side is a call that returns multiple values they are
-                inserted into the expression list at the point where the
+                inserted into the <span class="rule">expressionList</span> on 
+                the left hand side at the point where the
                 function was called. Each <span class="rule">expression</span>
                 on the left hand side must be assignable. If an expression on
                 the left hand side is an undefined identifier it is declared as
                 a variable of the same type as the assigned expression.
-                Number types are infered from the defined identifiers.
+                Number types are inferred from the defined identifiers.
+            </p>
+            
+            <p>
+                <code>x op= expression</code> is the same as <code>x = x op expression</code>. 
+                <span class="rule">assignmentOperator</span>s are right associative.
             </p>
 
-            <h2>3.2. If Statements</h2>
-            <pre><code>ifStatement = if expression
+            <h2>3.2. Expression Statements</h2>
+            <pre><code>expressionStatement ← expression</code></pre>
+            
+            <p>
+                Only calls, pre/post increment/decrement mixin and ctfe 
+                expressions are allowed as <span class="rule">expressionStatement</span>s.
+            </p>
+
+            <h2>3.3. If Statements</h2>
+            <pre><code>ifStatement ← if (assignmentStatement semicolon)? expression
                   statements?
-              (else if expression
+              (else if (assignmentStatement semicolon)? expression
                   statements?)*
               (else
                   statements?)?
-              end</code></pre>
-            <p>
-                Each <span class="rule">expression</span> is evaluated in
-                lexical order until one is <span class="keyword">true</span>.
-                The <span class="rule">statements</span> following the
-                <span class="rule">expression</span> are then executed. If none
-                of the expressions are <span class="keyword">true</span> and the
-                else block is defined then its statements are executed.
-            </p>
-
-            <h2>3.3. For Each Statements</h2>
-            <pre><code>forEachStatement = for each identifier in range
-                       statements?
-                   end
-
-range = (expression colon)? expression (colon expression)?</code></pre>
-            <p>
-                The <span class="rule">statements</span> are executed for each
-                value in the <span class="rule">range</span>. The
-                <span class="rule">identifier</span> is set to the next value in
-                the <span class="rule">range</span> and has the same scope as
-                the <span class="rule">statements</span>. The
-                <span class="rule">range</span> can either result in an array or
-                <span class="type">iXX</span>.
-            </p>
+              end
+              
+semicolon ← ';' whitespace</code></pre>
 
             <p>
-                If the middle <span class="rule">expression</span> is an array,
-                then the first and last <span class="rule">expression</span>s
-                must be omitted. The elements of the array are traversed from
-                the first to the last. If the middle
-                <span class="rule">expression</span> is not an array the first
-                <span class="rule">expression</span> is the start of the range.
-                If omitted the range starts from 0. The middle
-                <span class="rule">expression</span> is the last value in the
-                range inclusively. The last <span class="rule">expression</span>
-                is the value that the identifier is incremented by per
-                iteration. All 3 <span class="rule">expression</span>s must be
-                of the same <span class="type">iXX</span> type.
+                Each <span class="rule">expression</span> is evaluated in 
+                lexical order until one is <span class="keyword">true</span>. 
+                The statements following the <span class="rule">expression</span> 
+                are then executed. If <span class="rule">expression</span>s 
+                are <span class="keyword">false</span> and the else block is 
+                defined then its statements are executed.
+            </p>
+            
+            <p>
+                each <span class="rule">assignmentStatement</span> is executed
+                before the following <span class="rule">expression</span>. The 
+                declared variables are in the scope of all the following 
+                <span class="rule">statement</span>s in the 
+                <span class="rule">ifStatement</span>.
             </p>
 
-            <h2>3.4. While Statements</h2>
-            <pre><code>whileStatement = while expression
-                     statements?
+            <h2>3.4. For Statements</h2>
+            <pre><code>forStatement ← for assignmentStatement semicolon expression semicolon expressionList
+                   statement*
+               end</code></pre>
+
+            <p>
+                The <span class="rule">assignmentStatement</span> is executed before
+                the first iteration. The declared variables are scoped inside the loop. 
+                The <span class="rule">expression</span> is the condition for
+                executing the <span class="rule">statements</span> which must 
+                be <span class="keyword">true</span>. The  
+                <span class="rule">expressionList</span> is executed after each 
+                iteration. The <span class="rule">breakStatement</span> skips 
+                execution of the second <span class="rule">expression</span>.
+            </p>
+
+            <h2>3.5. While Statements</h2>
+            <pre><code>whileStatement ← while (assignmentStatement semicolon)? expression
+                     statement*
                  end</code></pre>
 
             <p>
@@ -306,22 +344,23 @@ range = (expression colon)? expression (colon expression)?</code></pre>
                 <span class="keyword">true</span> the
                 <span class="rule">statements</span> are executed again. This
                 continues until the expression is
-                <span class="keyword">false</span>.
+                <span class="keyword">false</span>. The 
+                <span class="rule">assignmentStatement</span> is executed before
+                each iteration.
             </p>
 
-            <h2>3.5. Break Statements</h2>
-            <pre><code>breakStatement = break</code></pre>
+            <h2>3.6. Break Statements</h2>
+            <pre><code>breakStatement ← break</code></pre>
+            
             <p>
                 The <span class="rule">breakStatement</span> stops the execution
                 of the innermost loop in which it is declared. Execution resumes
                 after the innermost loop.
             </p>
 
-            <h2>3.6. Expression Statements</h2>
-            <pre><code>expressionStatement = expression</code></pre>
-
             <h2>3.7. Return Statements</h2>
-            <pre><code>returnStatement = return expressions?</code></pre>
+            <pre><code>returnStatement ← return expressions?</code></pre>
+            
             <p>
                 Returns the control the function that called the one that
                 contains the return statement. If the function containing the
@@ -329,155 +368,274 @@ range = (expression colon)? expression (colon expression)?</code></pre>
                 cannot specify any <span class="rule">expressions</span> to
                 return and the function may omit the statement entirely. Since
                 in that case the control is returned to the caller after the
-                last statement. If output is specified, then all code paths must
-                end with a return statement with an expression of the same type
-                as the return type. Number types are infered from the output.
+                last statement. If <span class="keyword">output</span> is 
+                defined, then all code paths must have a return statement with 
+                expressions of the same type in the same order as declared by 
+                <span class="keyword">output</span>. Number types are inferred 
+                from the output.
             </p>
 
             <h2>3.8. Assert Statements</h2>
-            <pre><code>assertStatement = assert expression</code></pre>
+            <pre><code>assertStatement ← assert expression</code></pre>
+            
             <p>
                 The <span class="rule">expression</span> must be type of
                 <span class="type">bool</span>. If the expression is
                 <span class="keyword">true</span>, then nothing happens. If the
                 <span class="rule">expression</span> is
-                <span class="keyword">false</span>, then the current proposition
-                stops execution and a description of the failing assertion is
-                given.
+                <span class="keyword">false</span>, a description of the failing 
+                assertion is given. If the assertion is in a function the 
+                program stops, but if the assertion is in a proposition the 
+                current proposition stops and the next starts executing.
+            </p>
+            
+            <h2>3.9. Version Statements</h2>
+            <pre><code>versionStatement ← version identifier 
+                       statement*
+                   end</code></pre>
+
+            <p>
+                Works the same way as Version Declarations but for 
+                <span class="rule">statements</span>s instead.
             </p>
 
             <h1>4. Expressions</h1>
-            <pre><code>expressions = expression (comma expression)*
-expression = notExpression
-           / ctfeExpression
-           / negateExpression
-           / binaryExpression
-           / primaryExpression
-           / parentherizedExpression
-
-primaryExpression = callExpression
-                  / literalExpression
-                  / sizeOfExpreassion
-                  / dotExpression
-                  / indexExpression
-                  / identifierExpression
-
-literalExpression = floatLiteral
-                  / integerLiteral
-                  / booleanLiteral
-                  / arrayLiteral
-                  / structureLiteral</code></pre>
+            <pre><code>expression ← logicalOrExpression</code></pre>
+            
             <p>
-                The order of evaluating <span class="rule">expressions</span> is
-                unspecified except where noted. If an integer or floating point
-                <span class="rule">expression</span> overflows at run time the
-                behaviour is undefined. If the expression is constant and
-                overflows it is a compile time error.
+                <span class="rule">logicalOrExpression</span> has the lowest precedence
+                and <span class="rule">postfixExpression</span> has the highest precedence.
+                The right hand side of a binary expression must be of the same type as the 
+                left hand side and the left hand side can only be a primitive type.
+            </p>
+            
+            <p>
+                Operators are left associative unless noted otherwise.
             </p>
 
-            <h2>4.1. Unary Expressions</h2>
-            <h3>4.1.1. Not Expressions</h3>
-            <pre><code>notExpression = not expression
-not = '!' whitespace</code></pre>
+            <h2>4.2. Logical Or Expressions</h2>
+            <pre><code>logicalOrExpression ← logicalAndExpression (logicalOrOperator logicalAndExpression)*
+logicalOrOperator ← '||' whitespace</code></pre>
+
             <p>
-                The <span class="rule">expression</span> must be type of
-                <span class="keyword">bool</span>. The not operator flips the
-                expression from <span class="keyword">true</span> to
-                <span class="keyword">false</span> and vice versa.
-            </p>
-            <h3>4.1.2. CTFE Expressions</h3>
-            <pre><code>ctfeExpression = ctfe expression</code></pre>
-            <p>
-                Executes the <span class="rule">expression</span> at compile
-                time.
+                Both expressions must be type of <span class="type">bool</span>.
+                The type of the expression is <span class="type">bool</span>.
+                Short circuits if the left hand side is <span class="keyword">true</span>.
             </p>
 
-            <h3>4.1.3. Negate Expressions</h3>
-            <pre><code>negateExpression = negate expression
-negate = '-' whitespace</code></pre>
+            <h2>4.3. Logical And Expressions</h2>
+            <pre><code>logicalAndExpression ← relationalExpression (logicalAndOperator relationalExpression)*
+logicalAndOperator ← '&amp;&amp;' whitespace</code></pre>
+
             <p>
-                The <span class="rule">expression</span> must be type of
-                <span class="type">iXX</span> or <span class="type">fXX</span>.
-                The negate operator flips the sign of the value.
+                Both expressions must be type of <span class="type">bool</span>.
+                The type of the expression is <span class="type">bool</span>.
+            </p>
+            
+            <h2>4.4. Relational Expressions</h2>
+            <pre><code>relationalExpression ← additiveExpression (relationalOperator additiveExpression)*
+relationalOperator ← ('==' / '!=' / '&lt;=' / '&gt;=' / '&lt;' / '&gt;') whitespace</code></pre>
+        
+            <p>
+                Both expressions must be type of <span class="type">bool</span>.
+                The type of the expression is <span class="type">bool</span>.
             </p>
 
-            <h2>4.2. Binary Expressions</h2>
-            <pre><code>binaryExpression = expression binaryOperator expression
-
-binaryOperator = mathOperator
-               / relationalOperator
-               / booleanOperator
-
-mathOperator = ('+' / '-' / '*' / '/' / '%' / '|' / '&#38;' / '&lt;&lt;' / '&gt;&gt;') whitespace
-
-relationalOperator = ('==' / '!=' / '&lt;=' / '&gt;=' / '&lt;' / '&gt;') whitespace
-
-booleanOperator = ('||' / '&#38;&#38;') whitespace</code></pre>
-
-            <h3>4.2.1. First Precedence</h3>
+            <h2>4.5. Additive Expressions</h2>
+            <pre><code>additiveExpression ← multiplicativeExpression (additiveOperator multiplicativeExpression)*
+additiveOperator ← ('+' / '-' / '|' / '^') whitespace</code></pre>
+            
             <p>
-                The <b>||</b> operator is logical or. Both operands must be type
-                of <span class="type">bool</span>. If one of the operands are
-                is <span class="keyword">true</span>, then the
-                <span class="rule">expression</span> is
-                <span class="keyword">true</span>; otherwise
-                <span class="keyword">false</span>. The operator short circuits.
+                Both expressions must be the same number type.
+                The type of the expression is the same as the operands.
+            </p>
+            
+            <h2>4.6. Multiplicative Expressions</h2>
+            <pre><code>multiplicativeExpression ← prefixExpression (multiplicativeOperator prefixExpression)*
+multiplicativeOperator ← ('*' / '/' / '%' / '&amp;' / '&lt;&lt;' / '&gt;&gt;') whitespace</code></pre>
+
+            <p>
+                Both expressions must be the same number type.
+                The type of the expression is the same as the operands.
+            </p>
+            
+            <h2>4.7. Prefix Expressions</h2>
+            <pre><code>prefixExpression ← postfixExpression
+                 / notExpression
+                 / negateExpression
+                 / prefixIncrementExpression 
+                 / prefixDecrementExpression
+                 / sizeOfExpreassion
+                 / castExpression
+                 / ctfeExpression
+                 / mixinExpression
+                 / addressOfExpression
+                 / dereferenceExpression</code></pre>
+            
+            <p>
+                prefix operators are right associative.
+            </p>
+            
+            <h3>4.7.1. Not Expressions</h3>
+            <pre><code>notExpression ← not postfixExpression
+not ← '!' whitespace</code></pre>
+            
+            <p>
+                Inverts a <span class="type">bool</span> 
+            </p>
+            
+            <h3>4.7.2. Negate Expressions</h3>
+            <pre><code>negateExpression ← negate postfixExpression
+negate ← '-' whitespace</code></pre>
+            
+            <p>
+                Negates the number.
+            </p>
+            
+            <h3>4.7.3. Increment Expressions</h3>
+            <pre><code>prefixIncrementExpression ← postfixExpression
+increment ← '++' whitespace</code></pre>
+            
+            <p>
+                Increments an <span class="type">iXX</span> variable by 1 and 
+                returns the new value of variable.
+            </p>
+            
+            <h3>4.7.4. Decrement Expressions</h3>
+            <pre><code>prefixDecrementExpression ← postfixExpression
+decrement ← '--' whitespace</code></pre>
+            
+            <p>
+                Decrements an <span class="type">iXX</span> variable by 1 and 
+                returns the new value of variable.
+            </p>
+            
+            <h3>4.7.5. Size of Expressions</h3>
+            <pre><code>sizeOfExpreassion ← size of expression</code></pre>
+            
+            <p>
+                Results the size of the <span class="rule">expression</span> as
+                a <span class="type">u32</span> in bytes. The
+                <span class="rule">expression</span> must be a type.
+            </p>
+            
+            <h3>4.7.6. Cast Expressions</h3>
+            <pre><code>castExpreassion ← leftParenthesis type rightParenthesis expression</code></pre>
+            
+            <p>
+                Results the size of the <span class="rule">expression</span> as
+                a <span class="type">u32</span> in bytes. The
+                <span class="rule">expression</span> must be a type.
+            </p>
+            
+            <h3>4.7.7. Ctfe Expressions</h3>
+            <pre><code>ctfeExpreassion ← ctfe expression</code></pre>
+
+            <p>
+                The <span class="rule">expression</span> is executed at compile
+                time and has the same type as the <span class="rule">expression</span>. 
+                The result of the <span class="rule">expression</span> is then 
+                compiled as part of the program in place of the 
+                <span class="rule">mixinExpreassion</span>.
             </p>
 
-            <h3>4.2.2. Second Precedence</h3>
+            <h3>4.7.8. Mixin Expressions</h3>
+            <pre><code>mixinExpreassion ← mixin expression</code></pre>
+
             <p>
-                The <b>&#38;&#38;</b> operator is logical and. Both operands
-                must be type of <span class="type">bool</span>.
+                The <span class="rule">expression</span> is executed at compile
+                time and must return a <span class="type">u8[]</span>. The 
+                string is then compiled as part of the program in place of the 
+                <span class="rule">mixinExpreassion</span>.
             </p>
 
-            <h3>4.2.3. Third Precedence</h3>
+            <h3>4.7.9. Address Of Expressions</h3>
+            <pre><code>addressOfExpression ← '&' whitespace postfixExpression</code></pre>
+            
             <p>
-                The <b>==</b>, <b>!=</b>, <b>&lt;</b>, <b>&lt;=</b>, <b>&gt;</b>
-                and <b>&gt;=</b> are the equal, not equal, less than, less than
-                or equal, greater than and greater than or equal operators
-                respectively. Both operands must be of the same
-                <span class="type">iXX</span> or <span class="type">fXX</span>
+                Takes the address of the <span class="rule">postfixExpression</span>.
+            </p>
+            
+            <h3>4.7.10. Dereference Expressions</h3>
+            <pre><code>dereferenceExpression ← '*' whitespace postfixExpression</code></pre>
+            
+            <p>
+                Deferences the <span class="rule">postfixExpression</span>.
+                The type of the <span class="rule">dereferenceExpression</span> 
+                is the same as what is the <span class="rule">postfixExpression</span>
+                is pointing to.
+            </p>
+
+            <h2>4.8. Postfix Expressions</h2>
+            <pre><code>postfixExpression ← primaryExpression
+                  / postfixExpression
+                    ( dotExpression
+                    / callExpression
+                    / indexExpression
+                    / postfixIncrementExpression
+                    / postfixDecrementExpression)</code></pre>
+            
+            <h3>4.8.1. Dot Expressions</h3>
+            <pre><code>dotExpression ← dot expression</code></pre>
+            
+            <p>
+                The left <span class="rule">expression</span>'s type must be a
+                structure, enumeration or union. The right
+                <span class="rule">expression</span> must be a member on that
                 type.
             </p>
+            
+            <h3>4.8.2. Call Expressions</h3>
+            <pre><code>callExpression ← leftParenthesis expressionList? rightParenthesis</code></pre>
 
-            <h3>4.2.4. Fourth Pecedence</h3>
+            <h3>4.8.3. Index Expressions</h3>
+            <pre><code>indexExpression ← leftSquareBracket expression rightSquareBracket
+            
+leftSquareBracket ← '[' whitespace
+rightSquareBracket ← ']' whitespace</code></pre>
+            
             <p>
-                The <b>+</b> and <b>-</b> operators works on
-                <span class="type">iXX</span> and <span class="type">fXX</span>
-                operands. Both operands must be of the same type. The result of
-                the operation is the same type as the operands. The <b>|</b> is
-                the bitwise or operator. Both operands must be of the same
-                <span class="type">iXX</span> type. The result of the operation
-                is the same type as the operands.
+                The <span class="rule">expression</span> must be an array type.
+                Each expression in <span class="rule">expressions</span> must be
+                an <span class="type">iXX</span>. Each value must be within 0 and the size of the
+                dimension it is used to index into. Going out of bounds in Debug
+                mode the program is stopped and then a message is displayed to
+                the programmer explaining where the error occurred. Going out of
+                bounds in Release mode results in undefined behaviour.
             </p>
-
-            <h3>4.2.5. Fifth Pecedence</h3>
+            
+            <h3>4.8.4. Increment Expressions</h3>
+            <pre><code>prefixIncrementExpression ← postfixExpression
+increment ← '++' whitespace</code></pre>
+            
             <p>
-                The <b>*</b>, <b>/</b> and <b>%</b> are the multiply, divide
-                and the modulus operators respectively. Both operands must be of
-                the same <span class="type">iXX</span> and <span class="type">fXX</span>
-                type. The <b>&gt;&gt;</b> and <b>&lt;&lt;</b> are the right
-                shift and left shift operators respectively. Both operands must
-                be of the same <span class="type">iXX</span> type. The
-                <b>&#38;</b> operator is bitwise and. Both operands must be of
-                the same <span class="type">iXX</span> type.
+                Increments an <span class="type">iXX</span> variable by 1 and 
+                returns the new value of variable.
             </p>
-
-            <h2>4.3. Call Expressions</h2>
-            <pre><code>callExpression = identifier leftParenthesis expressions? rightParenthesis
-
-leftParenthesis = '(' whitespace
-rightParenthesis = ')' whitespace</code></pre>
+            
+            <h3>4.8.5. Decrement Expressions</h3>
+            <pre><code>prefixDecrementExpression ← postfixExpression
+decrement ← '--' whitespace</code></pre>
+            
             <p>
-                Calls the function with the same
-                <span class="rule">identifier</span> in scope. The
-                <span class="rule">expressions</span> are the input for the
-                function.
+                Decrements an <span class="type">iXX</span> variable by 1 and 
+                returns the new value of variable.
             </p>
-
-            <h2>4.4. Literals</h2>
-            <h3>4.4.1. Floating Point Literals</h3>
-            <pre><code>floatLiteral = '-'? [0-9]+ '.' [0-9]+ ('f' ( '32' / '64' ))?</code></pre>
+            
+            <h2>4.9. Primary Expressions</h2>
+            <pre><code>primaryExpression ← floatLiteral
+                  / integerLiteral
+                  / booleanLiteral
+                  / stringLiteral
+                  / arrayLiteral
+                  / structureLiteral
+                  / nullLiteral
+                  / identifierExpression
+                  / parenthesizedExpression</code></pre>
+                  
+            <h3>4.9.1. Floating Point Literals</h3>
+            <pre><code>floatLiteral ← '-'? [0-9]+ '.' [0-9]+ ('f' ( '32' / '64' ))?</code></pre>
+            
             <p>
                 Floating point values are defined as in IEEE 754. The specific
                 type of a literal is inferred when the type is known elsewhere
@@ -503,12 +661,14 @@ rightParenthesis = ')' whitespace</code></pre>
                 </tbody>
             </table>
 
-            <h3>4.4.2. Integer Literals</h3>
-            <pre><code>integerLiteral = '-'? [0-9]+ (('i' / 'u') ( '8' / '16' / '32' / '64' ))?</code></pre>
+            <h3>4.9.2. Integer Literals</h3>
+            <pre><code>integerLiteral ← '-'? [0-9]+ (('i' / 'u') ( '8' / '16' / '32' / '64' ))?</code></pre>
+            
             <p>
                 The specific type of a literal is inferred when the type is
                 known elsewhere in the same context.
             </p>
+            
             <table>
                 <thead>
                     <tr>
@@ -561,101 +721,92 @@ rightParenthesis = ')' whitespace</code></pre>
                 </tbody>
             </table>
 
-            <h3>4.4.3. Boolean Literals</h3>
-            <pre><code>booleanLiteral = true / false</code></pre>
+            <h3>4.9.3. Boolean Literals</h3>
+            <pre><code>booleanLiteral ← true / false</code></pre>
+            
             <p>
                 <span class="rule">booleanLiteral</span>s are type of
                 <span class="type">bool</span>.
             </p>
-
-            <h3>4.4.4. Array Literals</h3>
-            <pre><code>arrayLiteral = type dimensions elements?
-             / elements
-
-dimensions = leftSquareBracket expression? (comma expression?)* rightSquareBracket
-elements = leftCurlyBracket element (comma element)* rightCurlyBracket
-element = elements / expressions
-
-leftSquareBracket = '[' whitespace
-rightSquareBracket = ']' whitespace</code></pre>
-
+            
+            <h3>4.9.4. String Literals</h3>
+            <pre><code>stringLiteral ← '"' (escapeSequence / !'"' .) '"' whitespace
+            
+escapeSequence ← '\\' hex hex hex hex
+hex ← [0-9a-f]</code></pre>
+            
             <p>
-                The <span class="rule">type</span> is the type of the
-                <span class="rule">elements</span> in the innermost dimension.
-                Each <span class="rule">expression</span>, which must be an
-                integer type, in <span class="rule">dimensions</span> specifies
-                the size of each dimension. The maximum size of a dimension is
-                implementation specific. The smallest dimension size is 0.
+                Strings are encoded as UTF-8. A string literal is converted into 
+                an array of <span class="type">u8</span>. The 
+                <span class="rule">hex</span>s in <span class="rule">escapeSequence</span>
+                represents a unicode code point.
             </p>
 
+            <h3>4.9.5. Array Literals</h3>
+            <pre><code>arrayLiteral ← type (leftSquareBracket rightSquareBracket)+
+             / dimension+ elements
+
+dimension ← leftSquareBracket expression? rightSquareBracket
+elements ← leftCurlyBracket element (comma element)* rightCurlyBracket
+element ← elements / expressionList</code></pre>
+
             <p>
-                If only the <span class="rule">elements</span> are declared then
-                the first element of the innermost dimension declares the type
-                of the array. The <span class="rule">elements</span> also
-                specifies the size of each dimension.
+                Dynamic arrays are defined by <span class="rule">type</span> and 
+                dimensions. 
+
+                Static arrays are defined by <span class="rule">dimension</span>s
+                and <span class="rule">elements</span>. Each <span class="rule">dimension</span>'s 
+                <span class="rule">expression</span> must be a static 
+                <span class="type">uXX</span> which can be inferred to <span class="type">u32</span>.
+
+                Arrays have a length and pointer field. Writing to a static array 
+                is undefined behaviour.
             </p>
 
-            <h3>4.4.5. Structure Literals</h3>
-            <pre><code>structureLiteral = structure identifier
-                       fieldInitializers
+            <h3>4.9.6. Structure Literals</h3>
+            <pre><code>structureLiteral ← identifier (leftAngleBracket identifierList rightAngleBracket)?
+                       fieldInitializer*
                    end
 
-fieldInitializers = fieldInitializer (comma fieldInitializer)*
-fieldInitializer = identifier equal expression</code></pre>
+fieldInitializer ← identifier equal expression</code></pre>
+
             <p>
                 The <span class="rule">structureLiteral</span>'s identifier is
                 the name of the structure to initialize.
                 The <span class="rule">fieldInitializer</span>'s
                 <span class="rule">identifier</span> is the name of the field to
                 initialize. The <span class="rule">expression</span> is the
-                value of the given field. The type of the expression must match
-                field's type. Fields that are not initialized have undefined
-                values.
+                value of the given field. The type of the <span class="rule">expression</span>
+                must match field's type. Fields that are not initialized have 
+                undefined values.
             </p>
 
-            <h2>4.5. Size of Expressions</h2>
-            <pre><code>sizeOfExpreassion = size of expression</code></pre>
+            <h3>4.9.7. Null Literals</h3>
+            <pre><code>nullLiteral ← null</code></pre>
+            
             <p>
-                Results the size of the <span class="rule">expression</span> as
-                a <span class="type">u32</span> in bytes. The
-                <span class="rule">expression</span> must be a type.
+                Only pointer typed variables can be <span class="keyword">null</span>.
             </p>
 
-            <h2>4.6. Dot Expressions</h2>
-            <pre><code>dotExpression = expression dot expression</code></pre>
-            <p>
-                The left <span class="rule">expression</span>'s type must be a
-                structure, enumeration or union. The right
-                <span class="rule">expression</span> must be a member on that
-                type.
-            </p>
-
-            <h2>4.7. Index Expressions</h2>
-            <pre><code>indexExpression = expression leftSquareBracket expressions rightSquareBracket</code></pre>
-            <p>
-                The <span class="rule">expression</span> must be an array type.
-                Each expression in <span class="rule">expressions</span> must be
-                an <span class="type">iXX</span>. Each value must be within 0 and the size of the
-                dimension it is used to index into. Going out of bounds in Debug
-                mode the program is stopped and then a message is displayed to
-                the programmer explaining where the error occurred. Going out of
-                bounds in Release mode results in undefined behaviour.
-            </p>
-
-            <h2>4.8. Identifier Expressions</h2>
-            <pre><code>identifierExpression = identifier</code></pre>
+            <h3>4.9.8. Identifier Expressions</h3>
+            <pre><code>identifierExpression ← identifier</code></pre>
+            
             <p>
                 The identifier can either be a variable, field or enumeration
                 constant.
             </p>
 
-            <h2>4.9. Parentherized Expressions</h2>
-            <pre><code>parentherizedExpression = leftParenthesis expression rightParenthesis</code></pre>
+            <h3>4.9.9. Parenthesized Expressions</h3>
+            <pre><code>parenthesizedExpression ← leftParenthesis expression rightParenthesis</code></pre>
 
             <h1>5. Types</h1>
-            <pre><code>type = pointerTo* (identifier / functionSignature)
+            <pre><code>type ← pointerTo* identifier leftAngleBracket identifierList rightAngleBracket
+     / pointerTo* identifier (leftSquareBracket rightSquareBracket)+
+     / pointerTo+ function 
+                      (input type (comma type)*)?
+                      (output type (comma type)*)?
 
-pointerTo = '*' whitespace</code></pre>
+pointerTo ← '*' whitespace</code></pre>
         </main>
     </body>
 </html>
