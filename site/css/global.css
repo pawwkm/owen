@@ -1,16 +1,6 @@
-html, body, div, span, applet, object, iframe,
-h1, h2, h3, h4, h5, h6, p, blockquote, pre,
-a, abbr, acronym, address, big, cite, code,
-del, dfn, em, img, ins, kbd, q, s, samp,
-small, strike, strong, sub, sup, tt, var,
-b, u, i, center,
-dl, dt, dd, ol, ul, li,
-fieldset, form, label, legend,
-table, caption, tbody, tfoot, thead, tr, th, td,
-article, aside, canvas, details, embed,
-figure, figcaption, footer, header, hgroup,
-menu, nav, output, ruby, section, summary,
-time, mark, audio, video, svg {
+html, body, div, span, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, code, img, 
+b, i, center, ul, li, table, caption, tbody, tfoot, thead, tr, th, td, nav, 
+time, svg, footer, cite {
     margin: 0;
     padding: 0;
     border: 0;
@@ -47,16 +37,25 @@ body {
 }
 
 main {
-    margin-left: auto;
-    margin-right: auto;
+    margin-left: 105px;
+    margin-right: 15px;
     margin-bottom: 15px;
     max-width: 750px;
 }
 
 table {
     margin-top: 15px;
-    margin-left:auto;
-    margin-right:auto;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+blockquote {
+    background-color: #263238;
+    padding: 15px;
+}
+
+blockquote p:first-child {
+    margin-top: 0;
 }
 
 th, td {
@@ -76,7 +75,7 @@ a {
     text-decoration: none;
 }
 
-h1, h2, h3, h4, h5, h6, p, time, pre {
+h1, h2, h3, h4, h5, h6, p, time, pre, footer, blockquote {
     margin-top: 15px;
 }
 
@@ -84,7 +83,7 @@ h1, h2, h3, h4, h5, h6 {
     font-size: 25px;
 }
 
-i {
+i, cite {
     font-style: italic;
 }
 
@@ -132,9 +131,7 @@ span.rule {
     font-family: monospace;
 }
 
-@media screen and (max-width: 960px) {
-    main {
-        margin-left: 105px;
-        margin-right: 15px;
-    }
+ul {
+    margin-top: 15px;
+    margin-left: 15px;
 }
