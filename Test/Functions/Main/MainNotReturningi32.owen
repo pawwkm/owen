@@ -1,4 +1,4 @@
-﻿// expect main must output a single i32.
+﻿// expect Functions\Main\MainNotReturningi32.owen:5:10: main must output a single i32.
 
 namespace Test
 

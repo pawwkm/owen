@@ -1,6 +1,6 @@
 ﻿// expect Multiple main functons defined:
-// MultipleMains:6:10
-// MultipleMains:12:10
+// Functions\Main\MultipleMains.owen:7:10:
+// Functions\Main\MultipleMains.owen:13:10:
 
 namespace Test
 
