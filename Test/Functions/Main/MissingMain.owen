@@ -1,1 +1,3 @@
 ﻿// expect No main function defined. 
+
+namespace Test
