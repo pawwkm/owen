@@ -95,6 +95,8 @@ namespace Owen
                         throw new NotImplementedException($"Cannot infer {expectedType}.");
                 }
             }
+            else if ((NumberTag)Enum.Parse(typeof(NumberTag), expectedType, true) != expression.Tag)
+                Report.Error($"{expression.DeclaredAt} Expected {expectedType} but found {expression.Tag.ToString().ToLower()}.");
         }
     }
 }
