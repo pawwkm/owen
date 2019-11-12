@@ -54,14 +54,24 @@ namespace Test
                         
                         if (debug.Error)
                         {
-                            Console.WriteLine($"Debug:");
-                            Console.WriteLine(debug.Message);
+                            Console.ForegroundColor = ConsoleColor.White;
+                            Console.Write("Debug: ");
+                            Console.ForegroundColor = ConsoleColor.Green;
+                            Console.WriteLine(meta);
+
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.WriteLine($"       {debug.Message}");
                         }
 
                         if (release.Error)
                         {
-                            Console.WriteLine($"Release:");
-                            Console.WriteLine(release.Message);
+                            Console.ForegroundColor = ConsoleColor.White;
+                            Console.Write("Release: ");
+                            Console.ForegroundColor = ConsoleColor.Green;
+                            Console.WriteLine(meta);
+
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.WriteLine($"         {release.Message}");
                         }
 
                         Console.WriteLine();
@@ -104,7 +114,7 @@ namespace Test
                         if (error == expect)
                             return (false, null);
                         else
-                            return (true, $"Expected\r\n{expect}\r\nbut got {error}");
+                            return (true, error);
                     }
                 }
                 else
@@ -126,7 +136,7 @@ namespace Test
                             if (program.ExitCode.ToString() == expect)
                                 return (false, null);
                             else
-                                return (true, $"Expected\r\n{expect}\r\nbut got {program.ExitCode}");
+                                return (true, program.ExitCode.ToString());
                         }
                         else
                             return (true, "The program timed out.");
