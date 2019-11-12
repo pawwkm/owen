@@ -7,7 +7,7 @@ namespace Owen
         public static void Error(params string[] message)
         {
             foreach (var line in message)
-                Console.WriteLine(line);
+                Console.Error.WriteLine(line);
 
             Environment.Exit(1);
         }

@@ -2,7 +2,6 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace Test
@@ -11,24 +10,40 @@ namespace Test
     {
         private static void Main()
         {
-            var expectPattern = new Regex(@"^\s*\/\/\s*expect\s+(\d+)\s*$", RegexOptions.Compiled);
+            var exitCodePattern = new Regex(@"^\s*\/\/\s*expect\s+(\d+)\s*$", RegexOptions.Compiled);
+            var errorPattern = new Regex(@"^\s*\/\/\s*expect\s+(.*)$", RegexOptions.Compiled);
+            var commentPattern = new Regex(@"^\s*\/\/(.*)$", RegexOptions.Compiled);
+
             foreach (var path in Directory.EnumerateFiles(Environment.CurrentDirectory, "*.owen", SearchOption.AllDirectories))
             {
-                var expect = default(int?);
-                foreach (var line in File.ReadAllLines(path))
+                var expect = default(string);
+                var lines = File.ReadAllLines(path);
+
+                for (var i = 0; i < lines.Length; i++)
                 {
-                    var expectMatch = expectPattern.Match(line);
-                    if (expectMatch.Success)
-                        expect = int.Parse(expectMatch.Groups[1].Value);
+                    var match = exitCodePattern.Match(lines[i]);
+                    if (match.Success)
+                        expect = match.Groups[1].Value;
+                    else if ((match = errorPattern.Match(lines[i])).Success)
+                    {
+                        expect = match.Groups[1].Value.Trim();
+                        if (i + 1 < lines.Length)
+                        {
+                            while (i + 1 < lines.Length && (match = commentPattern.Match(lines[++i])).Success)
+                                expect += $"\r\n{match.Groups[1].Value.Trim()}";
+
+                            i--;
+                        }
+                    }
                     else
                         break;
                 }
 
                 var relativePath = path.Substring(Environment.CurrentDirectory.Length + 1);
-                if (expect.HasValue)
+                if (expect != null)
                 {
-                    var debug = Run(expect.Value, relativePath, false);
-                    var release = Run(expect.Value, relativePath, true);
+                    var debug = Run(expect, relativePath, false);
+                    var release = Run(expect, relativePath, true);
 
                     if (debug.Error || release.Error)
                     {
@@ -38,9 +53,16 @@ namespace Test
                         Console.ForegroundColor = ConsoleColor.White;
                         
                         if (debug.Error)
-                            Console.WriteLine($"\tDebug:   {debug.Message}");
+                        {
+                            Console.WriteLine($"Debug:");
+                            Console.WriteLine(debug.Message);
+                        }
+
                         if (release.Error)
-                            Console.WriteLine($"\tRelease: {release.Message}");
+                        {
+                            Console.WriteLine($"Release:");
+                            Console.WriteLine(release.Message);
+                        }
                     }
                     else
                     {
@@ -49,9 +71,11 @@ namespace Test
                     }
                 }
             }
+
+            Console.ForegroundColor = ConsoleColor.White;
         }
 
-        private static (bool Error, string Message) Run(int expect, string path, bool release)
+        private static (bool Error, string Message) Run(string expect, string path, bool release)
         {
             if (File.Exists("program.exe"))
                 File.Delete("program.exe");
@@ -68,7 +92,20 @@ namespace Test
             compiler.Start();
             if (compiler.WaitForExit(5000))
             {
-                if (compiler.ExitCode == 0)
+                if (compiler.ExitCode != 0)
+                {
+                    var error = compiler.StandardError.ReadToEnd();
+                    if (string.IsNullOrWhiteSpace(error))
+                        return (true, error);
+                    else
+                    {
+                        if (error == expect)
+                            return (false, null);
+                        else
+                            return (false, $"Expected {expect} but got {error}.");
+                    }
+                }
+                else
                 {
                     var program = new Process();
                     program.StartInfo = new ProcessStartInfo("program.exe")
@@ -84,7 +121,7 @@ namespace Test
                         program.Start();
                         if (program.WaitForExit(5000))
                         {
-                            if (program.ExitCode == expect)
+                            if (program.ExitCode.ToString() == expect)
                                 return (false, null);
                             else
                                 return (true, $"Expected {expect} but got {program.ExitCode}.");
@@ -97,11 +134,6 @@ namespace Test
                         return (true, ex.Message);
                     }
                 }
-                else
-                    return (true, string.Join(Environment.NewLine, compiler.StandardOutput
-                                                                           .ReadToEnd()
-                                                                           .Split()
-                                                                           .Select(l => $"\t{l}")));
             }
             else
             {

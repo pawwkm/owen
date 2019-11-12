@@ -1,0 +1,17 @@
+﻿// expect Multiple main functons defined:
+// MultipleMains:6:10
+// MultipleMains:12:10
+
+namespace Test
+
+function main 
+    output i32
+    
+    return 1
+end
+
+function main 
+    output i32
+    
+    return 1
+end

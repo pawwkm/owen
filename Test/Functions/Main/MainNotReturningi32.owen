@@ -1,0 +1,6 @@
+﻿// expect main must output a single i32.
+
+namespace Test
+
+function main
+end
