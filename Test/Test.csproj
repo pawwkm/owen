@@ -56,7 +56,7 @@
     <None Include="Functions\Main\MultipleMains.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="Mvp.owen">
+    <None Include="Functions\Main\MainReturnsValueToOs.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
