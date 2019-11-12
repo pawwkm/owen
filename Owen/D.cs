@@ -157,6 +157,20 @@ namespace Owen
         private static void Generate(Number number, StringBuilder builder)
         {
             builder.Append(number.Value);
+            switch (number.Tag)
+            {
+                case NumberTag.I64:
+                    builder.Append("L");
+                    break;
+                case NumberTag.U64:
+                    builder.Append("uL");
+                    break;
+                case NumberTag.U32:
+                case NumberTag.U16:
+                case NumberTag.U8:
+                    builder.Append("u");
+                    break;
+            }
         }
     }
 }

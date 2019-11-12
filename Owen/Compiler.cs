@@ -86,7 +86,7 @@ namespace Owen
                     }
                 }
 
-                Semantics.Analyzse(program);
+                Semantics.Analyze(program);
                 Ctfe.Execute(program);
 
                 if (!checkOnly)

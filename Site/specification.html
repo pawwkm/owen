@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="utf-8">
@@ -25,7 +25,7 @@
             </a>
         </nav>
         <main>
-            <h1>Owen Specification 0.2.0</h1>
+            <h1>Owen Specification 0.2.1</h1>
             <p>
                 The specification is versioned using <a href="https://semver.org/spec/v2.0.0.html">Semver 2.0</a>.
                 <a href="http://bford.info/pub/lang/peg.pdf">Parser Expression Grammar</a>
@@ -53,7 +53,7 @@ declaration ← public? ( functionDeclaration
                       / enumerationDeclaration
                       / versionDeclaration)
 
-identifier ← !keyword [A-Za-z] [A-Za-z0-9]* whitespace
+identifier ← !keyword [A-Za-z] [_A-Za-z0-9]* whitespace
 keyword ← namespace
         / use
         / public

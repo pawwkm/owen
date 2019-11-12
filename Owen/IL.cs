@@ -102,10 +102,36 @@ namespace Owen
         {
             switch (expression.Tag)
             {
+                case NumberTag.I64:
+                    instructions.Emit(OpCodes.Ldc_I8, long.Parse(expression.Value));
+                    break;
                 case NumberTag.I32:
-                case NumberTag.IntegerToBeInfered:
                     instructions.Emit(OpCodes.Ldc_I4, int.Parse(expression.Value));
-                    break; 
+                    break;
+                case NumberTag.I16:
+                    instructions.Emit(OpCodes.Ldc_I4, short.Parse(expression.Value));
+                    break;
+                case NumberTag.I8:
+                    instructions.Emit(OpCodes.Ldc_I4_S, sbyte.Parse(expression.Value));
+                    break;
+                case NumberTag.U64:
+                    instructions.Emit(OpCodes.Ldc_I8, ulong.Parse(expression.Value));
+                    break;
+                case NumberTag.U32:
+                    instructions.Emit(OpCodes.Ldc_I4, uint.Parse(expression.Value));
+                    break;
+                case NumberTag.U16:
+                    instructions.Emit(OpCodes.Ldc_I4, ushort.Parse(expression.Value));
+                    break;
+                case NumberTag.U8:
+                    instructions.Emit(OpCodes.Ldc_I4_S, byte.Parse(expression.Value));
+                    break;
+                case NumberTag.F32:
+                    instructions.Emit(OpCodes.Ldc_R4, float.Parse(expression.Value));
+                    break;
+                case NumberTag.F64:
+                    instructions.Emit(OpCodes.Ldc_R8, double.Parse(expression.Value));
+                    break;
                 default:
                     throw new NotImplementedException($"Cannot translate {expression.Tag} to IL.");
             }

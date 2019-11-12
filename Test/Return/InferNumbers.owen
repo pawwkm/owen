@@ -1,0 +1,99 @@
+﻿// expect 2147483647
+
+namespace Test
+
+function max_u64
+    output u64
+
+    return 18446744073709551615
+end
+
+function min_u64
+    output u64
+
+    return 0
+end
+
+function max_u32
+    output u32
+
+    return 4294967295
+end
+
+function min_u32
+    output u32
+
+    return 0
+end
+
+function max_u16
+    output u16
+
+    return 65535
+end
+
+function min_u16
+    output u16
+
+    return 0
+end
+
+function max_u8
+    output u8
+
+    return 255
+end
+
+function min_u8
+    output u8
+
+    return 0
+end
+
+function max_i64
+    output i64
+
+    return 9223372036854775807
+end
+
+function min_i64
+    output i64
+
+    return -9223372036854775807
+end
+
+function main 
+    output i32
+    
+    return 2147483647
+end
+
+function min_i32
+    output i32
+    
+    return -2147483648
+end
+
+function max_i16
+    output i16
+
+    return 32767
+end
+
+function min_i16
+    output i16
+
+    return -32768
+end
+
+function max_i8
+    output i8
+
+    return 127
+end
+
+function min_i8
+    output i8
+
+    return -128
+end

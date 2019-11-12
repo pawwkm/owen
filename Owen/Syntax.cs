@@ -130,43 +130,49 @@ namespace Owen
         private static Expression Number(Source source)
         {
             var start = source.Index;
+            if (source.Text[source.Index] == '-')
+                source.Index++;
+
             while (!source.EndOfText && IsDigit(source.Text[source.Index]))
                 source.Index++;
 
             if (source.Index == start)
                 return null;
+            else if (source.Index - start == 1 && source.Text[start] == '-')
+            {
+                UpdatePosition(source, source.Index);
+                Report.Error($"{source.Position} Digit expected.");
+            }
+
+            var number = new Number();
+            number.Value = source.Text.Substring(start, source.Index - start);
+
+            UpdatePosition(source, start);
+            number.DeclaredAt = source.Position.Copy();
+
+            if (Consume(source, "i8"))
+                number.Tag = NumberTag.I8;
+            else if (Consume(source, "i16"))
+                number.Tag = NumberTag.I16;
+            else if (Consume(source, "i32"))
+                number.Tag = NumberTag.I32;
+            else if (Consume(source, "i64"))
+                number.Tag = NumberTag.I64;
+            else if (Consume(source, "u8"))
+                number.Tag = NumberTag.U8;
+            else if (Consume(source, "u16"))
+                number.Tag = NumberTag.U16;
+            else if (Consume(source, "u32"))
+                number.Tag = NumberTag.U32;
+            else if (Consume(source, "u64"))
+                number.Tag = NumberTag.U64;
             else
             {
-                var number = new Number();
-                number.Value = source.Text.Substring(start, source.Index - start);
-
-                UpdatePosition(source, start);
-                number.DeclaredAt = source.Position.Copy();
-
-                if (Consume(source, "i8"))
-                    number.Tag = NumberTag.I8;
-                else if (Consume(source, "i16"))
-                    number.Tag = NumberTag.I16;
-                else if (Consume(source, "i32"))
-                    number.Tag = NumberTag.I32;
-                else if (Consume(source, "i64"))
-                    number.Tag = NumberTag.I64;
-                else if (Consume(source, "u8"))
-                    number.Tag = NumberTag.U8;
-                else if (Consume(source, "u16"))
-                    number.Tag = NumberTag.U16;
-                else if (Consume(source, "u32"))
-                    number.Tag = NumberTag.U32;
-                else if (Consume(source, "u64"))
-                    number.Tag = NumberTag.U64;
-                else
-                {
-                    number.Tag = NumberTag.IntegerToBeInfered;
-                    Whitespace(source);
-                }
-
-                return number;
+                number.Tag = NumberTag.IntegerToBeInfered;
+                Whitespace(source);
             }
+
+            return number;
         }
 
         private static Identifier Identifier(Source source)
@@ -174,7 +180,7 @@ namespace Owen
             var start = source.Index;
             if (!source.EndOfText && IsLetter(source.Text[source.Index]))
             {
-                while (!source.EndOfText && IsLetterOrDigit(source.Text[source.Index]) )
+                while (!source.EndOfText && (IsLetterOrDigit(source.Text[source.Index]) || source.Text[source.Index] == '_'))
                     source.Index++;
             }
 
@@ -275,7 +281,10 @@ namespace Owen
         private static void Expect(Source source, string value)
         {
             if (!Consume(source, value))
-                Report.Error($"{value} expected.");
+            {
+                UpdatePosition(source, source.Index);
+                Report.Error($"{source.Position} {value} expected.");
+            }
         }
 
         private static void UpdatePosition(Source source, int index)

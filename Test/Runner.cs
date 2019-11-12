@@ -10,27 +10,27 @@ namespace Test
     {
         private static void Main()
         {
-            var exitCodePattern = new Regex(@"^\s*\/\/\s*expect\s+(\d+)\s*$", RegexOptions.Compiled);
-            var errorPattern = new Regex(@"^\s*\/\/\s*expect\s+(.*)$", RegexOptions.Compiled);
-            var commentPattern = new Regex(@"^\s*\/\/(.*)$", RegexOptions.Compiled);
+            var exitCode = new Regex(@"^\s*\/\/\s*expect\s+(\d+)\s*$", RegexOptions.Compiled);
+            var error = new Regex(@"^\s*\/\/\s*expect\s+(.*)$", RegexOptions.Compiled);
+            var comment = new Regex(@"^\s*\/\/(.*)$", RegexOptions.Compiled);
 
             foreach (var path in Directory.EnumerateFiles(Environment.CurrentDirectory, "*.owen", SearchOption.AllDirectories))
             {
-                var expect = default(string);
+                var meta = default(string);
                 var lines = File.ReadAllLines(path);
 
                 for (var i = 0; i < lines.Length; i++)
                 {
-                    var match = exitCodePattern.Match(lines[i]);
+                    var match = exitCode.Match(lines[i]);
                     if (match.Success)
-                        expect = match.Groups[1].Value;
-                    else if ((match = errorPattern.Match(lines[i])).Success)
+                        meta = match.Groups[1].Value;
+                    else if ((match = error.Match(lines[i])).Success)
                     {
-                        expect = match.Groups[1].Value.Trim();
+                        meta = match.Groups[1].Value.Trim();
                         if (i + 1 < lines.Length)
                         {
-                            while (i + 1 < lines.Length && (match = commentPattern.Match(lines[++i])).Success)
-                                expect += $"\r\n{match.Groups[1].Value.Trim()}";
+                            while (i + 1 < lines.Length && (match = comment.Match(lines[++i])).Success)
+                                meta += $"\r\n{match.Groups[1].Value.Trim()}";
 
                             i--;
                         }
@@ -40,10 +40,10 @@ namespace Test
                 }
 
                 var relativePath = path.Substring(Environment.CurrentDirectory.Length + 1);
-                if (expect != null)
+                if (meta != null)
                 {
-                    var debug = Run(expect, relativePath, false);
-                    var release = Run(expect, relativePath, true);
+                    var debug = Run(meta, relativePath, false);
+                    var release = Run(meta, relativePath, true);
 
                     if (debug.Error || release.Error)
                     {
@@ -63,6 +63,8 @@ namespace Test
                             Console.WriteLine($"Release:");
                             Console.WriteLine(release.Message);
                         }
+
+                        Console.WriteLine();
                     }
                     else
                     {
@@ -71,7 +73,7 @@ namespace Test
                     }
                 }
             }
-
+            
             Console.ForegroundColor = ConsoleColor.White;
         }
 
@@ -94,7 +96,7 @@ namespace Test
             {
                 if (compiler.ExitCode != 0)
                 {
-                    var error = compiler.StandardError.ReadToEnd();
+                    var error = compiler.StandardError.ReadToEnd().Trim();
                     if (string.IsNullOrWhiteSpace(error))
                         return (true, error);
                     else
@@ -102,7 +104,7 @@ namespace Test
                         if (error == expect)
                             return (false, null);
                         else
-                            return (false, $"Expected {expect} but got {error}.");
+                            return (true, $"Expected\r\n{expect}\r\nbut got {error}");
                     }
                 }
                 else
@@ -124,7 +126,7 @@ namespace Test
                             if (program.ExitCode.ToString() == expect)
                                 return (false, null);
                             else
-                                return (true, $"Expected {expect} but got {program.ExitCode}.");
+                                return (true, $"Expected\r\n{expect}\r\nbut got {program.ExitCode}");
                         }
                         else
                             return (true, "The program timed out.");
