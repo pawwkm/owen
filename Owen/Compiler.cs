@@ -42,7 +42,7 @@ namespace Owen
 						if (arguments.Length == i + 1)
 							Report.Error("Path expected.");
 						else
-							output = arguments[++i];
+							output = Path.GetFullPath(arguments[++i]);
 						break;
 					case "-help":
 					default:
@@ -66,18 +66,21 @@ namespace Owen
                 foreach (var path in paths)
                 {
                     var mightBeRelativePath = path;
-                    if (path.StartsWith(Environment.CurrentDirectory))
+                    if (path.StartsWith(Environment.CurrentDirectory, StringComparison.InvariantCultureIgnoreCase))
                         mightBeRelativePath = path.Substring(Environment.CurrentDirectory.Length + 1);
 
                     try
                     {
 						Syntax.Parse(program, new Source()
 						{
-							Path = mightBeRelativePath,
-							Text = System.IO.File.ReadAllText(path, Encoding.UTF8)
+							Text = System.IO.File.ReadAllText(path, Encoding.UTF8),
+                            Position = new Position()
+                            {
+                                Path = mightBeRelativePath
+                            }
 						});
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
                         Report.Error($"Could not read {mightBeRelativePath}");
                     }
