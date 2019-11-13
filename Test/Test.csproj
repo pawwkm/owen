@@ -68,7 +68,7 @@
     <None Include="Return\VoidFunctionsCannotReturnExpressions.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="Return\asdf.owen">
+    <None Include="Return\ReturnVoid.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

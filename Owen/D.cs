@@ -66,48 +66,53 @@ namespace Owen
             if (function.Name.Value == "main")
                 builder.Append("extern(C) ");
 
-            GenerateType(function.Output[0].Value, builder);
+            GenerateType(function.Output, builder);
             builder.Append(function.Name.Value);
             builder.Append("()");
 
             Generate(function.Body, builder);
         }
 
+        private static void GenerateType(List<Identifier> types, StringBuilder builder)
+        {
+            if (types.Count == 0)
+                builder.Append("void ");
+            else if (types.Count == 1)
+                GenerateType(types[0].Value, builder);
+            else
+                throw new NotImplementedException("Cannot translate a tuple to a D type.");
+        }
+
         private static void GenerateType(string type, StringBuilder builder)
         {
-            if (type == null)
-                builder.Append("void ");
-            else
+            switch (type)
             {
-                switch (type)
-                {
-                    case "i8":
-                        builder.Append("byte ");
-                        break;
-                    case "i16":
-                        builder.Append("short ");
-                        break;
-                    case "i32":
-                        builder.Append("int ");
-                        break;
-                    case "i64":
-                        builder.Append("long ");
-                        break;
-                    case "u8":
-                        builder.Append("ubyte ");
-                        break;
-                    case "u16":
-                        builder.Append("ushort ");
-                        break;
-                    case "u32":
-                        builder.Append("uint ");
-                        break;
-                    case "u64":
-                        builder.Append("ulong ");
-                        break;
-                    default:
-                        throw new NotImplementedException($"Cannot translate {type} to a D type.");
-                }
+                case "i8":
+                    builder.Append("byte ");
+                    break;
+                case "i16":
+                    builder.Append("short ");
+                    break;
+                case "i32":
+                    builder.Append("int ");
+                    break;
+                case "i64":
+                    builder.Append("long ");
+                    break;
+                case "u8":
+                    builder.Append("ubyte ");
+                    break;
+                case "u16":
+                    builder.Append("ushort ");
+                    break;
+                case "u32":
+                    builder.Append("uint ");
+                    break;
+                case "u64":
+                    builder.Append("ulong ");
+                    break;
+                default:
+                    throw new NotImplementedException($"Cannot translate {type} to a D type.");
             }
         }
 

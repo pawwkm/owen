@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.SymbolStore;
 using System.IO;
@@ -63,7 +64,7 @@ namespace Owen
             (
                 function.Name.Value,
                 MethodAttributes.Assembly | MethodAttributes.Public | MethodAttributes.Static | MethodAttributes.HideBySig,
-                ClrTypeOf(function.Output[0].Value), 
+                ClrTypeOf(function.Output),
                 Type.EmptyTypes
             );
 
@@ -86,7 +87,11 @@ namespace Owen
 
         private static void Generate(ReturnStatement statement, ILGenerator instructions, ISymbolDocumentWriter symbols)
         {
-            Generate(statement.Expressions[0], instructions);
+            if (statement.Expressions.Count == 1)
+                Generate(statement.Expressions[0], instructions);
+            else if (statement.Expressions.Count > 1)
+                throw new NotImplementedException($"Cannot translate multiple return values to Clr.");
+
             instructions.Emit(OpCodes.Ret);
         }
 
@@ -135,6 +140,16 @@ namespace Owen
                 default:
                     throw new NotImplementedException($"Cannot translate {expression.Tag} to IL.");
             }
+        }
+
+        private static Type ClrTypeOf(List<Identifier> types)
+        {
+            if (types.Count == 0)
+                return typeof(void);
+            else if (types.Count == 1)
+                return ClrTypeOf(types[0].Value);
+            else
+                throw new NotImplementedException("Cannot translate a tuple to a Clr type.");
         }
 
         private static Type ClrTypeOf(string type)
