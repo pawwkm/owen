@@ -1,0 +1,13 @@
+﻿// expect Return\VoidFunctionsCannotReturnExpressions.owen:12:12: Output is not defined and therefore the function cannot return expressions. 
+
+namespace Test
+
+function main 
+    output i32
+    
+    return 1
+end
+
+function test
+    return 1
+end

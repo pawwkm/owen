@@ -49,6 +49,9 @@ namespace Owen
 
         private static void Analyze(ReturnStatement statement, List<Identifier> output)
         {
+            if (output.Count == 0 && statement.Expressions.Count != 0)
+                Report.Error($"{PositionOf(statement.Expressions[0])} Output is not defined and therefore the function cannot return expressions.");
+
             for (var i = 0; i < output.Count; i++)
                 Analyze(statement.Expressions[i], output[i].Value);
         }
@@ -97,6 +100,14 @@ namespace Owen
             }
             else if ((NumberTag)Enum.Parse(typeof(NumberTag), expectedType, true) != expression.Tag)
                 Report.Error($"{expression.DeclaredAt} Expected {expectedType} but found {expression.Tag.ToString().ToLower()}.");
+        }
+
+        private static Position PositionOf(Expression expression)
+        {
+            if (expression is Number number)
+                return number.DeclaredAt;
+            else
+                throw new NotImplementedException($"Cannot find position of {expression.GetType().Name}.");
         }
     }
 }

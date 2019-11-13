@@ -65,6 +65,9 @@
     <None Include="Return\ReturnedExpressionsMustMatchOutput.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="Return\VoidFunctionsCannotReturnExpressions.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
