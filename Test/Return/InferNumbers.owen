@@ -59,7 +59,7 @@ end
 function min_i64
     output i64
 
-    return -9223372036854775807
+    return -9223372036854775808
 end
 
 function main 
