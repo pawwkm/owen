@@ -28,7 +28,12 @@ namespace Owen
                 Generate(program.Files[i], builder);
 
                 // dmd does not like file names starting with a digit.
-                System.IO.File.WriteAllText(Path.Combine(root, $"_{i}.d"), builder.ToString());
+                System.IO.File.WriteAllText
+                (
+                    Path.Combine(root, $"_{i}.d"), 
+                    builder.ToString(),
+                    Encoding.UTF8
+                );
             }
 
             try
