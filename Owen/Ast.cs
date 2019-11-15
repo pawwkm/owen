@@ -32,6 +32,7 @@ namespace Owen
 
     internal sealed class ReturnStatement : Statement
     {
+        public Position EndOfKeyword;
         public List<Expression> Expressions;
     }
 

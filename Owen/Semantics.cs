@@ -49,8 +49,8 @@ namespace Owen
 
         private static void Analyze(ReturnStatement statement, List<Identifier> output)
         {
-            if (output.Count == 0 && statement.Expressions.Count != 0)
-                Report.Error($"{PositionOf(statement.Expressions[0])} Output is not defined and therefore the function cannot return expressions.");
+            if (output.Count != statement.Expressions.Count)
+                Report.Error($"{statement.EndOfKeyword} The amount of return values doesn't match the output.");
 
             for (var i = 0; i < output.Count; i++)
                 Analyze(statement.Expressions[i], output[i].Value);

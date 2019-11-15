@@ -1,4 +1,4 @@
-﻿// expect Return\VoidFunctionsCannotReturnExpressions.owen:12:12: Output is not defined and therefore the function cannot return expressions. 
+﻿// expect Return\VoidFunctionsCannotReturnExpressions.owen:12:12: The amount of return values doesn't match the output.
 
 namespace Test
 

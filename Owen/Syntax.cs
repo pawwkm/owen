@@ -93,10 +93,14 @@ namespace Owen
         private static Statement ReturnStatement(Source source)
         {
             if (Consume(source, "return"))
-                return new ReturnStatement() 
+            {
+                UpdatePosition(source, source.Index);
+                return new ReturnStatement()
                 {
+                    EndOfKeyword = source.Position.Copy(),
                     Expressions = Expressions(source)
                 };
+            }
             else
                 return null;
         }

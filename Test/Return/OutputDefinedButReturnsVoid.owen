@@ -1,0 +1,9 @@
+﻿// expect Return\OutputDefinedButReturnsVoid.owen:9:1: The amount of return values doesn't match the output.
+
+namespace Test
+
+function main
+    output i32
+
+    return
+end
