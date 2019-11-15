@@ -199,8 +199,8 @@ namespace Owen
                 { 
                     "namespace", "use", "public", "function", "input", "output", "end", 
                     "if", "else", "for", "while", "break", "structure", "proposition", 
-                    "enumeration", "of", "size", "union", "return", "ctfe", "true", 
-                    "false", "assert", "null", "generalize", "version" 
+                    "enumeration", "of", "size", "union", "return", "mixin", "ctfe", 
+                    "true", "false", "assert", "null", "generalize", "version" 
                 };
 
                 if (keywords.Contains(identifier.Value))
