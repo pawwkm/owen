@@ -4,6 +4,7 @@ namespace Owen
 {
 	internal sealed class Program
     {
+        public Scope Scope = new Scope(); 
         public List<File> Files = new List<File>();
     }
 
@@ -23,7 +24,39 @@ namespace Owen
 
     internal sealed class CompoundStatement
     {
+        public Scope Scope;
         public List<Statement> Statements = new List<Statement>();
+    }
+
+    internal sealed class Scope
+    {
+        public Scope Parent;
+        public Dictionary<string, Type> Symbols = new Dictionary<string, Type>();
+    }
+
+    internal abstract class Type
+    {
+    }
+
+    internal sealed class PrimitiveType : Type
+    {
+        public PrimitiveTypeTag Tag;
+        public override string ToString() =>
+            Tag.ToString().ToLower();
+    }
+
+    internal enum PrimitiveTypeTag
+    {
+        I8,
+        I16,
+        I32,
+        I64,
+        U8,
+        U16,
+        U32,
+        U64,
+        F32,
+        F64,
     }
 
     internal abstract class Statement

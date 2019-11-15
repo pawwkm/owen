@@ -65,7 +65,7 @@ namespace Owen
                 function.Name.Value,
                 MethodAttributes.Assembly | MethodAttributes.Public | MethodAttributes.Static | MethodAttributes.HideBySig,
                 ClrTypeOf(function.Output),
-                Type.EmptyTypes
+                System.Type.EmptyTypes
             );
 
             if (method.Name == "main")
@@ -142,7 +142,7 @@ namespace Owen
             }
         }
 
-        private static Type ClrTypeOf(List<Identifier> types)
+        private static System.Type ClrTypeOf(List<Identifier> types)
         {
             if (types.Count == 0)
                 return typeof(void);
@@ -152,7 +152,7 @@ namespace Owen
                 throw new NotImplementedException("Cannot translate a tuple to a Clr type.");
         }
 
-        private static Type ClrTypeOf(string type)
+        private static System.Type ClrTypeOf(string type)
         {
             switch (type)
             {
