@@ -53,13 +53,20 @@ namespace Owen
                 Report.Error($"{statement.EndOfKeyword} The amount of return values doesn't match the output.");
 
             for (var i = 0; i < output.Count; i++)
-                Analyze(statement.Expressions[i], output[i].Value);
+            {
+                var type = Analyze(statement.Expressions[i], output[i].Value);
+                if (type != output[i].Value)
+                    Report.Error($"{PositionOf(statement.Expressions[i])} Expected {output[i].Value} but found {type}.");
+            }
         }
 
-        private static void Analyze(Expression expression, string expectedType)
+        private static string Analyze(Expression expression, string expectedType)
         {
             if (expression is Number number)
+            {
                 Analyze(number, expectedType);
+                return number.Tag.ToString().ToLower();
+            }
             else
                 throw new NotImplementedException($"Cannot analyze {expression.GetType().Name}.");
         }
@@ -98,8 +105,6 @@ namespace Owen
                         throw new NotImplementedException($"Cannot infer {expectedType}.");
                 }
             }
-            else if ((NumberTag)Enum.Parse(typeof(NumberTag), expectedType, true) != expression.Tag)
-                Report.Error($"{expression.DeclaredAt} Expected {expectedType} but found {expression.Tag.ToString().ToLower()}.");
         }
 
         private static Position PositionOf(Expression expression)
