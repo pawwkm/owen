@@ -53,6 +53,20 @@ namespace Owen
                 var declaration = new FunctionDeclaration();
                 declaration.Name = name;
 
+                if (Consume(source, "input"))
+                {
+                    do
+                    {
+                        var argument = new Argument();
+                        if ((argument.Type = Identifier(source)) == null)
+                            Report.Error("Type expected.");
+                        else if ((argument.Name = Identifier(source)) == null)
+                            Report.Error("Type expected.");
+                        else 
+                            declaration.Input.Add(argument);
+                    } while (Consume(source, ","));
+                }
+
                 if (Consume(source, "output"))
                 {
                     do

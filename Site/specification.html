@@ -25,7 +25,7 @@
             </a>
         </nav>
         <main>
-            <h1>Owen Specification 0.2.1</h1>
+            <h1>Owen Specification 0.2.2</h1>
             <p>
                 The specification is versioned using <a href="https://semver.org/spec/v2.0.0.html">Semver 2.0</a>.
                 <a href="http://bford.info/pub/lang/peg.pdf">Parser Expression Grammar</a>
@@ -126,10 +126,6 @@ comment ← '//' (!'\n' .)* '\n'?</code></pre>
             </p>
 
             <h1>2. Declarations</h1>
-            <p>
-                Shadowing is not allowed.
-            </p>
-            
             <h2>2.1 Functions</h2>
             <pre><code>functionDeclaration ← functionSignature
                           statement*
@@ -149,11 +145,11 @@ argument ← type identifier</code></pre>
                 <span class="rule">input</span>
                 defines a list of arguments that a caller must pass to the
                 function. The <span class="rule">arguments</span> are in the
-                same scope as <span class="rule">statements</span>.
-                Functions can be overloaded with different order of input types. 
-                The <span class="rule">output</span> list is the types of the 
-                values that the function returns <b>in</b> the order they
-                are listed.
+                same scope as <span class="rule">statements</span> and must have 
+                unique names. Functions can be overloaded with different order 
+                of input types. The <span class="rule">output</span> list is the 
+                types of the values that the function returns <b>in</b> the order 
+                they are listed.
             </p>
 
             <h3>2.1.1. The Main Function</h3>
@@ -269,8 +265,9 @@ assignmentOperator ← ([+-*/&amp;|^%] / '&lt;&lt;' / '&gt;&gt;')? '=' whitespac
                 function was called. Each <span class="rule">expression</span>
                 on the left hand side must be assignable. If an expression on
                 the left hand side is an undefined identifier it is declared as
-                a variable of the same type as the assigned expression.
-                Number types are inferred from the defined identifiers.
+                a variable of the same type as the assigned expression. Variable
+                declarations cannot shadow other variables. Number types are 
+                inferred from the defined identifiers.
             </p>
             
             <p>

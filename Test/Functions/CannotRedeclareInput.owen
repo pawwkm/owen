@@ -1,0 +1,14 @@
+﻿// expect Functions\CannotRedeclareInput.owen:13:15: Redeclares a.
+
+namespace Test
+
+function main 
+    output i32
+    
+    return 1
+end
+
+function test
+    input i32 a,
+          i32 a
+end

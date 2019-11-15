@@ -47,6 +47,12 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Functions\CannotRedeclareInput.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Functions\InputNamesCanShadowDeclarations.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="Functions\Main\MainNotReturningi32.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

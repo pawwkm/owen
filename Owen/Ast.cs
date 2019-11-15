@@ -18,20 +18,33 @@ namespace Owen
     internal sealed class FunctionDeclaration
     {
         public Identifier Name;
+        public List<Argument> Input = new List<Argument>();
         public List<Identifier> Output = new List<Identifier>();
         public CompoundStatement Body;
     }
 
+    internal sealed class Argument
+    {
+        public Identifier Type;
+        public Identifier Name;
+    }
+
     internal sealed class CompoundStatement
     {
-        public Scope Scope;
+        public Scope Scope = new Scope();
         public List<Statement> Statements = new List<Statement>();
     }
 
     internal sealed class Scope
     {
         public Scope Parent;
-        public Dictionary<string, Type> Symbols = new Dictionary<string, Type>();
+        public List<Symbol> Symbols = new List<Symbol>();
+    }
+
+    internal sealed class Symbol
+    {
+        public string Name;
+        public Type Type;
     }
 
     internal abstract class Type
@@ -43,6 +56,12 @@ namespace Owen
         public PrimitiveTypeTag Tag;
         public override string ToString() =>
             Tag.ToString().ToLower();
+    }
+
+    internal sealed class FunctionType : Type
+    {
+        public List<Type> Input = new List<Type>();
+        public List<Type> Output = new List<Type>();
     }
 
     internal enum PrimitiveTypeTag

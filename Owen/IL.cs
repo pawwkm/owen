@@ -71,7 +71,9 @@ namespace Owen
             if (method.Name == "main")
                 assembly.SetEntryPoint(method.GetBaseDefinition(), PEFileKinds.ConsoleApplication);
 
-            Generate(function.Body, method.GetILGenerator(), symbols);
+            var instructions = method.GetILGenerator();
+            Generate(function.Body, instructions, symbols);
+            instructions.Emit(OpCodes.Ret);
         }
 
         private static void Generate(CompoundStatement body, ILGenerator instructions, ISymbolDocumentWriter symbols)

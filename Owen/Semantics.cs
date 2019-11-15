@@ -8,17 +8,18 @@ namespace Owen
     {
         public static void Analyze(Program program)
         {
-            program.Scope.Symbols.Add("i8", new PrimitiveType() { Tag = PrimitiveTypeTag.I8 });
-            program.Scope.Symbols.Add("i16", new PrimitiveType() { Tag = PrimitiveTypeTag.I16 });
-            program.Scope.Symbols.Add("i32", new PrimitiveType() { Tag = PrimitiveTypeTag.I32 });
-            program.Scope.Symbols.Add("i64", new PrimitiveType() { Tag = PrimitiveTypeTag.I64 });
-            program.Scope.Symbols.Add("u8", new PrimitiveType() { Tag = PrimitiveTypeTag.U8 });
-            program.Scope.Symbols.Add("u16", new PrimitiveType() { Tag = PrimitiveTypeTag.U16 });
-            program.Scope.Symbols.Add("u32", new PrimitiveType() { Tag = PrimitiveTypeTag.U32 });
-            program.Scope.Symbols.Add("u64", new PrimitiveType() { Tag = PrimitiveTypeTag.U64 });
-            program.Scope.Symbols.Add("f32", new PrimitiveType() { Tag = PrimitiveTypeTag.F32 });
-            program.Scope.Symbols.Add("f64", new PrimitiveType() { Tag = PrimitiveTypeTag.F64 });
-
+            foreach (PrimitiveTypeTag tag in Enum.GetValues(typeof(PrimitiveTypeTag)))
+            {
+                program.Scope.Symbols.Add(new Symbol()
+                {
+                    Name = tag.ToString().ToLower(),
+                    Type = new PrimitiveType()
+                    {
+                        Tag = tag
+                    }
+                });
+            }
+            
             foreach (var file in program.Files)
                 Analyze(file, program);
 
@@ -38,20 +39,51 @@ namespace Owen
 
         private static void Analyze(File file, Program program)
         {
+            var fileScope = new Scope();
+            fileScope.Parent = program.Scope;
+
             foreach (var function in file.Functions)
-                Analyze(function, program.Scope);
+            {
+                var type = new FunctionType();
+                type.Input.AddRange(function.Input.Select(o => Lookup(fileScope, o.Type)));
+                type.Output.AddRange(function.Output.Select(o => Lookup(fileScope, o.Value)));
+
+                fileScope.Symbols.Add(new Symbol()
+                {
+                    Name = function.Name.Value, 
+                    Type = type
+                });
+            }
+
+            foreach (var function in file.Functions)
+            {
+                function.Body.Scope.Parent = fileScope;
+                foreach (var argument in function.Input)
+                {
+                    var asd = Lookup(function.Body.Scope, argument.Name.Value);
+                    if (asd is PrimitiveType primitive)
+                        Report.Error($"{argument.Name.DeclaredAt} Redeclares {argument.Name.Value}.");
+                    else
+                    {
+                        function.Body.Scope.Symbols.Add(new Symbol() 
+                        { 
+                            Name = argument.Name.Value,
+                            Type = Lookup(function.Body.Scope, argument.Type)
+                        });
+                    }
+                }
+
+                Analyze(function);
+            }
         }
 
-        private static void Analyze(FunctionDeclaration function, Scope parent)
+        private static void Analyze(FunctionDeclaration function)
         {
-            Analyze(function.Body, function.Output, parent);
+            Analyze(function.Body, function.Output, function.Body.Scope);
         }
 
         private static void Analyze(CompoundStatement compound, List<Identifier> output, Scope parent)
         {
-            compound.Scope = new Scope();
-            compound.Scope.Parent = parent;
-
             foreach (var statement in compound.Statements)
             {
                 if (statement is ReturnStatement r)
@@ -102,8 +134,8 @@ namespace Owen
         {
             foreach (var symbol in scope.Symbols)
             {
-                if (symbol.Key == name)
-                    return symbol.Value;
+                if (symbol.Name == name)
+                    return symbol.Type;
             }
 
             if (scope.Parent == null)
