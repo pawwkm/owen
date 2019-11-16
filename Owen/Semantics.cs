@@ -45,6 +45,7 @@ namespace Owen
             foreach (var function in file.Functions)
             {
                 var type = new FunctionType();
+                type.Declaration = function;
                 type.Input.AddRange(function.Input.Select(o => Lookup(fileScope, o.Type)));
                 type.Output.AddRange(function.Output.Select(o => Lookup(fileScope, o.Value)));
 
@@ -100,15 +101,18 @@ namespace Owen
 
             for (var i = 0; i < output.Count; i++)
             {
+                var expression = statement.Expressions[i];
                 var outputType = Lookup(scope, output[i]);
-                var expressionType = Analyze(statement.Expressions[i], outputType, scope);
+                var expressionType = Analyze(ref expression, outputType, scope);
 
                 if (expressionType != outputType)
                     Report.Error($"{PositionOf(statement.Expressions[i])} Expected {outputType} but found {expressionType}.");
+                else
+                    statement.Expressions[i] = expression;
             }
         }
 
-        private static Type Analyze(Expression expression, Type expectedType, Scope scope)
+        private static Type Analyze(ref Expression expression, Type expectedType, Scope scope)
         {
             if (expression is Number number)
             {
@@ -117,8 +121,44 @@ namespace Owen
 
                 return Lookup(scope, number.Tag.ToString().ToLower());
             }
-            else
-                throw new NotImplementedException($"Cannot analyze {expression.GetType().Name}.");
+            else if (expression is Identifier reference)
+                return Lookup(scope, reference);
+            else if (expression is Call call)
+            {
+                if (Analyze(ref call.Callee, null, scope) is FunctionType type)
+                {
+                    if (call.Arguments.Count != type.Input.Count)
+                        Report.Error($"{PositionOf(call.Callee)} No function overload fitting the given input.");
+
+                    for (var i = 0; i < call.Arguments.Count; i++)
+                    {
+                        var argument = call.Arguments[i];
+                        if (!Compare(type.Input[i], Analyze(ref argument, type.Input[i], scope)))
+                            Report.Error($"{PositionOf(call.Callee)} No function overload fitting the given input.");
+                    }
+
+                    call.DeclarationOfCallee = type.Declaration;
+                    if (type.Output.Count == 0)
+                        return null;
+                    else if (type.Output.Count == 1)
+                        return type.Output[0];
+                    else
+                        throw new NotImplementedException($"Multiple return values not yet implemented.");
+                }
+                else
+                    Report.Error($"{PositionOf(call.Callee)} Function expected.");
+            }
+            else if (expression is Ctfe ctfe)
+            {
+                Analyze(ref ctfe.Expression, expectedType, scope);
+                Interpreter.Run(ref ctfe.Expression);
+
+                expression = ctfe.Expression;
+
+                return Analyze(ref expression, expectedType, scope);
+            }
+
+            throw new NotImplementedException($"Cannot analyze {expression.GetType().Name}.");
         }
 
         private static Type Lookup(Scope scope, Identifier name)
@@ -142,6 +182,14 @@ namespace Owen
                 return null;
             else
                 return Lookup(scope.Parent, name);
+        }
+
+        private static bool Compare(Type a, Type b)
+        {
+            if (a is PrimitiveType pa && b is PrimitiveType pb)
+                return pa.Tag == pb.Tag;
+            else
+                return false;
         }
 
         private static Position PositionOf(Expression expression)

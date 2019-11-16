@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.SymbolStore;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
-using System.Threading;
 
 namespace Owen
 {
@@ -13,7 +13,7 @@ namespace Owen
     {
         public static void Generate(Program program, string output)
         {
-            var assembly = Thread.GetDomain().DefineDynamicAssembly(new AssemblyName(Path.GetFileNameWithoutExtension(output)), AssemblyBuilderAccess.Save);
+            var assembly = AppDomain.CurrentDomain.DefineDynamicAssembly(new AssemblyName(Path.GetFileNameWithoutExtension(output)), AssemblyBuilderAccess.Save);
             assembly.SetCustomAttribute
             (
                 new CustomAttributeBuilder
@@ -65,7 +65,7 @@ namespace Owen
                 function.Name.Value,
                 MethodAttributes.Assembly | MethodAttributes.Public | MethodAttributes.Static | MethodAttributes.HideBySig,
                 ClrTypeOf(function.Output),
-                System.Type.EmptyTypes
+                function.Input.Select(i => ClrTypeOf(i.Type.Value)).ToArray()
             );
 
             if (method.Name == "main")
@@ -100,48 +100,47 @@ namespace Owen
         private static void Generate(Expression expression, ILGenerator instructions)
         {
             if (expression is Number number)
-                Generate(number, instructions);
+            {
+                switch (number.Tag)
+                {
+                    case NumberTag.I64:
+                        instructions.Emit(OpCodes.Ldc_I8, long.Parse(number.Value));
+                        break;
+                    case NumberTag.I32:
+                        instructions.Emit(OpCodes.Ldc_I4, int.Parse(number.Value));
+                        break;
+                    case NumberTag.I16:
+                        instructions.Emit(OpCodes.Ldc_I4, short.Parse(number.Value));
+                        break;
+                    case NumberTag.I8:
+                        instructions.Emit(OpCodes.Ldc_I4_S, sbyte.Parse(number.Value));
+                        break;
+                    case NumberTag.U64:
+                        instructions.Emit(OpCodes.Ldc_I8, ulong.Parse(number.Value));
+                        break;
+                    case NumberTag.U32:
+                        instructions.Emit(OpCodes.Ldc_I4, uint.Parse(number.Value));
+                        break;
+                    case NumberTag.U16:
+                        instructions.Emit(OpCodes.Ldc_I4, ushort.Parse(number.Value));
+                        break;
+                    case NumberTag.U8:
+                        instructions.Emit(OpCodes.Ldc_I4_S, byte.Parse(number.Value));
+                        break;
+                    case NumberTag.F32:
+                        instructions.Emit(OpCodes.Ldc_R4, float.Parse(number.Value));
+                        break;
+                    case NumberTag.F64:
+                        instructions.Emit(OpCodes.Ldc_R8, double.Parse(number.Value));
+                        break;
+                    default:
+                        throw new NotImplementedException($"Cannot translate {number.Tag} to IL.");
+                }
+            }
+            else if (expression is Identifier reference)
+                instructions.Emit(OpCodes.Ldarg_0);
             else
                 throw new NotImplementedException($"Cannot translate {expression.GetType().Name} to IL.");
-        }
-
-        private static void Generate(Number expression, ILGenerator instructions)
-        {
-            switch (expression.Tag)
-            {
-                case NumberTag.I64:
-                    instructions.Emit(OpCodes.Ldc_I8, long.Parse(expression.Value));
-                    break;
-                case NumberTag.I32:
-                    instructions.Emit(OpCodes.Ldc_I4, int.Parse(expression.Value));
-                    break;
-                case NumberTag.I16:
-                    instructions.Emit(OpCodes.Ldc_I4, short.Parse(expression.Value));
-                    break;
-                case NumberTag.I8:
-                    instructions.Emit(OpCodes.Ldc_I4_S, sbyte.Parse(expression.Value));
-                    break;
-                case NumberTag.U64:
-                    instructions.Emit(OpCodes.Ldc_I8, ulong.Parse(expression.Value));
-                    break;
-                case NumberTag.U32:
-                    instructions.Emit(OpCodes.Ldc_I4, uint.Parse(expression.Value));
-                    break;
-                case NumberTag.U16:
-                    instructions.Emit(OpCodes.Ldc_I4, ushort.Parse(expression.Value));
-                    break;
-                case NumberTag.U8:
-                    instructions.Emit(OpCodes.Ldc_I4_S, byte.Parse(expression.Value));
-                    break;
-                case NumberTag.F32:
-                    instructions.Emit(OpCodes.Ldc_R4, float.Parse(expression.Value));
-                    break;
-                case NumberTag.F64:
-                    instructions.Emit(OpCodes.Ldc_R8, double.Parse(expression.Value));
-                    break;
-                default:
-                    throw new NotImplementedException($"Cannot translate {expression.Tag} to IL.");
-            }
         }
 
         private static System.Type ClrTypeOf(List<Identifier> types)

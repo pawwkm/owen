@@ -1,0 +1,16 @@
+﻿// expect 1
+
+namespace Test
+
+function main 
+    output i32
+    
+    return ctfe test(1)
+end
+
+function test
+    input i32 a
+    output i32
+
+    return a
+end

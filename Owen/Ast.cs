@@ -60,6 +60,7 @@ namespace Owen
 
     internal sealed class FunctionType : Type
     {
+        public FunctionDeclaration Declaration;
         public List<Type> Input = new List<Type>();
         public List<Type> Output = new List<Type>();
     }
@@ -99,7 +100,7 @@ namespace Owen
         public NumberTag Tag;
     }
     
-    public enum NumberTag
+    internal enum NumberTag
     {
         I8,
         I16,
@@ -115,6 +116,18 @@ namespace Owen
         FloatToBeInfered
     }
 
+    internal sealed class Call : Expression
+    {
+        public FunctionDeclaration DeclarationOfCallee;
+        public Expression Callee;
+        public List<Expression> Arguments;
+    }
+
+    internal sealed class Ctfe : Expression
+    {
+        public Expression Expression;
+    }
+
     internal sealed class Source
     {
         public int Index;
@@ -123,7 +136,7 @@ namespace Owen
         public bool EndOfText => Text.Length == Index;
     }
 
-    internal sealed class Identifier
+    internal sealed class Identifier : Expression
     {
         public Position DeclaredAt;
         public string Value;

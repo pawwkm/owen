@@ -142,7 +142,47 @@ namespace Owen
 
         private static Expression Expression(Source source)
         {
-            return Number(source);
+            return PrefixExpression(source);
+        }
+
+        private static Expression PrefixExpression(Source source)
+        {
+            if (Consume(source, "ctfe"))
+                return new Ctfe() 
+                {
+                    Expression = Expression(source) 
+                };
+            else
+                return PostfixExpression(source);
+        }
+
+        private static Expression PostfixExpression(Source source)
+        {
+            var expression = PrimaryExpression(source);
+            if (expression != null)
+            {
+                if (Consume(source, "("))
+                {
+                    var arguments = Expressions(source);
+                    Expect(source, ")");
+
+                    return new Call()
+                    {
+                        Callee = expression,
+                        Arguments = arguments
+                    };
+                }
+                else
+                    return expression;
+            }
+            else
+                return null;
+        }
+
+        private static Expression PrimaryExpression(Source source)
+        {
+            return Number(source) ??
+                   Identifier(source);
         }
 
         private static Expression Number(Source source)

@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="description" content="This is the Owen programming language specification.">
         <meta name="keywords" content="Owen, programming language, specification, reference">
-        <title>Owen Specification 0.2.0</title>
+        <title>Owen Specification 0.3.0</title>
         <link rel="icon" type="image/x-icon" href="images/owen.png" />
         <link rel="stylesheet" type="text/css" href="css/global.css">
     </head>
@@ -25,7 +25,7 @@
             </a>
         </nav>
         <main>
-            <h1>Owen Specification 0.2.2</h1>
+            <h1>Owen Specification 0.3.0</h1>
             <p>
                 The specification is versioned using <a href="https://semver.org/spec/v2.0.0.html">Semver 2.0</a>.
                 <a href="http://bford.info/pub/lang/peg.pdf">Parser Expression Grammar</a>
@@ -122,7 +122,8 @@ comment ← '//' (!'\n' .)* '\n'?</code></pre>
                 <span class="rule">namespaceDirective</span> makes all the
                 <span class="keyword">public</span> <span class="rule">declarations</span>
                 in the given name space available to the
-                <span class="rule">file</span>.
+                <span class="rule">file</span>. The order in which <span class="rule">file</span>s
+                are compiled is undefined.
             </p>
 
             <h1>2. Declarations</h1>
@@ -459,8 +460,7 @@ multiplicativeOperator ← ('*' / '/' / '%' / '&amp;' / '&lt;&lt;' / '&gt;&gt;')
             </p>
             
             <h2>4.7. Prefix Expressions</h2>
-            <pre><code>prefixExpression ← postfixExpression
-                 / notExpression
+            <pre><code>prefixExpression ← notExpression
                  / negateExpression
                  / prefixIncrementExpression 
                  / prefixDecrementExpression
@@ -469,7 +469,8 @@ multiplicativeOperator ← ('*' / '/' / '%' / '&amp;' / '&lt;&lt;' / '&gt;&gt;')
                  / ctfeExpression
                  / mixinExpression
                  / addressOfExpression
-                 / dereferenceExpression</code></pre>
+                 / dereferenceExpression
+                 / postfixExpression</code></pre>
             
             <p>
                 prefix operators are right associative.
@@ -532,20 +533,25 @@ decrement ← '--' whitespace</code></pre>
 
             <p>
                 The <span class="rule">expression</span> is executed at compile
-                time and has the same type as the <span class="rule">expression</span>. 
-                The result of the <span class="rule">expression</span> is then 
-                compiled as part of the program in place of the 
-                <span class="rule">mixinExpreassion</span>.
+                time and has the same type as the <span class="rule">expression</span>.
+                The result of the <span class="rule">expression</span> is then
+                compiled as part of the program in place of the
+                <span class="rule">ctfeExpreassion</span>.
+
+                The <span class="rule">ctfeExpreassion</span>s at the declaration level
+                are executed first in lexical order then the remaining ones are executed in
+                lexical order.
+
+                All arguments to a <span class="rule">callExpression</span> must be known at 
+                compile time.
             </p>
 
             <h3>4.7.8. Mixin Expressions</h3>
             <pre><code>mixinExpreassion ← mixin expression</code></pre>
 
             <p>
-                The <span class="rule">expression</span> is executed at compile
-                time and must return a <span class="type">u8[]</span>. The 
-                string is then compiled as part of the program in place of the 
-                <span class="rule">mixinExpreassion</span>.
+                Works just like <span class="rule">ctfeExpreassion</span> but the 
+                type must be <span class="type">u8[]</span>.
             </p>
 
             <h3>4.7.9. Address Of Expressions</h3>
@@ -587,6 +593,10 @@ decrement ← '--' whitespace</code></pre>
             <h3>4.8.2. Call Expressions</h3>
             <pre><code>callExpression ← leftParenthesis expressionList? rightParenthesis</code></pre>
 
+            <p>
+                Number types are inferred from the callee's <span class="keyword">input</span>.
+            </p>
+            
             <h3>4.8.3. Index Expressions</h3>
             <pre><code>indexExpression ← leftSquareBracket expression rightSquareBracket
             

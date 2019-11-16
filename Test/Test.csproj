@@ -47,6 +47,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Ctfe\asdf.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="Functions\CannotRedeclareInput.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

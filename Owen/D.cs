@@ -73,8 +73,19 @@ namespace Owen
 
             GenerateType(function.Output, builder);
             builder.Append(function.Name.Value);
-            builder.Append("()");
+            builder.Append('(');
 
+            for (var i = 0; i < function.Input.Count; i++)
+            {
+                GenerateType(function.Input[i].Type.Value, builder);
+                builder.Append(' ');
+                builder.Append(function.Input[i].Name.Value);
+
+                if (i + 1 != function.Input.Count)
+                    builder.Append(',');
+            }
+
+            builder.Append(')');
             Generate(function.Body, builder);
         }
 
@@ -159,33 +170,32 @@ namespace Owen
         private static void Generate(Expression expression, StringBuilder builder)
         {
             if (expression is Number number)
-                Generate(number, builder);
-            else
-                throw new NotImplementedException($"Cannot translate {expression.GetType().Name} to a D expression.");
-        }
-
-        private static void Generate(Number number, StringBuilder builder)
-        {
-            if (number.Value == "-9223372036854775808" && number.Tag == NumberTag.I64)
-                builder.Append("long.min"); // For some reason that constant overflows at compile time
-            else                            // but long.min doesn't.
             {
-                builder.Append(number.Value);
-                switch (number.Tag)
+                if (number.Value == "-9223372036854775808" && number.Tag == NumberTag.I64)
+                    builder.Append("long.min"); // For some reason that constant overflows at compile time
+                else                            // but long.min doesn't.
                 {
-                    case NumberTag.I64:
-                        builder.Append("L");
-                        break;
-                    case NumberTag.U64:
-                        builder.Append("uL");
-                        break;
-                    case NumberTag.U32:
-                    case NumberTag.U16:
-                    case NumberTag.U8:
-                        builder.Append("u");
-                        break;
+                    builder.Append(number.Value);
+                    switch (number.Tag)
+                    {
+                        case NumberTag.I64:
+                            builder.Append("L");
+                            break;
+                        case NumberTag.U64:
+                            builder.Append("uL");
+                            break;
+                        case NumberTag.U32:
+                        case NumberTag.U16:
+                        case NumberTag.U8:
+                            builder.Append("u");
+                            break;
+                    }
                 }
             }
+            else if (expression is Identifier reference)
+                builder.Append(reference.Value);
+            else
+                throw new NotImplementedException($"Cannot translate {expression.GetType().Name} to a D expression.");
         }
     }
 }

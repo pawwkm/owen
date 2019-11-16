@@ -87,8 +87,6 @@ namespace Owen
                 }
 
                 Semantics.Analyze(program);
-                Ctfe.Execute(program);
-
                 if (!checkOnly)
                 {
                     //if (!includePropositions)
