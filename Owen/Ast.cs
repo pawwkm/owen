@@ -11,7 +11,7 @@ namespace Owen
 	internal sealed class File
 	{
         public Scope Scope;
-		public string Namespace;
+		public Identifier Namespace;
         public string Path;
         public List<FunctionDeclaration> Functions = new List<FunctionDeclaration>();
         public List<Expression> Ctfe = new List<Expression>();

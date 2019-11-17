@@ -11,7 +11,10 @@ namespace Owen
             file.Path = source.Position.Path;
 
             Whitespace(source);
-            file.Namespace = Namespace(source);
+
+            Expect(source, "namespace");
+            if ((file.Namespace = Identifier(source)) == null)
+                Report.Error("Identifier expected.");
 
             while (!source.EndOfText)
             {
@@ -34,23 +37,6 @@ namespace Owen
             }
 
             program.Files.Add(file);
-        }
-
-        private static string Namespace(Source source)
-        {
-            Expect(source, "namespace");
-
-            var identifiers = new List<string>();
-            do
-            {
-                var identifier = Identifier(source);
-                if (identifier == null)
-                    Report.Error("Identifier expected.");
-                else
-                    identifiers.Add(identifier.Value);
-            } while (Consume(source, "."));
-
-            return string.Join(".", identifiers);
         }
 
         private static FunctionDeclaration FunctionDeclaration(Source source)

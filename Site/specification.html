@@ -41,9 +41,8 @@
 directives ← namespaceDirective 
              useDirective*
 
-namespaceDirective ← namespace qualifiedIdentifier
-useDirective ← use qualifiedIdentifier
-qualifiedIdentifier ← identifier (dot identifier)*
+namespaceDirective ← namespace identifier
+useDirective ← use identifier
 
 declaration ← public? ( functionDeclaration
                       / externalFunctionDeclaration
