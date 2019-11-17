@@ -16,10 +16,21 @@ namespace Owen
             while (!source.EndOfText)
             {
                 var function = FunctionDeclaration(source);
-                if (function == null)
-                    Report.Error("Function declaration expected.");
-                else
+                if (function != null)
                     file.Functions.Add(function);
+
+                var expression = default(Expression);
+                if (Consume(source, "ctfe"))
+                {
+                    expression = Expression(source);
+                    if (expression == null)
+                        Report.Error($"{source.Position} Expression expected.");
+                    else
+                        file.Ctfe.Add(expression);
+                }
+
+                if (function == null && expression == null)
+                    Report.Error($"{source.Position} Function or CTFE expression expected.");
             }
 
             program.Files.Add(file);
@@ -147,13 +158,7 @@ namespace Owen
 
         private static Expression PrefixExpression(Source source)
         {
-            if (Consume(source, "ctfe"))
-                return new Ctfe() 
-                {
-                    Expression = Expression(source) 
-                };
-            else
-                return PostfixExpression(source);
+            return PostfixExpression(source);
         }
 
         private static Expression PostfixExpression(Source source)

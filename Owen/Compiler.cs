@@ -87,6 +87,8 @@ namespace Owen
                 }
 
                 Semantics.Analyze(program);
+                Interpreter.Run(program);
+
                 if (!checkOnly)
                 {
                     //if (!includePropositions)

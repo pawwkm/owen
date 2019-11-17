@@ -10,9 +10,12 @@ namespace Owen
 
 	internal sealed class File
 	{
+        public Scope Scope;
 		public string Namespace;
         public string Path;
         public List<FunctionDeclaration> Functions = new List<FunctionDeclaration>();
+        public List<Expression> Ctfe = new List<Expression>();
+        public List<Expression> Mixins = new List<Expression>();
 	}
 
     internal sealed class FunctionDeclaration
@@ -121,11 +124,6 @@ namespace Owen
         public FunctionDeclaration DeclarationOfCallee;
         public Expression Callee;
         public List<Expression> Arguments;
-    }
-
-    internal sealed class Ctfe : Expression
-    {
-        public Expression Expression;
     }
 
     internal sealed class Source

@@ -2,10 +2,12 @@
 
 namespace Test
 
+ctfe test(1)
+
 function main 
     output i32
     
-    return ctfe test(1)
+    return 1
 end
 
 function test

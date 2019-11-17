@@ -11,76 +11,30 @@ namespace Owen
             public dynamic Value;
         }
 
-        public static void Run(ref Expression expression)
+        public static void Run(Program program)
         {
-            var lo = Run(ref expression, new List<Variable>());
-            if (lo is sbyte)
-                expression = new Number()
+            foreach (var file in program.Files)
+            {
+                foreach (var expression in file.Ctfe)
                 {
-                    Tag = NumberTag.I8,
-                    Value = lo.ToString()
-                };
-            else if (lo is short)
-                expression = new Number()
-                {
-                    Tag = NumberTag.I16,
-                    Value = lo.ToString()
-                };
-            else if (lo is int)
-                expression = new Number()
-                {
-                    Tag = NumberTag.I32,
-                    Value = lo.ToString()
-                };
-            else if (lo is long)
-                expression = new Number()
-                {
-                    Tag = NumberTag.I64,
-                    Value = lo.ToString()
-                };
-            else if (lo is byte)
-                expression = new Number()
-                {
-                    Tag = NumberTag.U8,
-                    Value = lo.ToString()
-                };
-            else if (lo is ushort)
-                expression = new Number()
-                {
-                    Tag = NumberTag.U16,
-                    Value = lo.ToString()
-                };
-            else if (lo is uint)
-                expression = new Number()
-                {
-                    Tag = NumberTag.U32,
-                    Value = lo.ToString()
-                };
-            else if (lo is ulong)
-                expression = new Number()
-                {
-                    Tag = NumberTag.U64,
-                    Value = lo.ToString()
-                };
-            else
-                throw new NotImplementedException($"Cannot rewrite expression to type of {lo.GetType().Name}.");
+                    Semantics.Analyze(expression, null, file.Scope);
+                    Run(expression, new List<Variable>());
+                }
+            }
         }
 
-        private static dynamic Run(ref Expression expression, List<Variable> variables)
+        private static dynamic Run(Expression expression, List<Variable> variables)
         {
             if (expression is Call call)
             {
                 var stack = new List<Variable>();
                 for (var i = 0; i < call.Arguments.Count; i++)
                 {
-                    var argument = call.Arguments[i];
                     stack.Add(new Variable()
                     {
                         Name = call.DeclarationOfCallee.Input[i].Name.Value,
-                        Value = Run(ref argument, variables)
+                        Value = Run(call.Arguments[i], variables)
                     });
-
-                    call.Arguments[i] = argument;
                 }
 
                 return Run(call.DeclarationOfCallee.Body, stack);
@@ -128,11 +82,7 @@ namespace Owen
                     if (r.Expressions.Count == 0)
                         return null;
                     else if (r.Expressions.Count == 1)
-                    {
-                        var expression = r.Expressions[0];
-
-                        return Run(ref expression, variables);
-                    }
+                        return Run(r.Expressions[0], variables);
                     else
                         throw new NotImplementedException("Cannot interpret multiple return values.");
                 }
