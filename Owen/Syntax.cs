@@ -55,12 +55,21 @@ namespace Owen
                     do
                     {
                         var argument = new Argument();
-                        if ((argument.Type = Identifier(source)) == null)
+                        var identifier = default(Identifier);
+
+                        if ((identifier = Identifier(source)) == null)
                             Report.Error("Type expected.");
                         else if ((argument.Name = Identifier(source)) == null)
                             Report.Error("Type expected.");
-                        else 
+                        else
+                        {
+                            argument.Type = new UnresolvedType()
+                            {
+                                Identifier = identifier
+                            };
+
                             declaration.Input.Add(argument);
+                        }
                     } while (Consume(source, ","));
                 }
 
@@ -90,7 +99,8 @@ namespace Owen
             while (true)
             {
                 var statement = AssignmentStatement(source) ??
-                                ReturnStatement(source);
+                                ReturnStatement(source) ??
+                                AssertStatement(source);
                 
                 if (statement == null)
                     break;
@@ -170,6 +180,23 @@ namespace Owen
                 return null;
         }
 
+        private static Statement AssertStatement(Source source)
+        {
+            if (Consume(source, "assert"))
+            {
+                var assertion = Expression(source);
+                if (assertion == null)
+                    Report.Error($"{source.Position} Assertion expected.");
+                else
+                    return new AssertStatement()
+                    {
+                        Assertion = assertion
+                    };
+            }
+            
+            return null;
+        }
+
         private static List<Expression> Expressions(Source source)
         {
             var expressions = new List<Expression>();
@@ -193,7 +220,43 @@ namespace Owen
 
         private static Expression Expression(Source source)
         {
-            return PrefixExpression(source);
+            return AdditiveExpression(source);
+        }
+
+        private static Expression AdditiveExpression(Source source)
+        {
+            var left = PrefixExpression(source);
+            while (true)
+            {
+                var start = source.Position.Copy();
+                var tag = default(OperatorTag);
+
+                if (Consume(source, "=="))
+                    tag = OperatorTag.EqualEqual;
+                else if (Consume(source, "!="))
+                    tag = OperatorTag.NotEqual;
+                else
+                    break;
+
+                var right = PrefixExpression(source);
+                if (right == null)
+                    Report.Error($"{source.Position} Expression expected.");
+                else
+                {
+                    left = new BinaryExpression()
+                    {
+                        Left = left,
+                        Operator = new Operator()
+                        {
+                            DefinedAt = start,
+                            Tag = tag
+                        },
+                        Right = right
+                    };
+                }
+            }
+
+            return left;
         }
 
         private static Expression PrefixExpression(Source source)

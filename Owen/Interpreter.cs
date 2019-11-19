@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Owen
 {
@@ -25,7 +26,20 @@ namespace Owen
 
         private static dynamic Run(Expression expression, List<Variable> variables)
         {
-            if (expression is Call call)
+            if (expression is BinaryExpression binary)
+            {
+                switch (binary.Operator.Tag)
+                {
+                    case OperatorTag.EqualEqual:
+                        return Run(binary.Left, variables) == Run(binary.Right, variables);
+                    case OperatorTag.NotEqual:
+                        return Run(binary.Left, variables) != Run(binary.Right, variables);
+                    default:
+                        Report.Error($"{binary.Operator.DefinedAt} Cannot interpret the {binary.Operator.Tag} operator.");
+                        return null;
+                }
+            }
+            else if (expression is Call call)
             {
                 var stack = new List<Variable>();
                 for (var i = 0; i < call.Arguments.Count; i++)
@@ -77,7 +91,28 @@ namespace Owen
         {
             foreach (var statement in compound.Statements)
             {
-                if (statement is ReturnStatement r)
+                if (statement is AssignmentStatement assignment)
+                {
+                    for (var i = 0; i < assignment.Left.Count; i++)
+                    {
+                        var left = assignment.Left[i];
+                        if (left is VariableDeclaration declaration)
+                        {
+                            variables.Add(new Variable()
+                            {
+                                Name = declaration.Variable.Value,
+                                Value = Run(assignment.Right[i], variables)
+                            });
+
+                            return null;
+                        }
+                        else if (left is Identifier reference)
+                            variables.First(v => v.Name == reference.Value).Value = Run(assignment.Right[i], variables);
+                        else
+                            throw new NotImplementedException($"Cannot interpret assignment to {left.GetType().Name}.");
+                    }
+                }
+                else if (statement is ReturnStatement r)
                 {
                     if (r.Expressions.Count == 0)
                         return null;
@@ -86,6 +121,13 @@ namespace Owen
                     else
                         throw new NotImplementedException("Cannot interpret multiple return values.");
                 }
+                else if (statement is AssertStatement assert)
+                {
+                    if (!Run(assert.Assertion, variables))
+                        Report.Error($"{assert.Assertion.StartsAt()} Assertion failed.");
+                }
+                else
+                    throw new NotImplementedException($"Cannot interpret {statement.GetType().Name}.");
             }
 
             return null;

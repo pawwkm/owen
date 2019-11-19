@@ -65,7 +65,7 @@ namespace Owen
                 function.Name.Value,
                 MethodAttributes.Assembly | MethodAttributes.Public | MethodAttributes.Static | MethodAttributes.HideBySig,
                 ClrTypeOf(function.Output),
-                function.Input.Select(i => ClrTypeOf(i.Type.Value)).ToArray()
+                function.Input.Select(i => ClrTypeOf(i.Type)).ToArray()
             );
 
             if (method.Name == "main")
@@ -142,6 +142,40 @@ namespace Owen
                 instructions.Emit(OpCodes.Ldarg_0);
             else
                 throw new NotImplementedException($"Cannot translate {expression.GetType().Name} to IL.");
+        }
+
+        private static System.Type ClrTypeOf(Type type)
+        {
+            if (type is PrimitiveType primitive)
+            {
+                switch (primitive.Tag)
+                {
+                    case PrimitiveTypeTag.I8:
+                        return typeof(sbyte);
+                    case PrimitiveTypeTag.I16:
+                        return typeof(short);
+                    case PrimitiveTypeTag.I32:
+                        return typeof(int);
+                    case PrimitiveTypeTag.I64:
+                        return typeof(long);
+                    case PrimitiveTypeTag.U8:
+                        return typeof(byte);
+                    case PrimitiveTypeTag.U16:
+                        return typeof(ushort);
+                    case PrimitiveTypeTag.U32:
+                        return typeof(uint);
+                    case PrimitiveTypeTag.U64:
+                        return typeof(ulong);
+                    case PrimitiveTypeTag.F32:
+                        return typeof(float);
+                    case PrimitiveTypeTag.F64:
+                        return typeof(double);
+                }
+            }
+
+            Report.Error($"Cannot translate {type} to a Clr type.");
+
+            return null;
         }
 
         private static System.Type ClrTypeOf(List<Identifier> types)

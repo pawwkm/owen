@@ -10,3 +10,5 @@ function main
 
     return a
 end
+
+ctfe main()

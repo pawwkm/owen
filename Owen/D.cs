@@ -76,7 +76,7 @@ namespace Owen
 
             for (var i = 0; i < function.Input.Count; i++)
             {
-                GenerateType(function.Input[i].Type.Value, builder);
+                Generate(function.Input[i].Type, builder);
                 builder.Append(' ');
                 builder.Append(function.Input[i].Name.Value);
 
@@ -231,20 +231,24 @@ namespace Owen
                     }
                 }
                 else if (statement is ReturnStatement r)
-                    Generate(r, builder);
+                {
+                    builder.Append("return ");
+                    Generate(r.Expressions, builder);
+
+                    builder.Append(';');
+                }
+                else if (statement is AssertStatement assert)
+                {
+                    builder.Append("assert(");
+                    Generate(assert.Assertion, builder);
+
+                    builder.Append(");");
+                }
                 else
                     Report.Error($"Cannot translate {statement.GetType().Name} to D.");
             }
 
             builder.Append('}');
-        }
-
-        private static void Generate(ReturnStatement statement, StringBuilder builder)
-        {
-            builder.Append("return ");
-            Generate(statement.Expressions, builder);
-
-            builder.Append(';');
         }
 
         private static void Generate(List<Expression> expressions, StringBuilder builder)
@@ -262,7 +266,22 @@ namespace Owen
 
         private static void Generate(Expression expression, StringBuilder builder)
         {
-            if (expression is Number number)
+            if (expression is BinaryExpression binary)
+            {
+                Generate(binary.Left, builder);
+                switch (binary.Operator.Tag)
+                {
+                    case OperatorTag.EqualEqual:
+                        builder.Append("==");
+                        break;
+                    case OperatorTag.NotEqual:
+                        builder.Append("!=");
+                        break;
+                }
+
+                Generate(binary.Right, builder);
+            }
+            else if (expression is Number number)
             {
                 if (number.Value == "-9223372036854775808" && number.Tag == NumberTag.I64)
                     builder.Append("long.min"); // For some reason that constant overflows at compile time

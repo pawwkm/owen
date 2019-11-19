@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Owen
 {
@@ -28,7 +29,7 @@ namespace Owen
 
     internal sealed class Argument
     {
-        public Identifier Type;
+        public Type Type;
         public Identifier Name;
     }
 
@@ -61,6 +62,11 @@ namespace Owen
             Tag.ToString().ToLower();
     }
 
+    internal sealed class UnresolvedType : Type
+    {
+        public Identifier Identifier;
+    }
+
     internal sealed class FunctionType : Type
     {
         public FunctionDeclaration Declaration;
@@ -80,6 +86,7 @@ namespace Owen
         U64,
         F32,
         F64,
+        Bool
     }
 
     internal abstract class Statement
@@ -111,7 +118,10 @@ namespace Owen
         ModuloEqual,
         LeftShiftEqual,
         RightShiftEqual,
-        Equal
+        Equal,
+
+        EqualEqual,
+        NotEqual
     }
 
     internal sealed class VariableDeclaration : Expression
@@ -126,8 +136,31 @@ namespace Owen
         public List<Expression> Expressions;
     }
 
+    internal sealed class AssertStatement : Statement
+    {
+        public Expression Assertion;
+    }
+
     internal abstract class Expression
     {
+        public Position StartsAt()
+        {
+            if (this is BinaryExpression binary)
+                return binary.Left.StartsAt();
+            else if (this is Number number)
+                return number.DeclaredAt;
+            else if (this is Identifier reference)
+                return reference.DeclaredAt;
+            else
+                throw new NotImplementedException($"Cannot find position of {GetType().Name}.");
+        }
+    }
+
+    internal sealed class BinaryExpression : Expression
+    {
+        public Expression Left;
+        public Operator Operator;
+        public Expression Right;
     }
 
     internal sealed class Number : Expression

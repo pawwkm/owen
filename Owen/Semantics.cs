@@ -46,7 +46,7 @@ namespace Owen
             {
                 var type = new FunctionType();
                 type.Declaration = function;
-                type.Input.AddRange(function.Input.Select(o => Lookup(file.Scope, o.Type)));
+                type.Input.AddRange(function.Input.Select(o => Lookup(file.Scope, ((UnresolvedType)o.Type).Identifier)));
                 type.Output.AddRange(function.Output.Select(o => Lookup(file.Scope, o.Value)));
 
                 file.Scope.Symbols.Add(new Symbol()
@@ -66,10 +66,11 @@ namespace Owen
                         Report.Error($"{argument.Name.DeclaredAt} Redeclares {argument.Name.Value}.");
                     else
                     {
+                        argument.Type = Lookup(function.Body.Scope, ((UnresolvedType)argument.Type).Identifier);
                         function.Body.Scope.Symbols.Add(new Symbol() 
                         { 
                             Name = argument.Name.Value,
-                            Type = Lookup(function.Body.Scope, argument.Type)
+                            Type = argument.Type
                         });
                     }
                 }
@@ -85,9 +86,9 @@ namespace Owen
                 if (statement is AssignmentStatement assignment)
                 {
                     if (assignment.Left.Count > assignment.Right.Count)
-                        Report.Error($"{PositionOf(assignment.Left.Last())} No expression is being stored.");
+                        Report.Error($"{assignment.Left.Last().StartsAt()} No expression is being stored.");
                     else if (assignment.Left.Count < assignment.Right.Count)
-                        Report.Error($"{PositionOf(assignment.Right.Last())} No variable to store the value in.");
+                        Report.Error($"{assignment.Right.Last().StartsAt()} No variable to store the value in.");
                     else
                     {
                         for (var i = 0; i < assignment.Left.Count; i++)
@@ -105,7 +106,7 @@ namespace Owen
                                 {
                                     leftType = Analyze(right, null, compound.Scope);
                                     if (leftType == null)
-                                        Report.Error($"{PositionOf(right)} Cannot infer type of expression.");
+                                        Report.Error($"{right.StartsAt()} Cannot infer type of expression.");
                                     else
                                     {
                                         assignment.Left[i] = new VariableDeclaration()
@@ -127,11 +128,11 @@ namespace Owen
                                     leftType = Analyze(left, rightType, compound.Scope);
 
                                     if (!Compare(rightType, leftType))
-                                        Report.Error($"{PositionOf(right)} Expected {leftType} but found {rightType}.");
+                                        Report.Error($"{right.StartsAt()} Expected {leftType} but found {rightType}.");
                                 }
                             }
                             else
-                                Report.Error($"{PositionOf(left)} The expression is not addressable.");
+                                Report.Error($"{left.StartsAt()} The expression is not addressable.");
 
                             switch (assignment.Operator.Tag)
                             {
@@ -149,8 +150,14 @@ namespace Owen
                 }
                 else if (statement is ReturnStatement r)
                     Analyze(r, output, compound.Scope);
+                else if (statement is AssertStatement assert)
+                {
+                    var type = Analyze(assert.Assertion, null, compound.Scope);
+                    if (!(type is PrimitiveType primitive) || primitive.Tag != PrimitiveTypeTag.Bool)
+                        Report.Error($"{assert.Assertion.StartsAt()} Bool expression expected.");
+                }
                 else
-                    throw new NotImplementedException($"Cannot analyze {statement.GetType().Name}.");
+                    Report.Error($"Cannot analyze {statement.GetType().Name}.");
             }
         }
 
@@ -165,13 +172,26 @@ namespace Owen
                 var expressionType = Analyze(statement.Expressions[i], outputType, scope);
 
                 if (expressionType != outputType)
-                    Report.Error($"{PositionOf(statement.Expressions[i])} Expected {outputType} but found {expressionType}.");
+                    Report.Error($"{statement.Expressions[i].StartsAt()} Expected {outputType} but found {expressionType}.");
             }
         }
 
         public static Type Analyze(Expression expression, Type expectedType, Scope scope)
         {
-            if (expression is Number number)
+            if (expression is BinaryExpression binary)
+            {
+                var leftType = Analyze(binary.Left, null, scope);
+                var rightType = Analyze(binary.Right, leftType, scope);
+
+                if (!Compare(leftType, rightType))
+                    Report.Error($"{binary.Right.StartsAt()} Expected {leftType} but found {rightType}.");
+                else
+                    return new PrimitiveType()
+                    {
+                        Tag = PrimitiveTypeTag.Bool
+                    };
+            }
+            else if (expression is Number number)
             {
                 if (number.Tag == NumberTag.IntegerToBeInfered)
                 {
@@ -190,12 +210,12 @@ namespace Owen
                 if (Analyze(call.Callee, null, scope) is FunctionType type)
                 {
                     if (call.Arguments.Count != type.Input.Count)
-                        Report.Error($"{PositionOf(call.Callee)} No function overload fitting the given input.");
+                        Report.Error($"{call.Callee.StartsAt()} No function overload fitting the given input.");
 
                     for (var i = 0; i < call.Arguments.Count; i++)
                     {
                         if (!Compare(type.Input[i], Analyze(call.Arguments[i], type.Input[i], scope)))
-                            Report.Error($"{PositionOf(call.Callee)} No function overload fitting the given input.");
+                            Report.Error($"{call.Callee.StartsAt()} No function overload fitting the given input.");
                     }
 
                     call.DeclarationOfCallee = type.Declaration;
@@ -207,7 +227,7 @@ namespace Owen
                         throw new NotImplementedException($"Multiple return values not yet implemented.");
                 }
                 else
-                    Report.Error($"{PositionOf(call.Callee)} Function expected.");
+                    Report.Error($"{call.Callee.StartsAt()} Function expected.");
             }
 
             throw new NotImplementedException($"Cannot analyze {expression.GetType().Name}.");
@@ -242,16 +262,6 @@ namespace Owen
                 return pa.Tag == pb.Tag;
             else
                 return false;
-        }
-
-        private static Position PositionOf(Expression expression)
-        {
-            if (expression is Number number)
-                return number.DeclaredAt;
-            else if (expression is Identifier reference)
-                return reference.DeclaredAt;
-            else
-                throw new NotImplementedException($"Cannot find position of {expression.GetType().Name}.");
         }
     }
 }
