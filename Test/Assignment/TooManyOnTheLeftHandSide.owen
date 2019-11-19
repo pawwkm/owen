@@ -1,0 +1,11 @@
+﻿// expect Assignment\TooManyOnTheLeftHandSide.owen:8:8: No expression is being stored.
+
+namespace Test
+
+function main
+    output i32
+
+    a, b = 1i32
+
+    return a
+end

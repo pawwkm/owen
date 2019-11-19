@@ -83,7 +83,7 @@ namespace Owen
                 if (statement is ReturnStatement r)
                     Generate(r, instructions, symbols);
                 else
-                    throw new NotImplementedException($"Cannot translate {statement.GetType().Name} to IL.");
+                    Report.Error($"Cannot translate {statement.GetType().Name} to IL.");
             }
         }
 
@@ -92,7 +92,7 @@ namespace Owen
             if (statement.Expressions.Count == 1)
                 Generate(statement.Expressions[0], instructions);
             else if (statement.Expressions.Count > 1)
-                throw new NotImplementedException($"Cannot translate multiple return values to Clr.");
+                Report.Error($"Cannot translate multiple return values to Clr.");
 
             instructions.Emit(OpCodes.Ret);
         }
@@ -134,7 +134,8 @@ namespace Owen
                         instructions.Emit(OpCodes.Ldc_R8, double.Parse(number.Value));
                         break;
                     default:
-                        throw new NotImplementedException($"Cannot translate {number.Tag} to IL.");
+                        Report.Error($"Cannot translate {number.Tag} to IL.");
+                        break;
                 }
             }
             else if (expression is Identifier reference)
@@ -174,8 +175,11 @@ namespace Owen
                 case "u64":
                     return typeof(ulong);
                 default:
-                    throw new NotImplementedException($"Cannot translate {type} to a Clr type.");
+                    Report.Error($"Cannot translate {type} to a Clr type.");
+                    break;
             }
+
+            return null;
         }
     }
 }

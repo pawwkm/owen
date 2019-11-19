@@ -1,0 +1,11 @@
+﻿// expect Assignment\TooManyOnTheRightHandSide.owen:8:15: No variable to store the value in.
+
+namespace Test
+
+function main
+    output i32
+
+    a = 1i32, 2i32 
+
+    return a
+end

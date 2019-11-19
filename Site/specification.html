@@ -433,6 +433,7 @@ semicolon ← ';' whitespace</code></pre>
 
             <p>
                 Operators are left associative unless noted otherwise.
+                Overflow and underflow is only checked for literals.
             </p>
 
             <h2>4.2. Logical Or Expressions</h2>
@@ -472,6 +473,11 @@ additiveOperator ← ('+' / '-' / '|' / '^') whitespace</code></pre>
                 The type of the expression is the same as the operands.
             </p>
 
+            <p>
+                <code>+</code> and <code>-</code> apply to any number type. Bitwise or (<code>|</code>) and
+                bitwise xor (<code>^</code>) only applies to <span class="type">iXX</span>.
+            </p>
+
             <h2>4.6. Multiplicative Expressions</h2>
             <pre><code>multiplicativeExpression ← prefixExpression (multiplicativeOperator prefixExpression)*
 multiplicativeOperator ← ('*' / '/' / '%' / '&amp;' / '&lt;&lt;' / '&gt;&gt;') whitespace</code></pre>
@@ -479,6 +485,13 @@ multiplicativeOperator ← ('*' / '/' / '%' / '&amp;' / '&lt;&lt;' / '&gt;&gt;')
             <p>
                 Both expressions must be the same number type.
                 The type of the expression is the same as the operands.
+            </p>
+
+            <p>
+                <code>*</code>, <code>/</code> and <code>%</code> apply to any number type. Bitwise and (&amp;),
+                left shift (<code>&lt;&lt;</code>) and left shift (<code>&gt;&gt;</code>) only applies to 
+                <span class="type">iXX</span>. <code>/</code> and <code>%</code> rounds down for 
+                <span class="type">iXX</span>.
             </p>
 
             <h2>4.7. Prefix Expressions</h2>

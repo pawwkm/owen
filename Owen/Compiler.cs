@@ -80,9 +80,21 @@ namespace Owen
                             }
 						});
                     }
-                    catch (Exception ex)
+                    catch (PathTooLongException)
                     {
-                        Report.Error($"Could not read {mightBeRelativePath}");
+                        Report.Error($"The path {mightBeRelativePath} is to long.");
+                    }
+                    catch (DirectoryNotFoundException ex)
+                    {
+                        Report.Error(ex.Message);
+                    }
+                    catch (UnauthorizedAccessException)
+                    {
+                        Report.Error($"Could not access {mightBeRelativePath}.");
+                    }
+                    catch (FileNotFoundException)
+                    {
+                        Report.Error($"Could not find {mightBeRelativePath}.");
                     }
                 }
 

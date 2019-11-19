@@ -55,12 +55,12 @@ namespace Test
                         if (debug.Error)
                         {
                             Console.ForegroundColor = ConsoleColor.White;
-                            Console.Write("Debug: ");
+                            Console.Write("Debug:   ");
                             Console.ForegroundColor = ConsoleColor.Green;
                             Console.WriteLine(meta);
 
                             Console.ForegroundColor = ConsoleColor.Red;
-                            Console.WriteLine($"       {debug.Message}");
+                            Console.WriteLine($"         {debug.Message}");
                         }
 
                         if (release.Error)

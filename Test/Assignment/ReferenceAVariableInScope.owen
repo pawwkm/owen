@@ -1,0 +1,11 @@
+﻿// expect 1
+
+namespace Test
+
+function main
+    output i32
+
+    a = 1i32
+
+    return a
+end

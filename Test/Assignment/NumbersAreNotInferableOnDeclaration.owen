@@ -1,0 +1,11 @@
+﻿// expect Assignment\NumbersAreNotInferableOnDeclaration.owen:8:9: Cannot infer type of expression.
+
+namespace Test
+
+function main
+    output i32
+
+    a = 1
+
+    return a
+end

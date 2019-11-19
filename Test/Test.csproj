@@ -47,6 +47,27 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Assignment\AssignValueOfAnotherType.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Assignment\TooManyOnTheRightHandSide.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Assignment\TooManyOnTheLeftHandSide.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Assignment\AssignAToBThenBIsEqualToA.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Assignment\NumbersAreInferableInReassignment.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Assignment\NumbersAreNotInferableOnDeclaration.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Assignment\ReferenceAVariableInScope.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="Ctfe\CallIsReplacedByReturnedValue.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

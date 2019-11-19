@@ -86,6 +86,40 @@ namespace Owen
     {
     }
 
+    internal sealed class AssignmentStatement : Statement
+    {
+        public List<Expression> Left;
+        public Operator Operator;
+        public List<Expression> Right;
+    }
+
+    internal sealed class Operator
+    {
+        public Position DefinedAt;
+        public OperatorTag Tag;
+    }
+
+    internal enum OperatorTag
+    {
+        PlusEqual,
+        MinusEqual,
+        MultiplyEqual,
+        DivideEqual,
+        BitwiseAndEqual,
+        BitwiseOrEqual,
+        BitwiseXorEqual,
+        ModuloEqual,
+        LeftShiftEqual,
+        RightShiftEqual,
+        Equal
+    }
+
+    internal sealed class VariableDeclaration : Expression
+    {
+        public Type Type;
+        public Identifier Variable;
+    }
+
     internal sealed class ReturnStatement : Statement
     {
         public Position EndOfKeyword;

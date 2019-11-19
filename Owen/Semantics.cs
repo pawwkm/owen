@@ -74,20 +74,80 @@ namespace Owen
                     }
                 }
 
-                Analyze(function);
+                Analyze(function.Body, function.Output, function.Body.Scope);
             }
-        }
-
-        private static void Analyze(FunctionDeclaration function)
-        {
-            Analyze(function.Body, function.Output, function.Body.Scope);
         }
 
         private static void Analyze(CompoundStatement compound, List<Identifier> output, Scope parent)
         {
             foreach (var statement in compound.Statements)
             {
-                if (statement is ReturnStatement r)
+                if (statement is AssignmentStatement assignment)
+                {
+                    if (assignment.Left.Count > assignment.Right.Count)
+                        Report.Error($"{PositionOf(assignment.Left.Last())} No expression is being stored.");
+                    else if (assignment.Left.Count < assignment.Right.Count)
+                        Report.Error($"{PositionOf(assignment.Right.Last())} No variable to store the value in.");
+                    else
+                    {
+                        for (var i = 0; i < assignment.Left.Count; i++)
+                        {
+                            // Test that both operands are primitives!
+                            var left = assignment.Left[i];
+                            var leftType = default(Type);
+
+                            if (left is Identifier reference)
+                            {
+                                var right = assignment.Right[i];
+                                var inferred = Lookup(compound.Scope, reference.Value);
+
+                                if (inferred == null)
+                                {
+                                    leftType = Analyze(right, null, compound.Scope);
+                                    if (leftType == null)
+                                        Report.Error($"{PositionOf(right)} Cannot infer type of expression.");
+                                    else
+                                    {
+                                        assignment.Left[i] = new VariableDeclaration()
+                                        {
+                                            Type = leftType,
+                                            Variable = reference
+                                        };
+
+                                        compound.Scope.Symbols.Add(new Symbol()
+                                        {
+                                            Name = reference.Value,
+                                            Type = leftType
+                                        });
+                                    }
+                                }
+                                else
+                                {
+                                    var rightType = Analyze(right, inferred, compound.Scope);
+                                    leftType = Analyze(left, rightType, compound.Scope);
+
+                                    if (!Compare(rightType, leftType))
+                                        Report.Error($"{PositionOf(right)} Expected {leftType} but found {rightType}.");
+                                }
+                            }
+                            else
+                                Report.Error($"{PositionOf(left)} The expression is not addressable.");
+
+                            switch (assignment.Operator.Tag)
+                            {
+                                case OperatorTag.BitwiseAndEqual:
+                                case OperatorTag.BitwiseOrEqual:
+                                case OperatorTag.BitwiseXorEqual:
+                                case OperatorTag.LeftShiftEqual:
+                                case OperatorTag.RightShiftEqual:
+                                    if (Compare(leftType, Lookup(parent, "f32")) || Compare(leftType, Lookup(parent, "f64")))
+                                        Report.Error($"{assignment.Operator.DefinedAt} This operator is only defined for integer types.");
+                                    break;
+                            }
+                        }
+                    }
+                }
+                else if (statement is ReturnStatement r)
                     Analyze(r, output, compound.Scope);
                 else
                     throw new NotImplementedException($"Cannot analyze {statement.GetType().Name}.");
@@ -114,7 +174,12 @@ namespace Owen
             if (expression is Number number)
             {
                 if (number.Tag == NumberTag.IntegerToBeInfered)
-                    number.Tag = (NumberTag)(((PrimitiveType)expectedType).Tag);
+                {
+                    if (expectedType is PrimitiveType primitive)
+                        number.Tag = (NumberTag)(primitive.Tag);
+                    else
+                        return null;
+                }
 
                 return Lookup(scope, number.Tag.ToString().ToLower());
             }
@@ -183,6 +248,8 @@ namespace Owen
         {
             if (expression is Number number)
                 return number.DeclaredAt;
+            else if (expression is Identifier reference)
+                return reference.DeclaredAt;
             else
                 throw new NotImplementedException($"Cannot find position of {expression.GetType().Name}.");
         }

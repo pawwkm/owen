@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -96,7 +95,7 @@ namespace Owen
             else if (types.Count == 1)
                 GenerateType(types[0].Value, builder);
             else
-                throw new NotImplementedException("Cannot translate a tuple to a D type.");
+                Report.Error("Cannot translate a tuple to D.");
         }
 
         private static void GenerateType(string type, StringBuilder builder)
@@ -128,7 +127,48 @@ namespace Owen
                     builder.Append("ulong ");
                     break;
                 default:
-                    throw new NotImplementedException($"Cannot translate {type} to a D type.");
+                    Report.Error($"Cannot translate {type} to D.");
+                    break;
+            }
+        }
+
+        private static void Generate(Type type, StringBuilder builder)
+        {
+            if (type is PrimitiveType primitive)
+            {
+                switch (primitive.Tag)
+                {
+                    case PrimitiveTypeTag.I8:
+                        builder.Append("byte ");
+                        break;
+                    case PrimitiveTypeTag.I16:
+                        builder.Append("short ");
+                        break;
+                    case PrimitiveTypeTag.I32:
+                        builder.Append("int ");
+                        break;
+                    case PrimitiveTypeTag.I64:
+                        builder.Append("long ");
+                        break;
+                    case PrimitiveTypeTag.U8:
+                        builder.Append("ubyte ");
+                        break;
+                    case PrimitiveTypeTag.U16:
+                        builder.Append("ushort ");
+                        break;
+                    case PrimitiveTypeTag.U32:
+                        builder.Append("uint ");
+                        break;
+                    case PrimitiveTypeTag.U64:
+                        builder.Append("ulong ");
+                        break;
+                    case PrimitiveTypeTag.F32:
+                        builder.Append("float ");
+                        break;
+                    case PrimitiveTypeTag.F64:
+                        builder.Append("double ");
+                        break;
+                }
             }
         }
 
@@ -137,10 +177,63 @@ namespace Owen
             builder.Append('{');
             foreach (var statement in compound.Statements)
             {
-                if (statement is ReturnStatement r)
+                if (statement is AssignmentStatement assignment)
+                {
+                    for (var i = 0; i < assignment.Left.Count; i++)
+                    {
+                        var left = assignment.Left[i];
+                        if (left is VariableDeclaration declaration)
+                        {
+                            left = declaration.Variable;
+                            Generate(declaration.Type, builder);
+                        }
+
+                        Generate(left, builder);
+                        switch (assignment.Operator.Tag)
+                        {
+                            case OperatorTag.PlusEqual:
+                                builder.Append("+=");
+                                break;
+                            case OperatorTag.MinusEqual:
+                                builder.Append("-=");
+                                break;
+                            case OperatorTag.MultiplyEqual:
+                                builder.Append("*=");
+                                break;
+                            case OperatorTag.DivideEqual:
+                                builder.Append("/=");
+                                break;
+                            case OperatorTag.BitwiseAndEqual:
+                                builder.Append("&=");
+                                break;
+                            case OperatorTag.BitwiseOrEqual:
+                                builder.Append("|=");
+                                break;
+                            case OperatorTag.BitwiseXorEqual:
+                                builder.Append("^=");
+                                break;
+                            case OperatorTag.LeftShiftEqual:
+                                builder.Append("<<=");
+                                break;
+                            case OperatorTag.RightShiftEqual:
+                                builder.Append(">>=");
+                                break;
+                            case OperatorTag.Equal:
+                                builder.Append("=");
+                                break;
+                            default:
+                                Report.Error($"Cannot translate {assignment.Operator.Tag} to D.");
+                                break;
+                        }
+
+                        Generate(assignment.Right[i], builder);
+                        builder.Append(';');
+                    }
+                }
+                else if (statement is ReturnStatement r)
                     Generate(r, builder);
                 else
-                    throw new NotImplementedException($"Cannot translate {statement.GetType().Name} to a D statement.");
+                    Report.Error($"Cannot translate {statement.GetType().Name} to D.");
             }
 
             builder.Append('}');
@@ -195,7 +288,7 @@ namespace Owen
             else if (expression is Identifier reference)
                 builder.Append(reference.Value);
             else
-                throw new NotImplementedException($"Cannot translate {expression.GetType().Name} to a D expression.");
+                Report.Error($"Cannot translate {expression.GetType().Name} to D.");
         }
     }
 }

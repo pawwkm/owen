@@ -89,7 +89,9 @@ namespace Owen
             var compound = new CompoundStatement();
             while (true)
             {
-                var statement = ReturnStatement(source);
+                var statement = AssignmentStatement(source) ??
+                                ReturnStatement(source);
+                
                 if (statement == null)
                     break;
                 else
@@ -99,6 +101,58 @@ namespace Owen
             Expect(source, "end");
 
             return compound;
+        }
+
+        private static Statement AssignmentStatement(Source source)
+        {
+            var start = source.Index;
+
+            var left = Expressions(source);
+            if (left.Count != 0)
+            {
+                var assignment = new AssignmentStatement();
+                assignment.Left = left;
+                assignment.Operator = new Operator();
+                assignment.Operator.DefinedAt = source.Position.Copy();
+
+                if (Consume(source, "+="))
+                    assignment.Operator.Tag = OperatorTag.PlusEqual;
+                else if (Consume(source, "-="))
+                    assignment.Operator.Tag = OperatorTag.MinusEqual;
+                else if (Consume(source, "*="))
+                    assignment.Operator.Tag = OperatorTag.MultiplyEqual;
+                else if (Consume(source, "/="))
+                    assignment.Operator.Tag = OperatorTag.DivideEqual;
+                else if (Consume(source, "&="))
+                    assignment.Operator.Tag = OperatorTag.BitwiseAndEqual;
+                else if (Consume(source, "|="))
+                    assignment.Operator.Tag = OperatorTag.BitwiseOrEqual;
+                else if (Consume(source, "^="))
+                    assignment.Operator.Tag = OperatorTag.BitwiseXorEqual;
+                else if (Consume(source, "%="))
+                    assignment.Operator.Tag = OperatorTag.ModuloEqual;
+                else if (Consume(source, "<<="))
+                    assignment.Operator.Tag = OperatorTag.LeftShiftEqual;
+                else if (Consume(source, ">>="))
+                    assignment.Operator.Tag = OperatorTag.RightShiftEqual;
+                else if (Consume(source, "="))
+                    assignment.Operator.Tag = OperatorTag.Equal;
+                else if (left.Count > 1)
+                    Report.Error($"{source.Position} Assignment operator expected.");
+                else
+                {
+                    source.Index = start;
+                    return null;
+                }
+
+                assignment.Right = Expressions(source);
+                if (assignment.Right.Count == 0)
+                    Report.Error($"{source.Position} One or more expressions expected.");
+
+                return assignment;
+            }
+            else
+                return null;
         }
 
         private static Statement ReturnStatement(Source source)
