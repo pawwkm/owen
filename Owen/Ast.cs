@@ -23,7 +23,7 @@ namespace Owen
     {
         public Identifier Name;
         public List<Argument> Input = new List<Argument>();
-        public List<Identifier> Output = new List<Identifier>();
+        public List<Type> Output = new List<Type>();
         public CompoundStatement Body;
     }
 

@@ -70,7 +70,7 @@ namespace Owen
             if (function.Name.Value == "main")
                 builder.Append("extern(C) ");
 
-            GenerateType(function.Output, builder);
+            Generate(function.Output, builder);
             builder.Append(function.Name.Value);
             builder.Append('(');
 
@@ -88,48 +88,14 @@ namespace Owen
             Generate(function.Body, builder);
         }
 
-        private static void GenerateType(List<Identifier> types, StringBuilder builder)
+        private static void Generate(List<Type> types, StringBuilder builder)
         {
             if (types.Count == 0)
                 builder.Append("void ");
             else if (types.Count == 1)
-                GenerateType(types[0].Value, builder);
+                Generate(types[0], builder);
             else
                 Report.Error("Cannot translate a tuple to D.");
-        }
-
-        private static void GenerateType(string type, StringBuilder builder)
-        {
-            switch (type)
-            {
-                case "I8":
-                    builder.Append("byte ");
-                    break;
-                case "I16":
-                    builder.Append("short ");
-                    break;
-                case "I32":
-                    builder.Append("int ");
-                    break;
-                case "I64":
-                    builder.Append("long ");
-                    break;
-                case "U8":
-                    builder.Append("ubyte ");
-                    break;
-                case "U16":
-                    builder.Append("ushort ");
-                    break;
-                case "U32":
-                    builder.Append("uint ");
-                    break;
-                case "U64":
-                    builder.Append("ulong ");
-                    break;
-                default:
-                    Report.Error($"Cannot translate {type} to D.");
-                    break;
-            }
         }
 
         private static void Generate(Type type, StringBuilder builder)
@@ -168,8 +134,13 @@ namespace Owen
                     case PrimitiveTypeTag.F64:
                         builder.Append("double ");
                         break;
+                    default:
+                        Report.Error($"Cannot translate {type} to D.");
+                        break;
                 }
             }
+            else
+                Report.Error($"Cannot translate {type} to D.");
         }
 
         private static void Generate(CompoundStatement compound, StringBuilder builder)

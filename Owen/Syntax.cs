@@ -81,7 +81,10 @@ namespace Owen
                         if (identifier == null)
                             Report.Error("Identifier expected.");
                         else
-                            declaration.Output.Add(identifier);
+                            declaration.Output.Add(new UnresolvedType()
+                            {
+                                Identifier = identifier
+                            });
                     } while (Consume(source, ","));
                 }
 

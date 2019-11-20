@@ -33,7 +33,7 @@ namespace Owen
                 Report.Error($"Multiple main functons defined:\r\n{string.Join("\r\n", mainFunctions.Select(f => f.Name.DeclaredAt))}");
 
             var main = mainFunctions[0];
-            if (main.Output.Count != 1 || main.Output[0].Value != "I32")
+            if (main.Output.Count != 1 || !(main.Output[0] is PrimitiveType primitive && primitive.Tag == PrimitiveTypeTag.I32))
                 Report.Error($"{main.Name.DeclaredAt} main must output a single I32.");
         }
 
@@ -47,7 +47,7 @@ namespace Owen
                 var type = new FunctionType();
                 type.Declaration = function;
                 type.Input.AddRange(function.Input.Select(o => Lookup(file.Scope, ((UnresolvedType)o.Type).Identifier)));
-                type.Output.AddRange(function.Output.Select(o => Lookup(file.Scope, o.Value)));
+                type.Output.AddRange(function.Output.Select(o => Lookup(file.Scope, ((UnresolvedType)o).Identifier)));
 
                 file.Scope.Symbols.Add(new Symbol()
                 {
@@ -75,11 +75,14 @@ namespace Owen
                     }
                 }
 
+                for (var i = 0; i < function.Output.Count; i++)
+                    function.Output[i] = Lookup(function.Body.Scope, ((UnresolvedType)function.Output[i]).Identifier);
+
                 Analyze(function.Body, function.Output, function.Body.Scope);
             }
         }
 
-        private static void Analyze(CompoundStatement compound, List<Identifier> output, Scope parent)
+        private static void Analyze(CompoundStatement compound, List<Type> output, Scope parent)
         {
             foreach (var statement in compound.Statements)
             {
@@ -149,7 +152,17 @@ namespace Owen
                     }
                 }
                 else if (statement is ReturnStatement r)
-                    Analyze(r, output, compound.Scope);
+                {
+                    if (output.Count != r.Expressions.Count)
+                        Report.Error($"{r.EndOfKeyword} The amount of return values doesn't match the output.");
+
+                    for (var i = 0; i < output.Count; i++)
+                    {
+                        var expressionType = Analyze(r.Expressions[i], output[i], compound.Scope);
+                        if (expressionType != output[i])
+                            Report.Error($"{r.Expressions[i].StartsAt()} Expected {output[i]} but found {expressionType}.");
+                    }
+                }
                 else if (statement is AssertStatement assert)
                 {
                     var type = Analyze(assert.Assertion, null, compound.Scope);
@@ -158,21 +171,6 @@ namespace Owen
                 }
                 else
                     Report.Error($"Cannot analyze {statement.GetType().Name}.");
-            }
-        }
-
-        private static void Analyze(ReturnStatement statement, List<Identifier> output, Scope scope)
-        {
-            if (output.Count != statement.Expressions.Count)
-                Report.Error($"{statement.EndOfKeyword} The amount of return values doesn't match the output.");
-
-            for (var i = 0; i < output.Count; i++)
-            {
-                var outputType = Lookup(scope, output[i]);
-                var expressionType = Analyze(statement.Expressions[i], outputType, scope);
-
-                if (expressionType != outputType)
-                    Report.Error($"{statement.Expressions[i].StartsAt()} Expected {outputType} but found {expressionType}.");
             }
         }
 

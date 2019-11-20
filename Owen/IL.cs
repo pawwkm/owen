@@ -65,8 +65,8 @@ namespace Owen
             (
                 function.Name.Value,
                 MethodAttributes.Assembly | MethodAttributes.Public | MethodAttributes.Static | MethodAttributes.HideBySig,
-                ClrTypeOf(function.Output),
-                function.Input.Select(i => ClrTypeOf(i.Type)).ToArray()
+                ClrTypeFrom(function.Output),
+                function.Input.Select(i => ClrTypeFrom(i.Type)).ToArray()
             );
 
             if (method.Name == "main")
@@ -82,20 +82,17 @@ namespace Owen
             foreach (var statement in body.Statements)
             {
                 if (statement is ReturnStatement r)
-                    Generate(r, instructions, symbols);
+                {
+                    if (r.Expressions.Count == 1)
+                        Generate(r.Expressions[0], instructions);
+                    else if (r.Expressions.Count > 1)
+                        Report.Error($"Cannot translate multiple return values to Clr.");
+
+                    instructions.Emit(OpCodes.Ret);
+                }
                 else
                     Report.Error($"Cannot translate {statement.GetType().Name} to IL.");
             }
-        }
-
-        private static void Generate(ReturnStatement statement, ILGenerator instructions, ISymbolDocumentWriter symbols)
-        {
-            if (statement.Expressions.Count == 1)
-                Generate(statement.Expressions[0], instructions);
-            else if (statement.Expressions.Count > 1)
-                Report.Error($"Cannot translate multiple return values to Clr.");
-
-            instructions.Emit(OpCodes.Ret);
         }
 
         private static void Generate(Expression expression, ILGenerator instructions)
@@ -145,7 +142,7 @@ namespace Owen
                 throw new NotImplementedException($"Cannot translate {expression.GetType().Name} to IL.");
         }
 
-        private static ClrType ClrTypeOf(Type type)
+        private static ClrType ClrTypeFrom(Type type)
         {
             if (type is PrimitiveType primitive)
             {
@@ -179,42 +176,14 @@ namespace Owen
             return null;
         }
 
-        private static ClrType ClrTypeOf(List<Identifier> types)
+        private static ClrType ClrTypeFrom(List<Type> types)
         {
             if (types.Count == 0)
                 return typeof(void);
             else if (types.Count == 1)
-                return ClrTypeOf(types[0].Value);
+                return ClrTypeFrom(types[0]);
             else
                 throw new NotImplementedException("Cannot translate a tuple to a Clr type.");
-        }
-
-        private static ClrType ClrTypeOf(string type)
-        {
-            switch (type)
-            {
-                case "I8":
-                    return typeof(sbyte);
-                case "I16":
-                    return typeof(short);
-                case "I32":
-                    return typeof(int);
-                case "I64":
-                    return typeof(long);
-                case "U8":
-                    return typeof(byte);
-                case "U16":
-                    return typeof(ushort);
-                case "U32":
-                    return typeof(uint);
-                case "U64":
-                    return typeof(ulong);
-                default:
-                    Report.Error($"Cannot translate {type} to a Clr type.");
-                    break;
-            }
-
-            return null;
         }
     }
 }
