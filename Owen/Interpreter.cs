@@ -41,17 +41,17 @@ namespace Owen
             }
             else if (expression is Call call)
             {
-                var stack = new List<Variable>();
+                var input = new List<Variable>();
                 for (var i = 0; i < call.Arguments.Count; i++)
                 {
-                    stack.Add(new Variable()
+                    input.Add(new Variable()
                     {
                         Name = call.DeclarationOfCallee.Input[i].Name.Value,
                         Value = Run(call.Arguments[i], variables)
                     });
                 }
 
-                return Run(call.DeclarationOfCallee.Body, stack);
+                return Run(call.DeclarationOfCallee.Body, input);
             }
             else if (expression is Number number)
             {
