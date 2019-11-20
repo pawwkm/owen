@@ -59,7 +59,7 @@ namespace Owen
     {
         public PrimitiveTypeTag Tag;
         public override string ToString() =>
-            Tag.ToString().ToLower();
+            Tag.ToString();
     }
 
     internal sealed class UnresolvedType : Type

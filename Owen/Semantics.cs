@@ -12,7 +12,7 @@ namespace Owen
             {
                 program.Scope.Symbols.Add(new Symbol()
                 {
-                    Name = tag.ToString().ToLower(),
+                    Name = tag.ToString(),
                     Type = new PrimitiveType()
                     {
                         Tag = tag
@@ -33,8 +33,8 @@ namespace Owen
                 Report.Error($"Multiple main functons defined:\r\n{string.Join("\r\n", mainFunctions.Select(f => f.Name.DeclaredAt))}");
 
             var main = mainFunctions[0];
-            if (main.Output.Count != 1 || main.Output[0].Value != "i32")
-                Report.Error($"{main.Name.DeclaredAt} main must output a single i32.");
+            if (main.Output.Count != 1 || main.Output[0].Value != "I32")
+                Report.Error($"{main.Name.DeclaredAt} main must output a single I32.");
         }
 
         private static void Analyze(File file, Program program)
@@ -141,7 +141,7 @@ namespace Owen
                                 case OperatorTag.BitwiseXorEqual:
                                 case OperatorTag.LeftShiftEqual:
                                 case OperatorTag.RightShiftEqual:
-                                    if (Compare(leftType, Lookup(parent, "f32")) || Compare(leftType, Lookup(parent, "f64")))
+                                    if (Compare(leftType, Lookup(parent, "F32")) || Compare(leftType, Lookup(parent, "F64")))
                                         Report.Error($"{assignment.Operator.DefinedAt} This operator is only defined for integer types.");
                                     break;
                             }
@@ -201,7 +201,7 @@ namespace Owen
                         return null;
                 }
 
-                return Lookup(scope, number.Tag.ToString().ToLower());
+                return Lookup(scope, number.Tag.ToString());
             }
             else if (expression is Identifier reference)
                 return Lookup(scope, reference);

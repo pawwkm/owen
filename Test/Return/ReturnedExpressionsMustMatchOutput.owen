@@ -1,15 +1,15 @@
-﻿// expect Return\ReturnedExpressionsMustMatchOutput.owen:14:12: Expected u8 but found i32.
+﻿// expect Return\ReturnedExpressionsMustMatchOutput.owen:14:12: Expected U8 but found I32.
 
 namespace Test
 
 function main 
-    output i32
+    output I32
     
     return 1
 end
 
 function test
-    output u8
+    output U8
 
     return 1i32
 end

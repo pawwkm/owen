@@ -133,7 +133,7 @@ comment ← '//' (!'\n' .)* '\n'?</code></pre>
                 but after semantic analysis has completed.
                 The order of files is undefined but the order of mixin execution within a file
                 is in lexical order. The <span class="rule">expreassion</span> must result in
-                a <span class="type">u8[]</span>. The array is injected a source code where
+                a <span class="type">U8[]</span>. The array is injected a source code where
                 mixin where declared. <span class="rule">mixinExpreassion</span>s
                 are semantically analyzed right before they are executed.
             </p>
@@ -179,7 +179,7 @@ argument ← type identifier</code></pre>
             <p>
                 The <i>main</i> function is the entry point of the program. It
                 is the entry point of the program. The return type of main must
-                be <span class="type">i32</span>.
+                be <span class="type">I32</span>.
             </p>
 
             <h3>2.1.2. Foreign Function Interface</h3>
@@ -236,7 +236,7 @@ enumerationConstant ← identifier (assign integerLiteral)?</code></pre>
 
             <p>
                 The <span class="rule">identifier</span> is the name of the
-                enumeration. The <span class="rule">type</span> must be an <span class="type">iXX</span>.
+                enumeration. The <span class="rule">type</span> must be an <span class="type">IXX</span>.
                 <span class="rule">integerLiteral</span>s must have the same
                 type as the <span class="rule">type</span>. If an
                 <span class="rule">enumerationConstant</span> omits the
@@ -357,7 +357,7 @@ semicolon ← ';' whitespace</code></pre>
 
             <p>
                 The <span class="rule">expression</span> must be of type of
-                <span class="type">bool</span>. If the
+                <span class="type">Bool</span>. If the
                 <span class="rule">expression</span> is
                 <span class="keyword">true</span>, then the
                 <span class="rule">statements</span> are executed. After the
@@ -402,7 +402,7 @@ semicolon ← ';' whitespace</code></pre>
 
             <p>
                 The <span class="rule">expression</span> must be type of
-                <span class="type">bool</span>. If the expression is
+                <span class="type">Bool</span>. If the expression is
                 <span class="keyword">true</span>, then nothing happens. If the
                 <span class="rule">expression</span> is
                 <span class="keyword">false</span>, a description of the failing
@@ -442,8 +442,8 @@ semicolon ← ';' whitespace</code></pre>
 logicalOrOperator ← '||' whitespace</code></pre>
 
             <p>
-                Both expressions must be type of <span class="type">bool</span>.
-                The type of the expression is <span class="type">bool</span>.
+                Both expressions must be type of <span class="type">Bool</span>.
+                The type of the expression is <span class="type">Bool</span>.
                 Short circuits if the left hand side is <span class="keyword">true</span>.
             </p>
 
@@ -452,8 +452,8 @@ logicalOrOperator ← '||' whitespace</code></pre>
 logicalAndOperator ← '&amp;&amp;' whitespace</code></pre>
 
             <p>
-                Both expressions must be type of <span class="type">bool</span>.
-                The type of the expression is <span class="type">bool</span>.
+                Both expressions must be type of <span class="type">Bool</span>.
+                The type of the expression is <span class="type">Bool</span>.
             </p>
 
             <h2>4.4. Relational Expressions</h2>
@@ -461,8 +461,8 @@ logicalAndOperator ← '&amp;&amp;' whitespace</code></pre>
 relationalOperator ← ('==' / '!=' / '&lt;=' / '&gt;=' / '&lt;' / '&gt;') whitespace</code></pre>
 
             <p>
-                Both expressions must be type of <span class="type">bool</span>.
-                The type of the expression is <span class="type">bool</span>.
+                Both expressions must be type of <span class="type">Bool</span>.
+                The type of the expression is <span class="type">Bool</span>.
             </p>
 
             <h2>4.5. Additive Expressions</h2>
@@ -476,7 +476,7 @@ additiveOperator ← ('+' / '-' / '|' / '^') whitespace</code></pre>
 
             <p>
                 <code>+</code> and <code>-</code> apply to any number type. Bitwise or (<code>|</code>) and
-                bitwise xor (<code>^</code>) only applies to <span class="type">iXX</span>.
+                bitwise xor (<code>^</code>) only applies to <span class="type">IXX</span>.
             </p>
 
             <h2>4.6. Multiplicative Expressions</h2>
@@ -491,8 +491,8 @@ multiplicativeOperator ← ('*' / '/' / '%' / '&amp;' / '&lt;&lt;' / '&gt;&gt;')
             <p>
                 <code>*</code>, <code>/</code> and <code>%</code> apply to any number type. Bitwise and (&amp;),
                 left shift (<code>&lt;&lt;</code>) and left shift (<code>&gt;&gt;</code>) only applies to 
-                <span class="type">iXX</span>. <code>/</code> and <code>%</code> rounds down for 
-                <span class="type">iXX</span>.
+                <span class="type">IXX</span>. <code>/</code> and <code>%</code> rounds down for 
+                <span class="type">IXX</span>.
             </p>
 
             <h2>4.7. Prefix Expressions</h2>
@@ -516,7 +516,7 @@ multiplicativeOperator ← ('*' / '/' / '%' / '&amp;' / '&lt;&lt;' / '&gt;&gt;')
 not ← '!' whitespace</code></pre>
 
             <p>
-                Inverts a <span class="type">bool</span>
+                Inverts a <span class="type">Bool</span>
             </p>
 
             <h3>4.7.2. Negate Expressions</h3>
@@ -532,7 +532,7 @@ negate ← '-' whitespace</code></pre>
 increment ← '++' whitespace</code></pre>
 
             <p>
-                Increments an <span class="type">iXX</span> variable by 1 and
+                Increments an <span class="type">IXX</span> variable by 1 and
                 returns the new value of variable.
             </p>
 
@@ -541,7 +541,7 @@ increment ← '++' whitespace</code></pre>
 decrement ← '--' whitespace</code></pre>
 
             <p>
-                Decrements an <span class="type">iXX</span> variable by 1 and
+                Decrements an <span class="type">IXX</span> variable by 1 and
                 returns the new value of variable.
             </p>
 
@@ -550,7 +550,7 @@ decrement ← '--' whitespace</code></pre>
 
             <p>
                 Results the size of the <span class="rule">expression</span> as
-                a <span class="type">u32</span> in bytes. The
+                a <span class="type">U32</span> in bytes. The
                 <span class="rule">expression</span> must be a type.
             </p>
 
@@ -559,7 +559,7 @@ decrement ← '--' whitespace</code></pre>
 
             <p>
                 Results the size of the <span class="rule">expression</span> as
-                a <span class="type">u32</span> in bytes. The
+                a <span class="type">U32</span> in bytes. The
                 <span class="rule">expression</span> must be a type.
             </p>
 
@@ -615,7 +615,7 @@ rightSquareBracket ← ']' whitespace</code></pre>
             <p>
                 The <span class="rule">expression</span> must be an array type.
                 Each expression in <span class="rule">expressions</span> must be
-                an <span class="type">iXX</span>. Each value must be within 0 and the size of the
+                an <span class="type">IXX</span>. Each value must be within 0 and the size of the
                 dimension it is used to index into. Going out of bounds in Debug
                 mode the program is stopped and then a message is displayed to
                 the programmer explaining where the error occurred. Going out of
@@ -627,7 +627,7 @@ rightSquareBracket ← ']' whitespace</code></pre>
 increment ← '++' whitespace</code></pre>
 
             <p>
-                Increments an <span class="type">iXX</span> variable by 1 and
+                Increments an <span class="type">IXX</span> variable by 1 and
                 returns the new value of variable.
             </p>
 
@@ -636,7 +636,7 @@ increment ← '++' whitespace</code></pre>
 decrement ← '--' whitespace</code></pre>
 
             <p>
-                Decrements an <span class="type">iXX</span> variable by 1 and
+                Decrements an <span class="type">IXX</span> variable by 1 and
                 returns the new value of variable.
             </p>
 
@@ -669,11 +669,11 @@ decrement ← '--' whitespace</code></pre>
                 </thead>
                 <tbody>
                     <tr>
-                        <td><span class="type">f32</span></td>
+                        <td><span class="type">F32</span></td>
                         <td>±1.18×10−38 to ±3.4×1038</td>
                     </tr>
                     <tr>
-                        <td><span class="type">f64</span></td>
+                        <td><span class="type">F64</span></td>
                         <td>±2.23×10−308 to ±1.80×10308</td>
                     </tr>
                 </tbody>
@@ -697,42 +697,42 @@ decrement ← '--' whitespace</code></pre>
                 </thead>
                 <tbody>
                     <tr>
-                        <td><span class="type">i8</span></td>
+                        <td><span class="type">I8</span></td>
                         <td>-2<sup>7</sup></td>
                         <td>2<sup>7</sup>-1</td>
                     </tr>
                     <tr>
-                        <td><span class="type">i16</span></td>
+                        <td><span class="type">I16</span></td>
                         <td>-2<sup>15</sup></td>
                         <td>2<sup>15</sup>-1</td>
                     </tr>
                     <tr>
-                        <td><span class="type">i32</span></td>
+                        <td><span class="type">I32</span></td>
                         <td>-2<sup>31</sup></td>
                         <td>2<sup>31</sup>-1</td>
                     </tr>
                     <tr>
-                        <td><span class="type">i64</span></td>
+                        <td><span class="type">I64</span></td>
                         <td>-2<sup>63</sup></td>
                         <td>2<sup>63</sup>-1</td>
                     </tr>
                     <tr>
-                        <td><span class="type">u8</span></td>
+                        <td><span class="type">U8</span></td>
                         <td>0</td>
                         <td>2<sup>8</sup>-1</td>
                     </tr>
                     <tr>
-                        <td><span class="type">u16</span></td>
+                        <td><span class="type">U16</span></td>
                         <td>0</td>
                         <td>2<sup>16</sup>-1</td>
                     </tr>
                     <tr>
-                        <td><span class="type">u32</span></td>
+                        <td><span class="type">U32</span></td>
                         <td>0</td>
                         <td>2<sup>32</sup>-1</td>
                     </tr>
                     <tr>
-                        <td><span class="type">u64</span></td>
+                        <td><span class="type">U64</span></td>
                         <td>0</td>
                         <td>2<sup>64</sup>-1</td>
                     </tr>
@@ -744,7 +744,7 @@ decrement ← '--' whitespace</code></pre>
 
             <p>
                 <span class="rule">booleanLiteral</span>s are type of
-                <span class="type">bool</span>.
+                <span class="type">Bool</span>.
             </p>
 
             <h3>4.9.4. String Literals</h3>
@@ -755,7 +755,7 @@ hex ← [0-9a-f]</code></pre>
 
             <p>
                 Strings are encoded as UTF-8. A string literal is converted into
-                an array of <span class="type">u8</span>. The
+                an array of <span class="type">U8</span>. The
                 <span class="rule">hex</span>s in <span class="rule">escapeSequence</span>
                 represents a unicode code point.
             </p>
@@ -775,7 +775,7 @@ element ← elements / expressionList</code></pre>
                 Static arrays are defined by <span class="rule">dimension</span>s
                 and <span class="rule">elements</span>. Each <span class="rule">dimension</span>'s
                 <span class="rule">expression</span> must be a static
-                <span class="type">uXX</span> which can be inferred to <span class="type">u32</span>.
+                <span class="type">UXX</span> which can be inferred to <span class="type">U32</span>.
 
                 Arrays have a length and pointer field. Writing to a static array
                 is undefined behaviour.

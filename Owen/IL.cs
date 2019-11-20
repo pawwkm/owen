@@ -192,21 +192,21 @@ namespace Owen
         {
             switch (type)
             {
-                case "i8":
+                case "I8":
                     return typeof(sbyte);
-                case "i16":
+                case "I16":
                     return typeof(short);
-                case "i32":
+                case "I32":
                     return typeof(int);
-                case "i64":
+                case "I64":
                     return typeof(long);
-                case "u8":
+                case "U8":
                     return typeof(byte);
-                case "u16":
+                case "U16":
                     return typeof(ushort);
-                case "u32":
+                case "U32":
                     return typeof(uint);
-                case "u64":
+                case "U64":
                     return typeof(ulong);
                 default:
                     Report.Error($"Cannot translate {type} to a Clr type.");

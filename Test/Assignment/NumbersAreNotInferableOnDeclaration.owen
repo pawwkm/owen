@@ -3,7 +3,7 @@
 namespace Test
 
 function main
-    output i32
+    output I32
 
     a = 1
 

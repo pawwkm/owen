@@ -1,9 +1,9 @@
-﻿// expect Assignment\AssignValueOfAnotherType.owen:9:9: Expected i32 but found u64.
+﻿// expect Assignment\AssignValueOfAnotherType.owen:9:9: Expected I32 but found U64.
 
 namespace Test
 
 function main
-    output i32
+    output I32
 
     a = 1i32
     a = 2u64

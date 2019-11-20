@@ -102,28 +102,28 @@ namespace Owen
         {
             switch (type)
             {
-                case "i8":
+                case "I8":
                     builder.Append("byte ");
                     break;
-                case "i16":
+                case "I16":
                     builder.Append("short ");
                     break;
-                case "i32":
+                case "I32":
                     builder.Append("int ");
                     break;
-                case "i64":
+                case "I64":
                     builder.Append("long ");
                     break;
-                case "u8":
+                case "U8":
                     builder.Append("ubyte ");
                     break;
-                case "u16":
+                case "U16":
                     builder.Append("ushort ");
                     break;
-                case "u32":
+                case "U32":
                     builder.Append("uint ");
                     break;
-                case "u64":
+                case "U64":
                     builder.Append("ulong ");
                     break;
                 default:

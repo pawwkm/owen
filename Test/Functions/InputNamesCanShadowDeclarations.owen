@@ -3,11 +3,11 @@
 namespace Test
 
 function main 
-    output i32
+    output I32
     
     return 1
 end
 
 function test
-    input i32 main
+    input I32 main
 end
