@@ -176,7 +176,7 @@ namespace Owen
                 {
                     var type = Analyze(assert.Assertion, null, compound.Scope);
                     if (!Compare(type, Bool))
-                        Report.Error($"{assert.Assertion.StartsAt()} Bool expression expected.");
+                        Report.Error($"{assert.Assertion.StartsAt()} {Bool} expression expected.");
                 }
                 else
                     Report.Error($"Cannot analyze {statement.GetType().Name}.");
