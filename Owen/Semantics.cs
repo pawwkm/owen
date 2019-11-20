@@ -6,20 +6,32 @@ namespace Owen
 {
     internal static class Semantics
     {
+        private static readonly PrimitiveType I8 = new PrimitiveType() { Tag = PrimitiveTypeTag.I8 };
+        private static readonly PrimitiveType I16 = new PrimitiveType() { Tag = PrimitiveTypeTag.I16 };
+        private static readonly PrimitiveType I32 = new PrimitiveType() { Tag = PrimitiveTypeTag.I32 };
+        private static readonly PrimitiveType I64 = new PrimitiveType() { Tag = PrimitiveTypeTag.I64 };
+        private static readonly PrimitiveType U8 = new PrimitiveType() { Tag = PrimitiveTypeTag.U8 };
+        private static readonly PrimitiveType U16 = new PrimitiveType() { Tag = PrimitiveTypeTag.U16 };
+        private static readonly PrimitiveType U32 = new PrimitiveType() { Tag = PrimitiveTypeTag.U32 };
+        private static readonly PrimitiveType U64 = new PrimitiveType() { Tag = PrimitiveTypeTag.U64 };
+        private static readonly PrimitiveType F32 = new PrimitiveType() { Tag = PrimitiveTypeTag.F32 };
+        private static readonly PrimitiveType F64 = new PrimitiveType() { Tag = PrimitiveTypeTag.F64 };
+        private static readonly PrimitiveType Bool = new PrimitiveType() { Tag = PrimitiveTypeTag.Bool };
+
         public static void Analyze(Program program)
         {
-            foreach (PrimitiveTypeTag tag in Enum.GetValues(typeof(PrimitiveTypeTag)))
-            {
-                program.Scope.Symbols.Add(new Symbol()
-                {
-                    Name = tag.ToString(),
-                    Type = new PrimitiveType()
-                    {
-                        Tag = tag
-                    }
-                });
-            }
-            
+            program.Scope.Symbols.Add(new Symbol() { Name = I8.Tag.ToString(), Type = I8 });
+            program.Scope.Symbols.Add(new Symbol() { Name = I16.Tag.ToString(), Type = I16 });
+            program.Scope.Symbols.Add(new Symbol() { Name = I32.Tag.ToString(), Type = I32 });
+            program.Scope.Symbols.Add(new Symbol() { Name = I64.Tag.ToString(), Type = I64 });
+            program.Scope.Symbols.Add(new Symbol() { Name = U8.Tag.ToString(), Type = U8 });
+            program.Scope.Symbols.Add(new Symbol() { Name = U16.Tag.ToString(), Type = U16 });
+            program.Scope.Symbols.Add(new Symbol() { Name = U32.Tag.ToString(), Type = U32 });
+            program.Scope.Symbols.Add(new Symbol() { Name = U64.Tag.ToString(), Type = U64 });
+            program.Scope.Symbols.Add(new Symbol() { Name = F32.Tag.ToString(), Type = F32 });
+            program.Scope.Symbols.Add(new Symbol() { Name = F64.Tag.ToString(), Type = F64 });
+            program.Scope.Symbols.Add(new Symbol() { Name = Bool.Tag.ToString(), Type = Bool });
+
             foreach (var file in program.Files)
                 Analyze(file, program);
 
@@ -33,7 +45,7 @@ namespace Owen
                 Report.Error($"Multiple main functons defined:\r\n{string.Join("\r\n", mainFunctions.Select(f => f.Name.DeclaredAt))}");
 
             var main = mainFunctions[0];
-            if (main.Output.Count != 1 || !Compare(main.Output[0], Lookup(program.Scope, PrimitiveTypeTag.I32.ToString())))
+            if (main.Output.Count != 1 || !Compare(main.Output[0], I32))
                 Report.Error($"{main.Name.DeclaredAt} main must output a single {PrimitiveTypeTag.I32}.");
         }
 
@@ -61,8 +73,7 @@ namespace Owen
                 function.Body.Scope.Parent = file.Scope;
                 foreach (var argument in function.Input)
                 {
-                    var asd = Lookup(function.Body.Scope, argument.Name.Value);
-                    if (asd is PrimitiveType primitive)
+                    if (Lookup(function.Body.Scope, argument.Name.Value) is PrimitiveType primitive)
                         Report.Error($"{argument.Name.DeclaredAt} Redeclares {argument.Name.Value}.");
                     else
                     {
@@ -137,17 +148,15 @@ namespace Owen
                             else
                                 Report.Error($"{left.StartsAt()} The expression is not addressable.");
 
-                            switch (assignment.Operator.Tag)
-                            {
-                                case OperatorTag.BitwiseAndEqual:
-                                case OperatorTag.BitwiseOrEqual:
-                                case OperatorTag.BitwiseXorEqual:
-                                case OperatorTag.LeftShiftEqual:
-                                case OperatorTag.RightShiftEqual:
-                                    if (Compare(leftType, Lookup(parent, "F32")) || Compare(leftType, Lookup(parent, "F64")))
-                                        Report.Error($"{assignment.Operator.DefinedAt} This operator is only defined for integer types.");
-                                    break;
-                            }
+                            var operatorUsedOnNonInteger = (assignment.Operator.Tag == OperatorTag.BitwiseAndEqual ||
+                                                            assignment.Operator.Tag == OperatorTag.BitwiseOrEqual ||
+                                                            assignment.Operator.Tag == OperatorTag.BitwiseXorEqual ||
+                                                            assignment.Operator.Tag == OperatorTag.LeftShiftEqual ||
+                                                            assignment.Operator.Tag == OperatorTag.RightShiftEqual) &&
+                                                          !(leftType is PrimitiveType) ||
+                                                          ((PrimitiveType)leftType).Tag > PrimitiveTypeTag.U64;
+                            if (operatorUsedOnNonInteger)
+                                Report.Error($"{assignment.Operator.DefinedAt} This operator is only defined for integer types.");
                         }
                     }
                 }
@@ -166,7 +175,7 @@ namespace Owen
                 else if (statement is AssertStatement assert)
                 {
                     var type = Analyze(assert.Assertion, null, compound.Scope);
-                    if (!(type is PrimitiveType primitive) || primitive.Tag != PrimitiveTypeTag.Bool)
+                    if (!Compare(type, Bool))
                         Report.Error($"{assert.Assertion.StartsAt()} Bool expression expected.");
                 }
                 else
@@ -194,7 +203,7 @@ namespace Owen
                 if (number.Tag == NumberTag.IntegerToBeInfered)
                 {
                     if (expectedType is PrimitiveType primitive)
-                        number.Tag = (NumberTag)(primitive.Tag);
+                        number.Tag = (NumberTag)primitive.Tag;
                     else
                         return null;
                 }
