@@ -33,8 +33,8 @@ namespace Owen
                 Report.Error($"Multiple main functons defined:\r\n{string.Join("\r\n", mainFunctions.Select(f => f.Name.DeclaredAt))}");
 
             var main = mainFunctions[0];
-            if (main.Output.Count != 1 || !(main.Output[0] is PrimitiveType primitive && primitive.Tag == PrimitiveTypeTag.I32))
-                Report.Error($"{main.Name.DeclaredAt} main must output a single I32.");
+            if (main.Output.Count != 1 || !Compare(main.Output[0], Lookup(program.Scope, PrimitiveTypeTag.I32.ToString())))
+                Report.Error($"{main.Name.DeclaredAt} main must output a single {PrimitiveTypeTag.I32}.");
         }
 
         private static void Analyze(File file, Program program)
