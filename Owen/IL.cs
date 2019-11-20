@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using ClrType = System.Type;
 
 namespace Owen
 {
@@ -144,7 +145,7 @@ namespace Owen
                 throw new NotImplementedException($"Cannot translate {expression.GetType().Name} to IL.");
         }
 
-        private static System.Type ClrTypeOf(Type type)
+        private static ClrType ClrTypeOf(Type type)
         {
             if (type is PrimitiveType primitive)
             {
@@ -178,7 +179,7 @@ namespace Owen
             return null;
         }
 
-        private static System.Type ClrTypeOf(List<Identifier> types)
+        private static ClrType ClrTypeOf(List<Identifier> types)
         {
             if (types.Count == 0)
                 return typeof(void);
@@ -188,7 +189,7 @@ namespace Owen
                 throw new NotImplementedException("Cannot translate a tuple to a Clr type.");
         }
 
-        private static System.Type ClrTypeOf(string type)
+        private static ClrType ClrTypeOf(string type)
         {
             switch (type)
             {
