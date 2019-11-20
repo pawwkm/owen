@@ -182,8 +182,7 @@ namespace Owen
         U64,
         F32,
         F64,
-        IntegerToBeInfered,
-        FloatToBeInfered
+        ToBeInfered
     }
 
     internal sealed class Call : Expression

@@ -313,35 +313,68 @@ namespace Owen
                 Report.Error($"{source.Position} Digit expected.");
             }
 
-            var number = new Number();
-            number.Value = source.Text.Substring(start, source.Index - start);
+            if (source.Text[source.Index] == '.')
+            {
+                var afterDot = ++source.Index;
+                while (!source.EndOfText && IsDigit(source.Text[source.Index]))
+                    source.Index++;
 
-            UpdatePosition(source, start);
-            number.DeclaredAt = source.Position.Copy();
+                if (source.Index == afterDot)
+                {
+                    UpdatePosition(source, source.Index);
+                    Report.Error($"{source.Position} Digit expected.");
+                }
 
-            if (Consume(source, "i8"))
-                number.Tag = NumberTag.I8;
-            else if (Consume(source, "i16"))
-                number.Tag = NumberTag.I16;
-            else if (Consume(source, "i32"))
-                number.Tag = NumberTag.I32;
-            else if (Consume(source, "i64"))
-                number.Tag = NumberTag.I64;
-            else if (Consume(source, "u8"))
-                number.Tag = NumberTag.U8;
-            else if (Consume(source, "u16"))
-                number.Tag = NumberTag.U16;
-            else if (Consume(source, "u32"))
-                number.Tag = NumberTag.U32;
-            else if (Consume(source, "u64"))
-                number.Tag = NumberTag.U64;
+                var number = new Number();
+                number.Value = source.Text.Substring(start, source.Index - start);
+
+                UpdatePosition(source, start);
+                number.DeclaredAt = source.Position.Copy();
+
+                if (Consume(source, "f32"))
+                    number.Tag = NumberTag.F32;
+                else if (Consume(source, "f64"))
+                    number.Tag = NumberTag.F64;
+                else
+                {
+                    number.Tag = NumberTag.ToBeInfered;
+                    Whitespace(source);
+                }
+
+                return number;
+            }
             else
             {
-                number.Tag = NumberTag.IntegerToBeInfered;
-                Whitespace(source);
-            }
+                var number = new Number();
+                number.Value = source.Text.Substring(start, source.Index - start);
 
-            return number;
+                UpdatePosition(source, start);
+                number.DeclaredAt = source.Position.Copy();
+
+                if (Consume(source, "i8"))
+                    number.Tag = NumberTag.I8;
+                else if (Consume(source, "i16"))
+                    number.Tag = NumberTag.I16;
+                else if (Consume(source, "i32"))
+                    number.Tag = NumberTag.I32;
+                else if (Consume(source, "i64"))
+                    number.Tag = NumberTag.I64;
+                else if (Consume(source, "u8"))
+                    number.Tag = NumberTag.U8;
+                else if (Consume(source, "u16"))
+                    number.Tag = NumberTag.U16;
+                else if (Consume(source, "u32"))
+                    number.Tag = NumberTag.U32;
+                else if (Consume(source, "u64"))
+                    number.Tag = NumberTag.U64;
+                else
+                {
+                    number.Tag = NumberTag.ToBeInfered;
+                    Whitespace(source);
+                }
+
+                return number;
+            }
         }
 
         private static Identifier Identifier(Source source)

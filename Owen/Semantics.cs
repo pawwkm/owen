@@ -200,7 +200,7 @@ namespace Owen
             }
             else if (expression is Number number)
             {
-                if (number.Tag == NumberTag.IntegerToBeInfered)
+                if (number.Tag == NumberTag.ToBeInfered)
                 {
                     if (expectedType is PrimitiveType primitive)
                         number.Tag = (NumberTag)primitive.Tag;
