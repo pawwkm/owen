@@ -41,8 +41,15 @@ namespace Owen
             module.CreateGlobalFunctions();
 
             var relative = Path.GetFileName(output);
-            assembly.Save(relative);
+            
+            // In some cases AssemblyBuilder.Save(string) can cause an IOException
+            // because the file at the relative path is being used in another
+            // process. So far this have only been a problem when testing.
+            // Deleting the file seems to fix the problem.
+            if (System.IO.File.Exists(relative))
+                System.IO.File.Delete(relative);
 
+            assembly.Save(relative);
             if (Path.GetFullPath(relative) != output)
             {
                 if (System.IO.File.Exists(output))
