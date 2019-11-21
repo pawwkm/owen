@@ -46,7 +46,7 @@ namespace Owen
 
             var main = mainFunctions[0];
             if (main.Output.Count != 1 || !Compare(main.Output[0], I32))
-                Report.Error($"{main.Name.DeclaredAt} main must output a single {PrimitiveTypeTag.I32}.");
+                Report.Error($"{main.Name.DeclaredAt} main must output a single {I32}.");
         }
 
         private static void Analyze(File file, Program program)
