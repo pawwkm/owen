@@ -73,7 +73,7 @@ namespace Owen
                 function.Body.Scope.Parent = file.Scope;
                 foreach (var argument in function.Input)
                 {
-                    if (Lookup(function.Body.Scope, argument.Name.Value) is PrimitiveType primitive)
+                    if (NullableLookup(function.Body.Scope, argument.Name.Value) is PrimitiveType primitive)
                         Report.Error($"{argument.Name.DeclaredAt} Redeclares {argument.Name.Value}.");
                     else
                     {
@@ -114,7 +114,7 @@ namespace Owen
                             if (left is Identifier reference)
                             {
                                 var right = assignment.Right[i];
-                                var inferred = Lookup(compound.Scope, reference.Value);
+                                var inferred = NullableLookup(compound.Scope, reference.Value);
 
                                 if (inferred == null)
                                 {
@@ -208,7 +208,7 @@ namespace Owen
                         return null;
                 }
 
-                return Lookup(scope, number.Tag.ToString());
+                return NullableLookup(scope, number.Tag.ToString());
             }
             else if (expression is Identifier reference)
                 return Lookup(scope, reference);
@@ -242,14 +242,14 @@ namespace Owen
 
         private static Type Lookup(Scope scope, Identifier name)
         {
-            var type = Lookup(scope, name.Value);
+            var type = NullableLookup(scope, name.Value);
             if (type == null)
                 Report.Error($"{name.DeclaredAt} Undefined reference to {name.Value}.");
 
             return type;
         }
 
-        private static Type Lookup(Scope scope, string name)
+        private static Type NullableLookup(Scope scope, string name)
         {
             foreach (var symbol in scope.Symbols)
             {
@@ -260,7 +260,7 @@ namespace Owen
             if (scope.Parent == null)
                 return null;
             else
-                return Lookup(scope.Parent, name);
+                return NullableLookup(scope.Parent, name);
         }
 
         private static bool Compare(Type a, Type b)
