@@ -134,6 +134,9 @@ namespace Owen
                     case PrimitiveTypeTag.F64:
                         builder.Append("double ");
                         break;
+                    case PrimitiveTypeTag.Bool:
+                        builder.Append("bool ");
+                        break;
                     default:
                         Report.Error($"Cannot translate {type} to D.");
                         break;
