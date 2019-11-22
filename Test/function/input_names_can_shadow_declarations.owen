@@ -1,0 +1,15 @@
+﻿// expect 0
+
+namespace Test
+
+ctfe main()
+
+function main 
+    output I32
+    
+    return 0
+end
+
+function test
+    input I32 main
+end
