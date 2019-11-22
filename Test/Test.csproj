@@ -47,61 +47,28 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Assignment\AssignValueOfAnotherType.owen">
+    <None Include="assignment\to_many_on_the_left_hand_side.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="Assignment\TooManyOnTheRightHandSide.owen">
+    <None Include="assignment\cannot_infer_in_declarations.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="Assignment\TooManyOnTheLeftHandSide.owen">
+    <None Include="assignment\to_many_on_the_right_hand_side.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="Assignment\AssignAToBThenBIsEqualToA.owen">
+    <None Include="return\no_output_defined_but_returns_a_value.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="Assignment\NumbersAreInferableInReassignment.owen">
+    <None Include="return\output_defined_but_returns_no_values.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="Assignment\NumbersAreNotInferableOnDeclaration.owen">
+    <None Include="return\expressions_must_match_output_types.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="Assignment\ReferenceAVariableInScope.owen">
+    <None Include="return\valid.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="Ctfe\CallIsReplacedByReturnedValue.owen">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Functions\CannotRedeclareInput.owen">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Functions\InputNamesCanShadowDeclarations.owen">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Functions\Main\MainNotReturningi32.owen">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Functions\Main\MissingMain.owen">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Functions\Main\MultipleMains.owen">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Functions\Main\MainReturnsValueToOs.owen">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Return\OutputDefinedButReturnsVoid.owen">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Return\InferNumbers.owen">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Return\ReturnedExpressionsMustMatchOutput.owen">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Return\VoidFunctionsCannotReturnExpressions.owen">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Return\ReturnVoid.owen">
+    <None Include="assignment\valid.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

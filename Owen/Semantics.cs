@@ -153,12 +153,18 @@ namespace Owen
                                                             assignment.Operator.Tag == OperatorTag.BitwiseXorEqual ||
                                                             assignment.Operator.Tag == OperatorTag.LeftShiftEqual ||
                                                             assignment.Operator.Tag == OperatorTag.RightShiftEqual) &&
-                                                          !(leftType is PrimitiveType) ||
-                                                          ((PrimitiveType)leftType).Tag > PrimitiveTypeTag.U64;
+                                                          (!(leftType is PrimitiveType) ||
+                                                          ((PrimitiveType)leftType).Tag > PrimitiveTypeTag.U64);
                             if (operatorUsedOnNonInteger)
                                 Report.Error($"{assignment.Operator.DefinedAt} This operator is only defined for integer types.");
                         }
                     }
+                }
+                else if (statement is ExpressionStatement e)
+                {
+                    Analyze(e.Expression, null, compound.Scope);
+                    if (!(e.Expression is Call))
+                        Report.Error($"{e.Expression.StartsAt()} Call or pre/post increment/decrement expression expected.");
                 }
                 else if (statement is ReturnStatement r)
                 {

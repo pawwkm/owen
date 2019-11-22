@@ -103,15 +103,90 @@ namespace Owen
                                 Name = declaration.Variable.Value,
                                 Value = Run(assignment.Right[i], variables)
                             });
-
-                            return null;
                         }
                         else if (left is Identifier reference)
-                            variables.First(v => v.Name == reference.Value).Value = Run(assignment.Right[i], variables);
+                        {
+                            var value = Run(assignment.Right[i], variables);
+                            var variable = variables.First(v => v.Name == reference.Value);
+                            var type = variable.Value.GetType();
+
+                            switch (assignment.Operator.Tag)
+                            {
+                                case OperatorTag.PlusEqual:
+                                    variable.Value += value;
+                                    break;
+                                case OperatorTag.MinusEqual:
+                                    variable.Value -= value;
+                                    break;
+                                case OperatorTag.MultiplyEqual:
+                                    variable.Value *= value;
+                                    break;
+                                case OperatorTag.DivideEqual:
+                                    variable.Value /= value;
+                                    break;
+                                case OperatorTag.ModuloEqual:
+                                    variable.Value %= value;
+                                    break;
+                                case OperatorTag.BitwiseAndEqual:
+                                    variable.Value &= value;
+                                    break;
+                                case OperatorTag.BitwiseOrEqual:
+                                    variable.Value |= value;
+                                    break;
+                                case OperatorTag.BitwiseXorEqual:
+                                    variable.Value ^= value;
+                                    break;
+                                case OperatorTag.LeftShiftEqual:
+                                    if (type == typeof(sbyte) || type == typeof(short) || type == typeof(int) || type == typeof(long))
+                                        variable.Value = (long)variable.Value;
+                                    else
+                                        variable.Value = (ulong)variable.Value;
+
+                                    variable.Value <<= (int)value;
+                                    break;
+                                case OperatorTag.RightShiftEqual:
+                                    if (type == typeof(sbyte) || type == typeof(short) || type == typeof(int) || type == typeof(long))
+                                        variable.Value = (long)variable.Value;
+                                    else
+                                        variable.Value = (ulong)variable.Value;
+
+                                    variable.Value >>= (int)value;
+                                    break;
+                                case OperatorTag.Equal:
+                                    variable.Value = value;
+                                    break;
+                            }
+
+                            if (type != variable.Value.GetType())
+                            {
+                                if (type == typeof(sbyte))
+                                    variable.Value = (sbyte)variable.Value;
+                                else if (type == typeof(short))
+                                    variable.Value = (short)variable.Value;
+                                else if (type == typeof(int))
+                                    variable.Value = (int)variable.Value;
+                                else if (type == typeof(long))
+                                    variable.Value = (long)variable.Value;
+                                else if (type == typeof(byte))
+                                    variable.Value = (byte)variable.Value;
+                                else if (type == typeof(ushort))
+                                    variable.Value = (ushort)variable.Value;
+                                else if (type == typeof(uint))
+                                    variable.Value = (uint)variable.Value;
+                                else if (type == typeof(ulong))
+                                    variable.Value = (ulong)variable.Value;
+                                else if (type == typeof(float))
+                                    variable.Value = (float)variable.Value;
+                                else if (type == typeof(double))
+                                    variable.Value = (double)variable.Value;
+                            }
+                        }
                         else
                             throw new NotImplementedException($"Cannot interpret assignment to {left.GetType().Name}.");
                     }
                 }
+                else if (statement is ExpressionStatement e)
+                    Run(e.Expression, variables);
                 else if (statement is ReturnStatement r)
                 {
                     if (r.Expressions.Count == 0)

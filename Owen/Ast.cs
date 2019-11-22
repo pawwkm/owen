@@ -130,6 +130,11 @@ namespace Owen
         public Identifier Variable;
     }
 
+    internal sealed class ExpressionStatement : Statement
+    {
+        public Expression Expression;
+    }
+
     internal sealed class ReturnStatement : Statement
     {
         public Position EndOfKeyword;

@@ -1,0 +1,17 @@
+﻿// expect 0
+
+namespace Return_Statements
+
+ctfe main()
+
+function main
+    output I32
+
+    return_statement_with_no_output()
+
+    return 0
+end
+
+function return_statement_with_no_output
+    return
+end

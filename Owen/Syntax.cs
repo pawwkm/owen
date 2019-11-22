@@ -102,6 +102,7 @@ namespace Owen
             while (true)
             {
                 var statement = AssignmentStatement(source) ??
+                                ExpressionStatement(source) ??
                                 ReturnStatement(source) ??
                                 AssertStatement(source);
                 
@@ -166,6 +167,18 @@ namespace Owen
             }
             else
                 return null;
+        }
+
+        private static Statement ExpressionStatement(Source source)
+        {
+            var expression = Expression(source);
+            if (expression == null)
+                return null;
+            else
+                return new ExpressionStatement()
+                {
+                    Expression = expression
+                };
         }
 
         private static Statement ReturnStatement(Source source)

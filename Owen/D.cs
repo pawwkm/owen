@@ -38,7 +38,7 @@ namespace Owen
             try
             {
                 var compiler = new Process();
-                compiler.StartInfo = new ProcessStartInfo("dmd.exe", $"-release -betterC -O -noboundscheck \"-of{output}\" {string.Join(" ", Enumerable.Range(0, program.Files.Count).Select(i => $"_{i}.d"))}")
+                compiler.StartInfo = new ProcessStartInfo("dmd.exe", $"-release -betterC -O -noboundscheck -check=assert=on \"-of{output}\" {string.Join(" ", Enumerable.Range(0, program.Files.Count).Select(i => $"_{i}.d"))}")
                 {
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
@@ -177,6 +177,9 @@ namespace Owen
                             case OperatorTag.DivideEqual:
                                 builder.Append("/=");
                                 break;
+                            case OperatorTag.ModuloEqual:
+                                builder.Append("%=");
+                                break;
                             case OperatorTag.BitwiseAndEqual:
                                 builder.Append("&=");
                                 break;
@@ -203,6 +206,11 @@ namespace Owen
                         Generate(assignment.Right[i], builder);
                         builder.Append(';');
                     }
+                }
+                else if (statement is ExpressionStatement e)
+                {
+                    Generate(e.Expression, builder);
+                    builder.Append(';');
                 }
                 else if (statement is ReturnStatement r)
                 {
@@ -254,6 +262,20 @@ namespace Owen
                 }
 
                 Generate(binary.Right, builder);
+            }
+            else if (expression is Call call)
+            {
+                Generate(call.Callee, builder);
+
+                builder.Append('(');
+                for (var i = 0; i < call.Arguments.Count; i++)
+                {
+                    Generate(call.Arguments[i], builder);
+                    if (i + 1 != call.Arguments.Count)
+                        builder.Append(',');
+                }
+
+                builder.Append(')');
             }
             else if (expression is Number number)
             {

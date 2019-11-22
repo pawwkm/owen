@@ -1,9 +1,0 @@
-﻿// expect 1
-
-namespace Test
-
-function main 
-    output I32
-    
-    return 1
-end

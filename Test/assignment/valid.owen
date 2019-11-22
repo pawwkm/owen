@@ -1,0 +1,381 @@
+﻿// expect 0
+
+namespace Assignments
+
+ctfe main()
+
+function main
+    output I32
+
+    a, b = 0i8, 1i8
+    assert a == 0
+    assert b == 1
+
+    a = b
+    assert a == 1
+
+    i8_assignments()
+    i16_assignments()
+    i32_assignments()
+    i64_assignments()
+    
+    u8_assignments()
+    u16_assignments()
+    u32_assignments()
+    u64_assignments()
+
+    f32_assignments()
+    f64_assignments()
+
+    return 0
+end
+
+function i8_assignments
+    a = 0i8
+    assert a == 0
+
+    a += 2
+    assert a == 2
+
+    a -= 1
+    assert a == 1
+
+    a *= 5
+    assert a == 5
+
+    a /= 2
+    assert a == 2
+
+    a %= 3
+    assert a == 2
+
+    a &= 3
+    assert a == 2
+
+    a |= 3
+    assert a == 3
+
+    a ^= 4
+    assert a == 7
+    
+    a <<= 2
+    assert a == 28
+    
+    a >>= 2
+    assert a == 7
+
+    a = 42
+    assert a == 42
+end
+
+function i16_assignments
+    a = 0i16
+    assert a == 0
+
+    a += 2
+    assert a == 2
+
+    a -= 1
+    assert a == 1
+
+    a *= 5
+    assert a == 5
+
+    a /= 2
+    assert a == 2
+
+    a %= 3
+    assert a == 2
+
+    a &= 3
+    assert a == 2
+
+    a |= 3
+    assert a == 3
+
+    a ^= 4
+    assert a == 7
+    
+    a <<= 2
+    assert a == 28
+    
+    a >>= 2
+    assert a == 7
+
+    a = 42
+    assert a == 42
+end
+
+function i32_assignments
+    a = 0i32
+    assert a == 0
+
+    a += 2
+    assert a == 2
+
+    a -= 1
+    assert a == 1
+
+    a *= 5
+    assert a == 5
+
+    a /= 2
+    assert a == 2
+
+    a %= 3
+    assert a == 2
+
+    a &= 3
+    assert a == 2
+
+    a |= 3
+    assert a == 3
+
+    a ^= 4
+    assert a == 7
+    
+    a <<= 2
+    assert a == 28
+    
+    a >>= 2
+    assert a == 7
+
+    a = 42
+    assert a == 42
+end
+
+function i64_assignments
+    a = 0i64
+    assert a == 0
+
+    a += 2
+    assert a == 2
+
+    a -= 1
+    assert a == 1
+
+    a *= 5
+    assert a == 5
+
+    a /= 2
+    assert a == 2
+
+    a %= 3
+    assert a == 2
+
+    a &= 3
+    assert a == 2
+
+    a |= 3
+    assert a == 3
+
+    a ^= 4
+    assert a == 7
+    
+    a <<= 2
+    assert a == 28
+    
+    a >>= 2
+    assert a == 7
+
+    a = 42
+    assert a == 42
+end
+
+function u8_assignments
+    a = 0u8
+    assert a == 0
+
+    a += 2
+    assert a == 2
+
+    a -= 1
+    assert a == 1
+
+    a *= 5
+    assert a == 5
+
+    a /= 2
+    assert a == 2
+
+    a %= 3
+    assert a == 2
+
+    a &= 3
+    assert a == 2
+
+    a |= 3
+    assert a == 3
+
+    a ^= 4
+    assert a == 7
+    
+    a <<= 2
+    assert a == 28
+    
+    a >>= 2
+    assert a == 7
+
+    a = 42
+    assert a == 42
+end
+
+function u16_assignments
+    a = 0u16
+    assert a == 0
+
+    a += 2
+    assert a == 2
+
+    a -= 1
+    assert a == 1
+
+    a *= 5
+    assert a == 5
+
+    a /= 2
+    assert a == 2
+
+    a %= 3
+    assert a == 2
+
+    a &= 3
+    assert a == 2
+
+    a |= 3
+    assert a == 3
+
+    a ^= 4
+    assert a == 7
+    
+    a <<= 2
+    assert a == 28
+    
+    a >>= 2
+    assert a == 7
+
+    a = 42
+    assert a == 42
+end
+
+function u32_assignments
+    a = 0u32
+    assert a == 0
+
+    a += 2
+    assert a == 2
+
+    a -= 1
+    assert a == 1
+
+    a *= 5
+    assert a == 5
+
+    a /= 2
+    assert a == 2
+
+    a %= 3
+    assert a == 2
+
+    a &= 3
+    assert a == 2
+
+    a |= 3
+    assert a == 3
+
+    a ^= 4
+    assert a == 7
+    
+    a <<= 2
+    assert a == 28
+    
+    a >>= 2
+    assert a == 7
+
+    a = 42
+    assert a == 42
+end
+
+function u64_assignments
+    a = 0u64
+    assert a == 0
+
+    a += 2
+    assert a == 2
+
+    a -= 1
+    assert a == 1
+
+    a *= 5
+    assert a == 5
+
+    a /= 2
+    assert a == 2
+
+    a %= 3
+    assert a == 2
+
+    a &= 3
+    assert a == 2
+
+    a |= 3
+    assert a == 3
+
+    a ^= 4
+    assert a == 7
+    
+    a <<= 2
+    assert a == 28
+    
+    a >>= 2
+    assert a == 7
+
+    a = 42
+    assert a == 42
+end
+
+function f32_assignments
+    a = 0.0f32
+    assert a == 0.0
+
+    a += 2.0
+    assert a == 2.0
+
+    a -= 1.0
+    assert a == 1.0
+
+    a *= 5.0
+    assert a == 5.0
+
+    a /= 2.5
+    assert a == 2.0
+
+    a %= 3.0
+    assert a == 2
+
+    a = 42.0
+    assert a == 42.0
+end
+    
+function f64_assignments
+    a = 0.0f64
+    assert a == 0.0
+
+    a += 2.0
+    assert a == 2.0
+
+    a -= 1.0
+    assert a == 1.0
+
+    a *= 5.0
+    assert a == 5.0
+
+    a /= 2.5
+    assert a == 2.0
+
+    a %= 3.0
+    assert a == 2
+
+    a = 42.0
+    assert a == 42.0
+end
