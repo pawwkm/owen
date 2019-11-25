@@ -259,7 +259,7 @@ namespace Owen
                         builder.Append("!=");
                         break;
                     default:
-                        Report.Error($"Cannot translate {assignment.Operator.Tag} to D.");
+                        Report.Error($"Cannot translate {binary.Operator.Tag} to D.");
                         break;
                 }
 
