@@ -47,6 +47,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="assignment\cannot_shadow_in_the_same_scope.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="assignment\to_many_on_the_left_hand_side.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
