@@ -258,6 +258,9 @@ namespace Owen
                     case OperatorTag.NotEqual:
                         builder.Append("!=");
                         break;
+                    default:
+                        Report.Error($"Cannot translate {assignment.Operator.Tag} to D.");
+                        break;
                 }
 
                 Generate(binary.Right, builder);
