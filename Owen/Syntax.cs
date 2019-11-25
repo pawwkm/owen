@@ -292,7 +292,7 @@ namespace Owen
 
                     return new Call()
                     {
-                        Callee = expression,
+                        Reference = expression,
                         Arguments = arguments
                     };
                 }

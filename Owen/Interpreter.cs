@@ -46,12 +46,12 @@ namespace Owen
                 {
                     input.Add(new Variable()
                     {
-                        Name = call.DeclarationOfCallee.Input[i].Name.Value,
+                        Name = call.Declaration.Input[i].Name.Value,
                         Value = Run(call.Arguments[i], variables)
                     });
                 }
 
-                return Run(call.DeclarationOfCallee.Body, input);
+                return Run(call.Declaration.Body, input);
             }
             else if (expression is Number number)
             {

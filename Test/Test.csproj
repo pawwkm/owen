@@ -56,6 +56,9 @@
     <None Include="assignment\to_many_on_the_right_hand_side.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="function\input_names_can_shadow_declarations.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="function\input_names_must_be_unique.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

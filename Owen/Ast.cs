@@ -19,7 +19,7 @@ namespace Owen
         public List<Expression> Mixins = new List<Expression>();
 	}
 
-    internal sealed class FunctionDeclaration
+    internal sealed class FunctionDeclaration : Type
     {
         public Identifier Name;
         public List<Argument> Input = new List<Argument>();
@@ -65,13 +65,6 @@ namespace Owen
     internal sealed class UnresolvedType : Type
     {
         public Identifier Identifier;
-    }
-
-    internal sealed class FunctionType : Type
-    {
-        public FunctionDeclaration Declaration;
-        public List<Type> Input = new List<Type>();
-        public List<Type> Output = new List<Type>();
     }
 
     internal enum PrimitiveTypeTag
@@ -192,8 +185,8 @@ namespace Owen
 
     internal sealed class Call : Expression
     {
-        public FunctionDeclaration DeclarationOfCallee;
-        public Expression Callee;
+        public FunctionDeclaration Declaration;
+        public Expression Reference;
         public List<Expression> Arguments;
     }
 

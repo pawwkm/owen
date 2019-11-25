@@ -56,15 +56,16 @@ namespace Owen
 
             foreach (var function in file.Functions)
             {
-                var type = new FunctionType();
-                type.Declaration = function;
-                type.Input.AddRange(function.Input.Select(o => Lookup(file.Scope, ((UnresolvedType)o.Type).Identifier)));
-                type.Output.AddRange(function.Output.Select(o => Lookup(file.Scope, ((UnresolvedType)o).Identifier)));
+                for (var i = 0; i < function.Input.Count; i++)
+                    function.Input[i].Type = Lookup(file.Scope, ((UnresolvedType)function.Input[i].Type).Identifier);
+
+                for (var i = 0; i < function.Output.Count; i++)
+                    function.Output[i] = Lookup(file.Scope, ((UnresolvedType)function.Output[i]).Identifier);
 
                 file.Scope.Symbols.Add(new Symbol()
                 {
-                    Name = function.Name.Value, 
-                    Type = type
+                    Name = function.Name.Value,
+                    Type = function
                 });
             }
 
@@ -77,17 +78,13 @@ namespace Owen
                         Report.Error($"{argument.Name.DeclaredAt} Redeclares {argument.Name.Value}.");
                     else
                     {
-                        argument.Type = Lookup(function.Body.Scope, ((UnresolvedType)argument.Type).Identifier);
-                        function.Body.Scope.Symbols.Add(new Symbol() 
-                        { 
+                        function.Body.Scope.Symbols.Add(new Symbol()
+                        {
                             Name = argument.Name.Value,
                             Type = argument.Type
                         });
                     }
                 }
-
-                for (var i = 0; i < function.Output.Count; i++)
-                    function.Output[i] = Lookup(function.Body.Scope, ((UnresolvedType)function.Output[i]).Identifier);
 
                 Analyze(function.Body, function.Output, function.Body.Scope);
             }
@@ -220,27 +217,27 @@ namespace Owen
                 return Lookup(scope, reference);
             else if (expression is Call call)
             {
-                if (Analyze(call.Callee, null, scope) is FunctionType type)
+                if (Analyze(call.Reference, null, scope) is FunctionDeclaration function)
                 {
-                    if (call.Arguments.Count != type.Input.Count)
-                        Report.Error($"{call.Callee.StartsAt()} No function overload fitting the given input.");
+                    if (call.Arguments.Count != function.Input.Count)
+                        Report.Error($"{call.Reference.StartsAt()} No function overload fitting the given input.");
 
                     for (var i = 0; i < call.Arguments.Count; i++)
                     {
-                        if (!Compare(type.Input[i], Analyze(call.Arguments[i], type.Input[i], scope)))
-                            Report.Error($"{call.Callee.StartsAt()} No function overload fitting the given input.");
+                        if (!Compare(function.Input[i].Type, Analyze(call.Arguments[i], function.Input[i].Type, scope)))
+                            Report.Error($"{call.Reference.StartsAt()} No function overload fitting the given input.");
                     }
 
-                    call.DeclarationOfCallee = type.Declaration;
-                    if (type.Output.Count == 0)
+                    call.Declaration = function;
+                    if (function.Output.Count == 0)
                         return null;
-                    else if (type.Output.Count == 1)
-                        return type.Output[0];
+                    else if (function.Output.Count == 1)
+                        return function.Output[0];
                     else
                         throw new NotImplementedException($"Multiple return values not yet implemented.");
                 }
                 else
-                    Report.Error($"{call.Callee.StartsAt()} Function expected.");
+                    Report.Error($"{call.Reference.StartsAt()} Function expected.");
             }
 
             throw new NotImplementedException($"Cannot analyze {expression.GetType().Name}.");

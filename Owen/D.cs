@@ -22,15 +22,11 @@ namespace Owen
 
             Directory.CreateDirectory(root);
             for (var i = 0; i < program.Files.Count; i++)
-            {
-                var builder = new StringBuilder();
-                Generate(program.Files[i], builder);
-
-                // dmd does not like file names starting with a digit.
+            {   
                 System.IO.File.WriteAllText
                 (
-                    Path.Combine(root, $"_{i}.d"), 
-                    builder.ToString(),
+                    Path.Combine(root, $"_{i}.d"), // dmd does not like file names starting with a digit.
+                    Generate(program.Files[i]),
                     Encoding.UTF8
                 );
             }
@@ -59,10 +55,13 @@ namespace Owen
             }
         }
 
-        private static void Generate(File file, StringBuilder builder)
+        private static string Generate(File file)
         {
+            var builder = new StringBuilder();
             foreach (var function in file.Functions)
                 Generate(function, builder);
+
+            return builder.ToString();
         }
 
         private static void Generate(FunctionDeclaration function, StringBuilder builder)
@@ -265,7 +264,7 @@ namespace Owen
             }
             else if (expression is Call call)
             {
-                Generate(call.Callee, builder);
+                Generate(call.Reference, builder);
 
                 builder.Append('(');
                 for (var i = 0; i < call.Arguments.Count; i++)
