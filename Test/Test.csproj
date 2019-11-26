@@ -47,6 +47,36 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="assignment\bitwise_and_equal_not_defined_for_f64.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="assignment\bitwise_or_equal_not_defined_for_f64.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="assignment\bitwise_xor_equal_not_defined_for_f64.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="assignment\left_shift_equal_not_defined_for_f64.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="assignment\right_shift_equal_not_defined_for_f64.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="assignment\right_shift_equal_not_defined_for_f32.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="assignment\left_shift_equal_not_defined_for_f32.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="assignment\bitwise_and_equal_not_defined_for_f32.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="assignment\bitwise_or_equal_not_defined_for_f32.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="assignment\bitwise_xor_equal_not_defined_for_f32.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="assignment\cannot_shadow_in_the_same_scope.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
