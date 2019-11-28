@@ -9,17 +9,9 @@ function main
 
     return_statement_with_no_output()
     
-    assert return_2() == 2
-
     return 0
 end
 
 function return_statement_with_no_output
     return
-end
-
-function return_2
-    output I32
-
-    return 2
 end
