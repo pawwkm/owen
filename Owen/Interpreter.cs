@@ -35,7 +35,7 @@ namespace Owen
                     case OperatorTag.NotEqual:
                         return Run(binary.Left, variables) != Run(binary.Right, variables);
                     default:
-                        Report.Error($"{binary.Operator.DefinedAt} Cannot interpret the {binary.Operator.Tag} operator.");
+                        Report.Error($"{binary.Operator.Start} Cannot interpret the {binary.Operator.Tag} operator.");
                         return null;
                 }
             }
@@ -199,7 +199,7 @@ namespace Owen
                 else if (statement is AssertStatement assert)
                 {
                     if (!Run(assert.Assertion, variables))
-                        Report.Error($"{assert.Assertion.StartsAt()} Assertion failed.");
+                        Report.Error($"{assert.Assertion.Start} Assertion failed.");
                 }
                 else
                     throw new NotImplementedException($"Cannot interpret {statement.GetType().Name}.");

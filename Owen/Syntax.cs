@@ -127,7 +127,7 @@ namespace Owen
                 var assignment = new AssignmentStatement();
                 assignment.Left = left;
                 assignment.Operator = new Operator();
-                assignment.Operator.DefinedAt = source.Position.Copy();
+                assignment.Operator.Start = source.Position.Copy();
 
                 if (Consume(source, "+="))
                     assignment.Operator.Tag = OperatorTag.PlusEqual;
@@ -259,12 +259,16 @@ namespace Owen
                     Report.Error($"{source.Position} Expression expected.");
                 else
                 {
+                    if (left is BinaryExpression binary)
+                        binary.Right.End = right.End;
+
                     left = new BinaryExpression()
                     {
+                        Start = left.Start,
                         Left = left,
                         Operator = new Operator()
                         {
-                            DefinedAt = start,
+                            Start = start,
                             Tag = tag
                         },
                         Right = right
@@ -342,7 +346,9 @@ namespace Owen
                 number.Value = source.Text.Substring(start, source.Index - start);
 
                 UpdatePosition(source, start);
-                number.DeclaredAt = source.Position.Copy();
+                number.Start = source.Position.Copy();
+                number.End = source.Position.Copy();
+                number.End.Column += number.Value.Length;
 
                 if (Consume(source, "f32"))
                     number.Tag = NumberTag.F32;
@@ -362,7 +368,9 @@ namespace Owen
                 number.Value = source.Text.Substring(start, source.Index - start);
 
                 UpdatePosition(source, start);
-                number.DeclaredAt = source.Position.Copy();
+                number.Start = source.Position.Copy();
+                number.End = source.Position.Copy();
+                number.End.Column += number.Value.Length;
 
                 if (Consume(source, "i8"))
                     number.Tag = NumberTag.I8;
@@ -422,7 +430,9 @@ namespace Owen
                 else
                 {
                     UpdatePosition(source, start);
-                    identifier.DeclaredAt = source.Position.Copy();
+                    identifier.Start = source.Position.Copy();
+                    identifier.End = source.Position.Copy();
+                    identifier.End.Column += identifier.Value.Length;
 
                     Whitespace(source);
 

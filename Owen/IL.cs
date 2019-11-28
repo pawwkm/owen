@@ -108,7 +108,7 @@ namespace Owen
                         else if (assignment.Left[i] is Identifier reference)
                             variable = Lookup(body.Scope, reference);
                         else
-                            Report.Error($"{assignment.Left[i].StartsAt()} Cannot translate assignment to {assignment.Left[i].GetType().Name} to IL.");
+                            Report.Error($"{assignment.Left[i].Start} Cannot translate assignment to {assignment.Left[i].GetType().Name} to IL.");
 
                         var isUnsigned = variable.Type is PrimitiveType p &&
                                          p.Tag >= PrimitiveTypeTag.U8 && 
@@ -164,7 +164,7 @@ namespace Owen
                                 // want to error here.
                                 break;
                             default:
-                                Report.Error($"{assignment.Operator.DefinedAt} Cannot translate {assignment.Operator.Tag} to IL.");
+                                Report.Error($"{assignment.Operator.Start} Cannot translate {assignment.Operator.Tag} to IL.");
                                 break;
                         }
 
@@ -206,14 +206,14 @@ namespace Owen
                             }
                         }
                         else
-                            Report.Error($"{assignment.Left[i].StartsAt()} Cannot translate assignment to {variable.Type} to IL.");
+                            Report.Error($"{assignment.Left[i].Start} Cannot translate assignment to {variable.Type} to IL.");
 
                         if (variable is InputSymbol input)
                             instructions.Emit(OpCodes.Starg, input.Index);
                         else if (variable is LocalSymbol local)
                             instructions.Emit(OpCodes.Stloc, local.Index);
                         else
-                            Report.Error($"{assignment.Left[i].StartsAt()} Cannot translate reference to {variable.GetType().Name} to IL.");
+                            Report.Error($"{assignment.Left[i].Start} Cannot translate reference to {variable.GetType().Name} to IL.");
                     }
                 }
                 else if (statement is ExpressionStatement e)
@@ -255,14 +255,14 @@ namespace Owen
                         instructions.Emit(OpCodes.Ceq);
                         break;
                     default:
-                        Report.Error($"{binary.Operator.DefinedAt} Cannot translate {binary.Operator.Tag} to IL.");
+                        Report.Error($"{binary.Operator.Start} Cannot translate {binary.Operator.Tag} to IL.");
                         break;
                 }
             }
             else if (expression is Call call)
             {
                 if (call.Arguments.Count != 0)
-                    Report.Error($"{call.Reference.StartsAt()} Cannot translate arguments to IL.");
+                    Report.Error($"{call.Reference.Start} Cannot translate arguments to IL.");
 
                 instructions.Emit(OpCodes.Call, functionToBuilder[call.Declaration]);
             }
@@ -302,7 +302,7 @@ namespace Owen
                         instructions.Emit(OpCodes.Ldc_R8, double.Parse(number.Value));
                         break;
                     default:
-                        Report.Error($"{number.DeclaredAt} Cannot translate {number.Tag} to IL.");
+                        Report.Error($"{number.Start} Cannot translate {number.Tag} to IL.");
                         break;
                 }
             }
@@ -314,10 +314,10 @@ namespace Owen
                 else if (symbol is LocalSymbol local)
                     instructions.Emit(OpCodes.Ldloc, local.Index);
                 else
-                    Report.Error($"{reference.DeclaredAt} Cannot translate reference to {symbol.GetType().Name} to IL.");
+                    Report.Error($"{reference.Start} Cannot translate reference to {symbol.GetType().Name} to IL.");
             }
             else
-                Report.Error($"{expression.StartsAt()} Cannot translate {expression.GetType().Name} to IL.");
+                Report.Error($"{expression.Start} Cannot translate {expression.GetType().Name} to IL.");
         }
 
         private static ClrType ClrTypeFrom(Type type)

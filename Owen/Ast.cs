@@ -105,7 +105,7 @@ namespace Owen
 
     internal sealed class Operator
     {
-        public Position DefinedAt;
+        public Position Start;
         public OperatorTag Tag;
     }
 
@@ -151,17 +151,8 @@ namespace Owen
 
     internal abstract class Expression
     {
-        public Position StartsAt()
-        {
-            if (this is BinaryExpression binary)
-                return binary.Left.StartsAt();
-            else if (this is Number number)
-                return number.DeclaredAt;
-            else if (this is Identifier reference)
-                return reference.DeclaredAt;
-            else
-                throw new NotImplementedException($"Cannot find position of {GetType().Name}.");
-        }
+        public Position Start;
+        public Position End;
     }
 
     internal sealed class BinaryExpression : Expression
@@ -173,7 +164,6 @@ namespace Owen
 
     internal sealed class Number : Expression
     {
-        public Position DeclaredAt;
         public string Value;
         public NumberTag Tag;
     }
@@ -210,7 +200,6 @@ namespace Owen
 
     internal sealed class Identifier : Expression
     {
-        public Position DeclaredAt;
         public string Value;
     }
 

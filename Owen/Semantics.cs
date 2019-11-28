@@ -42,11 +42,11 @@ namespace Owen
             if (mainFunctions.Count == 0)
                 Report.Error("No main function defined.");
             else if (mainFunctions.Count > 1)
-                Report.Error($"Multiple main functons defined:\r\n{string.Join("\r\n", mainFunctions.Select(f => f.Name.DeclaredAt))}");
+                Report.Error($"Multiple main functons defined:\r\n{string.Join("\r\n", mainFunctions.Select(f => f.Name.Start))}");
 
             var main = mainFunctions[0];
             if (main.Output.Count != 1 || !Compare(main.Output[0], I32))
-                Report.Error($"{main.Name.DeclaredAt} main must output a single {I32}.");
+                Report.Error($"{main.Name.Start} main must output a single {I32}.");
         }
 
         private static void Analyze(File file, Program program)
@@ -77,7 +77,7 @@ namespace Owen
                 foreach (var argument in function.Input)
                 {
                     if (NullableLookup(function.Body.Scope, argument.Name.Value) is PrimitiveType primitive)
-                        Report.Error($"{argument.Name.DeclaredAt} Redeclares {argument.Name.Value}.");
+                        Report.Error($"{argument.Name.Start} Redeclares {argument.Name.Value}.");
                     else
                     {
                         function.Body.Scope.Symbols.Add(new InputSymbol()
@@ -100,9 +100,9 @@ namespace Owen
                 if (statement is AssignmentStatement assignment)
                 {
                     if (assignment.Left.Count > assignment.Right.Count)
-                        Report.Error($"{assignment.Left.Last().StartsAt()} No expression is being stored.");
+                        Report.Error($"{assignment.Left.Last().Start} No expression is being stored.");
                     else if (assignment.Left.Count < assignment.Right.Count)
-                        Report.Error($"{assignment.Right.Last().StartsAt()} No variable to store the value in.");
+                        Report.Error($"{assignment.Right.Last().Start} No variable to store the value in.");
                     else
                     {
                         var locals = CountLocals(compound.Scope);
@@ -120,7 +120,7 @@ namespace Owen
                                 {
                                     leftType = Analyze(right, null, compound.Scope);
                                     if (leftType == null)
-                                        Report.Error($"{right.StartsAt()} Cannot infer type of expression.");
+                                        Report.Error($"{right.Start} Cannot infer type of expression.");
                                     else
                                     {
                                         assignment.Left[i] = new VariableDeclaration()
@@ -143,11 +143,11 @@ namespace Owen
                                     leftType = Analyze(left, rightType, compound.Scope);
 
                                     if (!Compare(rightType, leftType))
-                                        Report.Error($"{right.StartsAt()} Expected {leftType} but found {rightType}.");
+                                        Report.Error($"{right.Start} Expected {leftType} but found {rightType}.");
                                 }
                             }
                             else
-                                Report.Error($"{left.StartsAt()} The expression is not addressable.");
+                                Report.Error($"{left.Start} The expression is not addressable.");
 
                             var operatorUsedOnNonInteger = (assignment.Operator.Tag == OperatorTag.BitwiseAndEqual ||
                                                             assignment.Operator.Tag == OperatorTag.BitwiseOrEqual ||
@@ -157,7 +157,7 @@ namespace Owen
                                                           (!(leftType is PrimitiveType) ||
                                                           ((PrimitiveType)leftType).Tag > PrimitiveTypeTag.U64);
                             if (operatorUsedOnNonInteger)
-                                Report.Error($"{assignment.Operator.DefinedAt} This operator is only defined for integer types.");
+                                Report.Error($"{assignment.Operator.Start} This operator is only defined for integer types.");
                         }
                     }
                 }
@@ -165,7 +165,7 @@ namespace Owen
                 {
                     Analyze(e.Expression, null, compound.Scope);
                     if (!(e.Expression is Call))
-                        Report.Error($"{e.Expression.StartsAt()} Call or pre/post increment/decrement expression expected.");
+                        Report.Error($"{e.Expression.Start} Call or pre/post increment/decrement expression expected.");
                 }
                 else if (statement is ReturnStatement r)
                 {
@@ -176,14 +176,14 @@ namespace Owen
                     {
                         var expressionType = Analyze(r.Expressions[i], output[i], compound.Scope);
                         if (expressionType != output[i])
-                            Report.Error($"{r.Expressions[i].StartsAt()} Expected {output[i]} but found {expressionType}.");
+                            Report.Error($"{r.Expressions[i].Start} Expected {output[i]} but found {expressionType}.");
                     }
                 }
                 else if (statement is AssertStatement assert)
                 {
                     var type = Analyze(assert.Assertion, null, compound.Scope);
                     if (!Compare(type, Bool))
-                        Report.Error($"{assert.Assertion.StartsAt()} {Bool} expression expected.");
+                        Report.Error($"{assert.Assertion.Start} {Bool} expression expected.");
                 }
                 else
                     Report.Error($"Cannot analyze {statement.GetType().Name}.");
@@ -198,7 +198,7 @@ namespace Owen
                 var rightType = Analyze(binary.Right, leftType, scope);
 
                 if (!Compare(leftType, rightType))
-                    Report.Error($"{binary.Right.StartsAt()} Expected {leftType} but found {rightType}.");
+                    Report.Error($"{binary.Right.Start} Expected {leftType} but found {rightType}.");
                 else
                     return new PrimitiveType()
                     {
@@ -224,12 +224,12 @@ namespace Owen
                 if (Analyze(call.Reference, null, scope) is FunctionDeclaration function)
                 {
                     if (call.Arguments.Count != function.Input.Count)
-                        Report.Error($"{call.Reference.StartsAt()} No function overload fitting the given input.");
+                        Report.Error($"{call.Reference.Start} No function overload fitting the given input.");
 
                     for (var i = 0; i < call.Arguments.Count; i++)
                     {
                         if (!Compare(function.Input[i].Type, Analyze(call.Arguments[i], function.Input[i].Type, scope)))
-                            Report.Error($"{call.Reference.StartsAt()} No function overload fitting the given input.");
+                            Report.Error($"{call.Reference.Start} No function overload fitting the given input.");
                     }
 
                     call.Declaration = function;
@@ -241,7 +241,7 @@ namespace Owen
                         throw new NotImplementedException($"Multiple return values not yet implemented.");
                 }
                 else
-                    Report.Error($"{call.Reference.StartsAt()} Function expected.");
+                    Report.Error($"{call.Reference.Start} Function expected.");
             }
 
             throw new NotImplementedException($"Cannot analyze {expression.GetType().Name}.");
@@ -251,7 +251,7 @@ namespace Owen
         {
             var type = NullableLookup(scope, name.Value);
             if (type == null)
-                Report.Error($"{name.DeclaredAt} Undefined reference to {name.Value}.");
+                Report.Error($"{name.Start} Undefined reference to {name.Value}.");
 
             return type;
         }
