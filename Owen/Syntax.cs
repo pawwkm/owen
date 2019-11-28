@@ -296,8 +296,11 @@ namespace Owen
 
                     return new Call()
                     {
+                        Start = expression.Start,
                         Reference = expression,
-                        Arguments = arguments
+                        Arguments = arguments,
+                        End = arguments.Count == 0 ? expression.End :
+                                                     arguments.Last().End
                     };
                 }
                 else
