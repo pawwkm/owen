@@ -72,16 +72,19 @@ namespace Owen
             foreach (var function in file.Functions)
             {
                 function.Body.Scope.Parent = file.Scope;
+                var index = default(ushort);
+
                 foreach (var argument in function.Input)
                 {
                     if (NullableLookup(function.Body.Scope, argument.Name.Value) is PrimitiveType primitive)
                         Report.Error($"{argument.Name.DeclaredAt} Redeclares {argument.Name.Value}.");
                     else
                     {
-                        function.Body.Scope.Symbols.Add(new Symbol()
+                        function.Body.Scope.Symbols.Add(new InputSymbol()
                         {
                             Name = argument.Name.Value,
-                            Type = argument.Type
+                            Type = argument.Type,
+                            Index = index++
                         });
                     }
                 }
@@ -102,9 +105,9 @@ namespace Owen
                         Report.Error($"{assignment.Right.Last().StartsAt()} No variable to store the value in.");
                     else
                     {
+                        var locals = CountLocals(compound.Scope);
                         for (var i = 0; i < assignment.Left.Count; i++)
                         {
-                            // Test that both operands are primitives!
                             var left = assignment.Left[i];
                             var leftType = default(Type);
 
@@ -126,10 +129,11 @@ namespace Owen
                                             Variable = reference
                                         };
 
-                                        compound.Scope.Symbols.Add(new Symbol()
+                                        compound.Scope.Symbols.Add(new LocalSymbol()
                                         {
                                             Name = reference.Value,
-                                            Type = leftType
+                                            Type = leftType,
+                                            Index = locals++
                                         });
                                     }
                                 }
@@ -272,6 +276,21 @@ namespace Owen
                 return pa.Tag == pb.Tag;
             else
                 return false;
+        }
+
+        private static ushort CountLocals(Scope scope)
+        {
+            ushort count = 0;
+            foreach (var symbol in scope.Symbols)
+            {
+                if (symbol is LocalSymbol)
+                    count++;
+            }
+
+            if (scope.Parent == null)
+                return count;
+            else
+                return (ushort)(count + CountLocals(scope.Parent));
         }
     }
 }

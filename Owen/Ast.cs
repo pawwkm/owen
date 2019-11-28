@@ -45,10 +45,20 @@ namespace Owen
         public List<Symbol> Symbols = new List<Symbol>();
     }
 
-    internal sealed class Symbol
+    internal class Symbol
     {
         public string Name;
         public Type Type;
+    }
+
+    internal sealed class LocalSymbol : Symbol
+    {
+        public ushort Index;
+    }
+
+    internal sealed class InputSymbol : Symbol
+    {
+        public ushort Index;
     }
 
     internal abstract class Type
