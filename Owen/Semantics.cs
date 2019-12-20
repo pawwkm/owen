@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace Owen
@@ -57,15 +56,15 @@ namespace Owen
             foreach (var function in file.Functions)
             {
                 for (var i = 0; i < function.Input.Count; i++)
-                    function.Input[i].Type = Lookup(file.Scope, ((UnresolvedType)function.Input[i].Type).Identifier);
+                    function.Input[i].Type = Analyze(function.Input[i].Type, file.Scope);
 
                 if (function.Output is TupleType tuple)
                 {
                     for (var i = 0; i < tuple.Types.Count; i++)
-                        tuple.Types[i] = Lookup(file.Scope, ((UnresolvedType)tuple.Types[i]).Identifier);
+                        tuple.Types[i] = Analyze(tuple.Types[i], file.Scope);
                 }
                 else if (function.Output != null)
-                    function.Output = Lookup(file.Scope, ((UnresolvedType)function.Output).Identifier);
+                    function.Output = Analyze(function.Output, file.Scope);
 
                 file.Scope.Symbols.Add(new Symbol()
                 {
@@ -139,7 +138,7 @@ namespace Owen
                             else if (!Compare(leftType, rightType))
                                 Report.Error($"{right} Expected {leftType} but found {rightType}.");
                         }
-                        else
+                        else if (!Compare(left.Type, rightType))
                             Report.Error($"{left.Start} The expression is not addressable.");
 
                         var operatorUsedOnNonInteger = (assignment.Operator.Tag == OperatorTag.BitwiseAndEqual  ||
@@ -187,6 +186,8 @@ namespace Owen
                             else
                                 rightType = Analyze(assignment.Right[r], rightType, compound.Scope);
                         }
+                        else
+                            rightType = Analyze(assignment.Right[r], Analyze(assignment.Left[r], null, compound.Scope), compound.Scope);
 
                         assignment.Left[r] = Assign(assignment.Left[r], rightType, assignment.Right[r].Start); 
                     }
@@ -296,8 +297,40 @@ namespace Owen
                 else
                     Report.Error($"{call.Reference.Start} Function expected.");
             }
+            else if (expression is AddressOf ao)
+            {
+                ao.Type = new Pointer()
+                {
+                    To = Analyze(ao.Expression, null, scope)
+                };
+
+                return ao.Type;
+            }
+            else if (expression is Dereference dereference)
+            {
+                if (Analyze(dereference.Expression, null, scope) is Pointer pointer)
+                    return dereference.Type = pointer.To;
+                else
+                    Report.Error($"{dereference.Start} Cannot dereference {dereference.Expression.Type}.");
+            }
 
             throw new NotImplementedException($"Cannot analyze {expression.GetType().Name}.");
+        }
+
+        private static Type Analyze(Type type, Scope scope)
+        {
+            if (type is Pointer pointer)
+            {
+                pointer.To = Analyze(pointer.To, scope);
+
+                return pointer;
+            }
+            else if (type is UnresolvedType unresolved)
+                return Lookup(scope, unresolved.Identifier);
+            else
+                Report.Error($"Cannot analyze {type.GetType().Name}.");
+
+            return null;
         }
 
         private static Type Lookup(Scope scope, Identifier name)
@@ -327,6 +360,8 @@ namespace Owen
         {
             if (a is PrimitiveType pa && b is PrimitiveType pb)
                 return pa.Tag == pb.Tag;
+            else if (a is Pointer ptra && b is Pointer ptrb)
+                return Compare(ptra.To, ptrb.To);
             else if (a is TupleType ta && b is TupleType tb)
             {
                 if (ta.Types.Count != tb.Types.Count)

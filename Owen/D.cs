@@ -140,6 +140,11 @@ namespace Owen
                         break;
                 }
             }
+            else if (type is Pointer pointer)
+            {
+                Generate(pointer.To, builder);
+                builder.Append('*');
+            }
             else if (type == null)
                 builder.Append("void ");
             else if (type is TupleType tuple)
@@ -354,6 +359,16 @@ namespace Owen
             }
             else if (expression is Identifier reference)
                 builder.Append(reference.Value);
+            else if (expression is Dereference dereference)
+            {
+                builder.Append('*');
+                Generate(dereference.Expression, builder);
+            }
+            else if (expression is AddressOf addressOf)
+            {
+                builder.Append('&');
+                Generate(addressOf.Expression, builder);
+            }
             else
                 Report.Error($"Cannot translate {expression.GetType().Name} to D.");
         }

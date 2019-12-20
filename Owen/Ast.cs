@@ -71,6 +71,11 @@ namespace Owen
             Tag.ToString();
     }
 
+    internal sealed class PointerTo : Type
+    {
+        public Type Type;
+    }
+
     internal sealed class UnresolvedType : Type
     {
         public Identifier Identifier;
@@ -94,6 +99,11 @@ namespace Owen
     internal sealed class TupleType : Type
     {
         public List<Type> Types;
+    }
+
+    internal sealed class Pointer : Type
+    {
+        public Type To;
     }
 
     internal abstract class Statement
@@ -164,6 +174,16 @@ namespace Owen
         public Expression Left;
         public Operator Operator;
         public Expression Right;
+    }
+
+    internal sealed class AddressOf : Expression
+    {
+        public Expression Expression;
+    }
+
+    internal sealed class Dereference : Expression
+    {
+        public Expression Expression;
     }
 
     internal sealed class Number : Expression

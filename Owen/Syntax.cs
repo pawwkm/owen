@@ -55,21 +55,15 @@ namespace Owen
                     do
                     {
                         var argument = new Argument();
-                        var identifier = default(Identifier);
+                        argument.Type = Type(source);
+                        if (argument.Type == null)
+                            Report.Error($"{source.Position} Type expected.");
 
-                        if ((identifier = Identifier(source)) == null)
-                            Report.Error("Type expected.");
-                        else if ((argument.Name = Identifier(source)) == null)
-                            Report.Error("Type expected.");
-                        else
-                        {
-                            argument.Type = new UnresolvedType()
-                            {
-                                Identifier = identifier
-                            };
+                        argument.Name = Identifier(source);
+                        if (argument.Name == null)
+                            Report.Error($"{source.Position} Identifier expected.");
 
-                            declaration.Input.Add(argument);
-                        }
+                        declaration.Input.Add(argument);
                     } while (Consume(source, ","));
                 }
 
@@ -292,7 +286,35 @@ namespace Owen
 
         private static Expression PrefixExpression(Source source)
         {
-            return PostfixExpression(source);
+            var start = source.Position.Copy();
+            if (Consume(source, "&"))
+            {
+                var expression = PostfixExpression(source);
+                if (expression == null)
+                    Report.Error($"{source.Position} Expression expected.");
+                
+                return new AddressOf()
+                {
+                    Start = start,
+                    Expression = expression,
+                    End = expression.End
+                };
+            }
+            else if (Consume(source, "*"))
+            {
+                var expression = PostfixExpression(source);
+                if (expression == null)
+                    Report.Error($"{source.Position} Expression expected.");
+
+                return new Dereference()
+                {
+                    Start = start,
+                    Expression = expression,
+                    End = expression.End
+                };
+            }
+            else
+                return PostfixExpression(source);
         }
 
         private static Expression PostfixExpression(Source source)
@@ -343,7 +365,7 @@ namespace Owen
                 UpdatePosition(source, source.Index);
                 Report.Error($"{source.Position} Digit expected.");
             }
-
+            
             if (source.Text[source.Index] == '.')
             {
                 var afterDot = ++source.Index;
@@ -452,6 +474,57 @@ namespace Owen
 
                     return identifier;
                 }
+            }
+        }
+
+        private static Type Type(Source source)
+        {
+            var firstPointerOrArray = default(Type);
+            var lastPointerOrArray = default(Type);
+
+            while (true)
+            {
+                if (Consume(source, "*"))
+                {
+                    if (firstPointerOrArray == null)
+                    {
+                        firstPointerOrArray = new Pointer();
+                        lastPointerOrArray = firstPointerOrArray;
+                    }
+                    else if (lastPointerOrArray is Pointer pointer)
+                    {
+                        pointer.To = new Pointer();
+                        lastPointerOrArray = pointer.To;
+                    }
+                }
+                else
+                    break;
+            }
+
+            if (Consume(source, "function"))
+                Report.Error($"{source.Position} Function types not supported.");
+
+            var unresolved = new UnresolvedType()
+            {
+                Identifier = Identifier(source)
+            };
+
+            if (unresolved.Identifier == null)
+            {
+                if (firstPointerOrArray == null)
+                    Report.Error($"{source.Position} Identifier expected.");
+                
+                return null;
+            }
+            else
+            {
+                if (lastPointerOrArray is Pointer pointer)
+                {
+                    pointer.To = unresolved;
+                    return firstPointerOrArray;
+                }
+                else
+                    return unresolved;
             }
         }
 

@@ -137,6 +137,9 @@
     <None Include="function\main\no_main_defined.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="pointer\asdf.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="return\call_outputting_multiple_values_must_be_the_only_expression.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
