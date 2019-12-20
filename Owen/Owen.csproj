@@ -47,7 +47,6 @@
     <Compile Include="Compiler.cs" />
     <Compile Include="Interpreter.cs" />
     <Compile Include="D.cs" />
-    <Compile Include="IL.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Report.cs" />
     <Compile Include="Semantics.cs" />
