@@ -1,4 +1,4 @@
-﻿// expect assignment\to_many_on_the_right_hand_side.owen:8:15: No variable to store the value in.
+﻿// expect assignment\to_many_on_the_right_hand_side.owen:8:7: Assignment mismatch of 1 variable and 2 outputs.
 
 namespace Test
 

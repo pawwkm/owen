@@ -42,27 +42,14 @@ namespace Test
                 var relativePath = path.Substring(Environment.CurrentDirectory.Length + 1);
                 if (meta != null)
                 {
-                    var debug = Run(meta, relativePath, false);
                     var release = Run(meta, relativePath, true);
-
-                    if (debug.Error || release.Error)
+                    if (release.Error)
                     {
                         Console.ForegroundColor = ConsoleColor.Red;
                         Console.WriteLine(relativePath);
 
                         Console.ForegroundColor = ConsoleColor.White;
-                        
-                        if (debug.Error)
-                        {
-                            Console.ForegroundColor = ConsoleColor.White;
-                            Console.Write("Debug:   ");
-                            Console.ForegroundColor = ConsoleColor.Green;
-                            Console.WriteLine(meta);
-
-                            Console.ForegroundColor = ConsoleColor.Red;
-                            Console.WriteLine($"         {debug.Message}");
-                        }
-
+                      
                         if (release.Error)
                         {
                             Console.ForegroundColor = ConsoleColor.White;

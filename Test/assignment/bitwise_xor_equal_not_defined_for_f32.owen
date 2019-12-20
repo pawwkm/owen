@@ -1,4 +1,4 @@
-﻿// expect assignment\bitwise_xor_equal_not_defined_for_f32.owen:9:5: This operator is only defined for integer types.
+﻿// expect assignment\bitwise_xor_equal_not_defined_for_f32.owen:9:7: This operator is only defined for integer types.
 
 namespace Test
 

@@ -1,4 +1,4 @@
-﻿// expect assignment\left_shift_equal_not_defined_for_f64.owen:9:5: This operator is only defined for integer types.
+﻿// expect assignment\left_shift_equal_not_defined_for_f64.owen:9:7: This operator is only defined for integer types.
 
 namespace Test
 

@@ -119,6 +119,9 @@
     <None Include="assignment\i8.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="assignment\refer_to_earlier_declarations.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="function\input_names_can_shadow_declarations.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -134,6 +137,9 @@
     <None Include="function\main\no_main_defined.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="return\call_outputting_multiple_values_must_be_the_only_expression.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="return\no_output_defined_but_returns_a_value.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -143,10 +149,16 @@
     <None Include="return\expressions_must_match_output_types.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="return\valid.owen">
+    <None Include="return\outputs_must_match_variables.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="assignment\valid.owen">
+    <None Include="return\return_statement_with_multiple_ouputs.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="return\return_statement_with_no_output.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="assignment\multiple_assignment_of_literals.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

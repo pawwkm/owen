@@ -96,124 +96,146 @@ namespace Owen
             {
                 if (statement is AssignmentStatement assignment)
                 {
-                    for (var i = 0; i < assignment.Left.Count; i++)
+                    var l = 0;
+                    foreach (var right in assignment.Right)
                     {
-                        // https://sharplab.io/#v2:C4LglgNgNAJiDUAfAAgJgIwFgBQyDMABGgQMIEDeOB1RhyALAQLIAUAlBVTdwG4CGAJwJ8CAXgIAGANxdu1EfHGoZ2OTREBacehVr5BAFTiArLr0iA9ErNqRAUnF4bckQDJHz7iMQfZLggB64vSe6gQAPOHWfl4EAHxx0armYgT0yn4AvjiZQA==
-                        var variable = default(Symbol);
-                        if (assignment.Left[i] is VariableDeclaration declaration)
+                        // https://sharplab.io/#v2:C4LglgNgPgAgTARgLACgYGYAEMEDZtyYDCmA3qppdljvjACyYCyAFAJRkVXcBuAhgCdMLPgBpMAIw4BeZgFcIwMAAcIAUwBKa4HIEA7AGp8IctQGd2Abi7dK/IQGNMsgMpg9Ac3Vad+oybUrG0wAX2DgjGw8YXdgcRwABg4mBSVVTW1dQ2NTCzZg8hRbKhgAdmEEcQAiPjMAEwAzKrZLKmCworbOykjaTFjMN09vTL8cwPzuzinuMsw4aymOkKA=
+
+                        void Assign(Expression left, Expression r)
                         {
-                            instructions.DeclareLocal(ClrTypeFrom(declaration.Type));
-                            variable = Lookup(body.Scope, declaration.Variable);
-                        }
-                        else if (assignment.Left[i] is Identifier reference)
-                            variable = Lookup(body.Scope, reference);
-                        else
-                            Report.Error($"{assignment.Left[i].Start} Cannot translate assignment to {assignment.Left[i].GetType().Name} to IL.");
-
-                        var isUnsigned = variable.Type is PrimitiveType p &&
-                                         p.Tag >= PrimitiveTypeTag.U8 && 
-                                         p.Tag <= PrimitiveTypeTag.U64;
-
-                        if (assignment.Operator.Tag != OperatorTag.Equal)
-                            Generate(assignment.Left[i], body.Scope, instructions, functionToBuilder);
-
-                        Generate(assignment.Right[i], body.Scope, instructions, functionToBuilder);
-                        switch (assignment.Operator.Tag)
-                        {
-                            case OperatorTag.PlusEqual:
-                                instructions.Emit(OpCodes.Add);
-                                break;
-                            case OperatorTag.MinusEqual:
-                                instructions.Emit(OpCodes.Sub);
-                                break;
-                            case OperatorTag.MultiplyEqual:
-                                instructions.Emit(OpCodes.Mul);
-                                break;
-                            case OperatorTag.DivideEqual:
-                                if (isUnsigned)
-                                    instructions.Emit(OpCodes.Div_Un);
-                                else
-                                    instructions.Emit(OpCodes.Div);
-                                break;
-                            case OperatorTag.BitwiseAndEqual:
-                                instructions.Emit(OpCodes.And);
-                                break;
-                            case OperatorTag.BitwiseOrEqual:
-                                instructions.Emit(OpCodes.Or);
-                                break;
-                            case OperatorTag.BitwiseXorEqual:
-                                instructions.Emit(OpCodes.Xor);
-                                break;
-                            case OperatorTag.ModuloEqual:
-                                if (isUnsigned)
-                                    instructions.Emit(OpCodes.Rem_Un);
-                                else
-                                    instructions.Emit(OpCodes.Rem);
-                                break;
-                            case OperatorTag.LeftShiftEqual:
-                                instructions.Emit(OpCodes.Shl);
-                                break;
-                            case OperatorTag.RightShiftEqual:
-                                if (isUnsigned)
-                                    instructions.Emit(OpCodes.Shr_Un);
-                                else
-                                    instructions.Emit(OpCodes.Shr);
-                                break;
-                            case OperatorTag.Equal:
-                                // This is handled inplicitly later but we don't
-                                // want to error here.
-                                break;
-                            default:
-                                Report.Error($"{assignment.Operator.Start} Cannot translate {assignment.Operator.Tag} to IL.");
-                                break;
-                        }
-
-                        // convert back here. Ex. conv.i1 for I8.
-                        if (variable.Type is PrimitiveType primitive)
-                        {
-                            switch (primitive.Tag)
+                            var variable = default(Symbol);
+                            if (left is VariableDeclaration declaration)
                             {
-                                case PrimitiveTypeTag.I8:
-                                    instructions.Emit(OpCodes.Conv_I1);
+                                instructions.DeclareLocal(ClrTypeFrom(declaration.Type));
+                                variable = Lookup(body.Scope, declaration.Variable);
+                            }
+                            else if (left is Identifier reference)
+                                variable = Lookup(body.Scope, reference);
+                            else
+                                Report.Error($"{left.Start} Cannot translate assignment to {left.GetType().Name} to IL.");
+
+                            var isUnsigned = variable.Type is PrimitiveType p &&
+                                             p.Tag >= PrimitiveTypeTag.U8 &&
+                                             p.Tag <= PrimitiveTypeTag.U64;
+
+                            if (assignment.Operator.Tag != OperatorTag.Equal)
+                                Generate(left, body.Scope, instructions, functionToBuilder);
+
+                            if (r != null)
+                                Generate(r, body.Scope, instructions, functionToBuilder);
+
+                            switch (assignment.Operator.Tag)
+                            {
+                                case OperatorTag.PlusEqual:
+                                    instructions.Emit(OpCodes.Add);
                                     break;
-                                case PrimitiveTypeTag.I16:
-                                    instructions.Emit(OpCodes.Conv_I2);
+                                case OperatorTag.MinusEqual:
+                                    instructions.Emit(OpCodes.Sub);
                                     break;
-                                case PrimitiveTypeTag.I32:
-                                    instructions.Emit(OpCodes.Conv_I4);
+                                case OperatorTag.MultiplyEqual:
+                                    instructions.Emit(OpCodes.Mul);
                                     break;
-                                case PrimitiveTypeTag.I64:
-                                    instructions.Emit(OpCodes.Conv_I8);
+                                case OperatorTag.DivideEqual:
+                                    if (isUnsigned)
+                                        instructions.Emit(OpCodes.Div_Un);
+                                    else
+                                        instructions.Emit(OpCodes.Div);
                                     break;
-                                case PrimitiveTypeTag.U8:
-                                    instructions.Emit(OpCodes.Conv_U1);
+                                case OperatorTag.BitwiseAndEqual:
+                                    instructions.Emit(OpCodes.And);
                                     break;
-                                case PrimitiveTypeTag.U16:
-                                    instructions.Emit(OpCodes.Conv_U2);
+                                case OperatorTag.BitwiseOrEqual:
+                                    instructions.Emit(OpCodes.Or);
                                     break;
-                                case PrimitiveTypeTag.U32:
-                                    instructions.Emit(OpCodes.Conv_U4);
+                                case OperatorTag.BitwiseXorEqual:
+                                    instructions.Emit(OpCodes.Xor);
                                     break;
-                                case PrimitiveTypeTag.U64:
-                                    instructions.Emit(OpCodes.Conv_U8);
+                                case OperatorTag.ModuloEqual:
+                                    if (isUnsigned)
+                                        instructions.Emit(OpCodes.Rem_Un);
+                                    else
+                                        instructions.Emit(OpCodes.Rem);
                                     break;
-                                case PrimitiveTypeTag.F32:
-                                    instructions.Emit(OpCodes.Conv_R4);
+                                case OperatorTag.LeftShiftEqual:
+                                    instructions.Emit(OpCodes.Shl);
                                     break;
-                                case PrimitiveTypeTag.F64:
-                                    instructions.Emit(OpCodes.Conv_R8);
+                                case OperatorTag.RightShiftEqual:
+                                    if (isUnsigned)
+                                        instructions.Emit(OpCodes.Shr_Un);
+                                    else
+                                        instructions.Emit(OpCodes.Shr);
                                     break;
+                                case OperatorTag.Equal:
+                                    // This is handled inplicitly later but we don't
+                                    // want to error here.
+                                    break;
+                                default:
+                                    Report.Error($"{assignment.Operator.Start} Cannot translate {assignment.Operator.Tag} to IL.");
+                                    break;
+                            }
+
+                            if (variable.Type is PrimitiveType primitive)
+                            {
+                                switch (primitive.Tag)
+                                {
+                                    case PrimitiveTypeTag.I8:
+                                        instructions.Emit(OpCodes.Conv_I1);
+                                        break;
+                                    case PrimitiveTypeTag.I16:
+                                        instructions.Emit(OpCodes.Conv_I2);
+                                        break;
+                                    case PrimitiveTypeTag.I32:
+                                        instructions.Emit(OpCodes.Conv_I4);
+                                        break;
+                                    case PrimitiveTypeTag.I64:
+                                        instructions.Emit(OpCodes.Conv_I8);
+                                        break;
+                                    case PrimitiveTypeTag.U8:
+                                        instructions.Emit(OpCodes.Conv_U1);
+                                        break;
+                                    case PrimitiveTypeTag.U16:
+                                        instructions.Emit(OpCodes.Conv_U2);
+                                        break;
+                                    case PrimitiveTypeTag.U32:
+                                        instructions.Emit(OpCodes.Conv_U4);
+                                        break;
+                                    case PrimitiveTypeTag.U64:
+                                        instructions.Emit(OpCodes.Conv_U8);
+                                        break;
+                                    case PrimitiveTypeTag.F32:
+                                        instructions.Emit(OpCodes.Conv_R4);
+                                        break;
+                                    case PrimitiveTypeTag.F64:
+                                        instructions.Emit(OpCodes.Conv_R8);
+                                        break;
+                                }
+                            }
+                            else
+                                Report.Error($"{left.Start} Cannot translate assignment to {variable.Type} to IL.");
+
+                            if (variable is InputSymbol input)
+                                instructions.Emit(OpCodes.Starg, input.Index);
+                            else if (variable is LocalSymbol local)
+                                instructions.Emit(OpCodes.Stloc, local.Index);
+                            else
+                                Report.Error($"{left.Start} Cannot translate reference to {variable.GetType().Name} to IL.");
+                        }
+
+                        if (right is Call call && call.Declaration.Output is TupleType tuple)
+                        {
+                            Generate(right, body.Scope, instructions, functionToBuilder);
+
+                            var clrType = ClrTypeFrom(tuple);
+                            for (var i = 0; i < tuple.Types.Count; i++)
+                            {
+                                instructions.Emit(OpCodes.Dup);
+                                instructions.Emit(OpCodes.Ldfld, clrType.GetField($"Item{i + 1}"));
+
+                                Assign(assignment.Left[l++], null);
                             }
                         }
                         else
-                            Report.Error($"{assignment.Left[i].Start} Cannot translate assignment to {variable.Type} to IL.");
-
-                        if (variable is InputSymbol input)
-                            instructions.Emit(OpCodes.Starg, input.Index);
-                        else if (variable is LocalSymbol local)
-                            instructions.Emit(OpCodes.Stloc, local.Index);
-                        else
-                            Report.Error($"{assignment.Left[i].Start} Cannot translate reference to {variable.GetType().Name} to IL.");
+                            Assign(assignment.Left[l++], right);
                     }
                 }
                 else if (statement is ExpressionStatement e)
@@ -223,7 +245,17 @@ namespace Owen
                     if (r.Expressions.Count == 1)
                         Generate(r.Expressions[0], body.Scope, instructions, functionToBuilder);
                     else if (r.Expressions.Count > 1)
-                        Report.Error($"Cannot translate multiple return values to Clr.");
+                    {
+                        foreach (var expression in r.Expressions)
+                            Generate(expression, body.Scope, instructions, functionToBuilder);
+
+                        var tuple = ClrTypeFrom(new TupleType() { Types = r.Expressions.Select(expression => expression.Type).ToList() });
+                        instructions.Emit(OpCodes.Newobj, tuple.GetConstructors().First());
+
+                        // push every expression to the stack
+                        // new instance of return ValueType.
+                        // Report.Error($"Cannot translate multiple return values to Clr."); // https://sharplab.io/#v2:C4LglgNgPgAgTARgLACgYGYAEMEDZtyYDCmA3qppdljvjACyYCyAFAJRkVXcBuAhgCdMLPgBpMAIw4BeZgFcIwMAAcIAUwBKa4HIEA7AGp8IctQGd2Abi7dK/IQGNMsgMpg9Ac3Vad+oybUrG0wAX2DgjGw8YXdgcRwABg4mBSVVTW1dQ2NTCzZg8hRbKhgAdmEEcQAiPjMAEwAzKrZLKmCworbOykjaTFjMN09vTL8cwPzuzinuMsw4aymOkKA=
+                    }
 
                     instructions.Emit(OpCodes.Ret);
                 }
@@ -348,20 +380,72 @@ namespace Owen
                         return typeof(double);
                 }
             }
+            else if (type is TupleType tuple)
+            {
+                switch (tuple.Types.Count)
+                {
+                    case 2:
+                        return typeof(ValueTuple<,>).MakeGenericType
+                        (
+                            ClrTypeFrom(tuple.Types[0]), 
+                            ClrTypeFrom(tuple.Types[1])
+                        );
+                    case 3:
+                        return typeof(ValueTuple<,,>).MakeGenericType
+                        (
+                            ClrTypeFrom(tuple.Types[0]),
+                            ClrTypeFrom(tuple.Types[1]),
+                            ClrTypeFrom(tuple.Types[2])
+                        );
+                    case 4:
+                        return typeof(ValueTuple<,,,>).MakeGenericType
+                        (
+                            ClrTypeFrom(tuple.Types[0]),
+                            ClrTypeFrom(tuple.Types[1]),
+                            ClrTypeFrom(tuple.Types[2]),
+                            ClrTypeFrom(tuple.Types[3])
+                        );
+                    case 5:
+                        return typeof(ValueTuple<,,,,>).MakeGenericType
+                        (
+                            ClrTypeFrom(tuple.Types[0]),
+                            ClrTypeFrom(tuple.Types[1]),
+                            ClrTypeFrom(tuple.Types[2]),
+                            ClrTypeFrom(tuple.Types[3]),
+                            ClrTypeFrom(tuple.Types[4])
+                        );
+                    case 6:
+                        return typeof(ValueTuple<,,,,,>).MakeGenericType
+                        (
+                            ClrTypeFrom(tuple.Types[0]),
+                            ClrTypeFrom(tuple.Types[1]),
+                            ClrTypeFrom(tuple.Types[2]),
+                            ClrTypeFrom(tuple.Types[3]),
+                            ClrTypeFrom(tuple.Types[4]),
+                            ClrTypeFrom(tuple.Types[5])
+                        );
+                    case 7:
+                        return typeof(ValueTuple<,,,,,,>).MakeGenericType
+                        (
+                            ClrTypeFrom(tuple.Types[0]),
+                            ClrTypeFrom(tuple.Types[1]),
+                            ClrTypeFrom(tuple.Types[2]),
+                            ClrTypeFrom(tuple.Types[3]),
+                            ClrTypeFrom(tuple.Types[4]),
+                            ClrTypeFrom(tuple.Types[5]),
+                            ClrTypeFrom(tuple.Types[6])
+                        );
+                    default:
+                        Report.Error($"Cannot translate a tuple of {tuple.Types.Count} values to a Clr type.");
+                        break;
+                }
+            }
+            else if (type == null)
+                return typeof(void);
             
             Report.Error($"Cannot translate {type} to a Clr type.");
 
             return null;
-        }
-
-        private static ClrType ClrTypeFrom(List<Type> types)
-        {
-            if (types.Count == 0)
-                return typeof(void);
-            else if (types.Count == 1)
-                return ClrTypeFrom(types[0]);
-            else
-                throw new NotImplementedException("Cannot translate a tuple to a Clr type.");
         }
 
         private static Symbol Lookup(Scope scope, Identifier name)

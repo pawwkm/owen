@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace Owen
 {
-	internal sealed class Program
+    internal sealed class Program
     {
         public Scope Scope = new Scope(); 
         public List<File> Files = new List<File>();
@@ -23,7 +22,7 @@ namespace Owen
     {
         public Identifier Name;
         public List<Argument> Input = new List<Argument>();
-        public List<Type> Output = new List<Type>();
+        public Type Output;
         public CompoundStatement Body;
     }
 
@@ -92,6 +91,11 @@ namespace Owen
         Bool
     }
 
+    internal sealed class TupleType : Type
+    {
+        public List<Type> Types;
+    }
+
     internal abstract class Statement
     {
     }
@@ -129,7 +133,6 @@ namespace Owen
 
     internal sealed class VariableDeclaration : Expression
     {
-        public Type Type;
         public Identifier Variable;
     }
 
@@ -151,6 +154,7 @@ namespace Owen
 
     internal abstract class Expression
     {
+        public Type Type;
         public Position Start;
         public Position End;
     }

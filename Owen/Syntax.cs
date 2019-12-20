@@ -75,17 +75,26 @@ namespace Owen
 
                 if (Consume(source, "output"))
                 {
+                    var types = new List<Type>();
                     do
                     {
                         var identifier = Identifier(source);
                         if (identifier == null)
                             Report.Error("Identifier expected.");
                         else
-                            declaration.Output.Add(new UnresolvedType()
+                            types.Add(new UnresolvedType()
                             {
                                 Identifier = identifier
                             });
                     } while (Consume(source, ","));
+
+                    if (types.Count == 1)
+                        declaration.Output = types[0];
+                    else if (types.Count > 1)
+                        declaration.Output = new TupleType()
+                        {
+                            Types = types
+                        };
                 }
 
                 declaration.Body = CompoundStatement(source);
@@ -124,6 +133,8 @@ namespace Owen
             var left = Expressions(source);
             if (left.Count != 0)
             {
+                UpdatePosition(source, source.Index);
+
                 var assignment = new AssignmentStatement();
                 assignment.Left = left;
                 assignment.Operator = new Operator();
