@@ -1,0 +1,13 @@
+﻿// expect enumeration\type_of_non_integer.owen:5:13: Enumeration type is not an integer type.
+
+namespace Enumerations
+
+enumeration Enum of F32
+    Enum
+end
+
+function main
+    output I32
+
+    return 0
+end

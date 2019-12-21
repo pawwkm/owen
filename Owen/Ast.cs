@@ -14,6 +14,7 @@ namespace Owen
 		public Identifier Namespace;
         public string Path;
         public List<FunctionDeclaration> Functions = new List<FunctionDeclaration>();
+        public List<EnumerationDeclaration> Enumerations = new List<EnumerationDeclaration>();
         public List<Expression> Ctfe = new List<Expression>();
         public List<Expression> Mixins = new List<Expression>();
 	}
@@ -30,6 +31,20 @@ namespace Owen
     {
         public Type Type;
         public Identifier Name;
+    }
+
+    internal sealed class EnumerationDeclaration : Type
+    {
+        public Identifier Name;
+        public Type Type;
+
+        public List<EnumerationConstant> Constants = new List<EnumerationConstant>();
+    }
+
+    internal sealed class EnumerationConstant
+    {
+        public Identifier Name;
+        public Number Value;
     }
 
     internal sealed class CompoundStatement
@@ -184,6 +199,12 @@ namespace Owen
     internal sealed class Dereference : Expression
     {
         public Expression Expression;
+    }
+
+    internal sealed class DotExpression : Expression
+    {
+        public Expression Structure;
+        public Expression Field;
     }
 
     internal sealed class Number : Expression

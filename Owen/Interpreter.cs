@@ -54,35 +54,19 @@ namespace Owen
                 return Run(call.Declaration.Body, input);
             }
             else if (expression is Number number)
-            {
-                switch (number.Tag)
-                {
-                    case NumberTag.I8:
-                        return sbyte.Parse(number.Value);
-                    case NumberTag.I16:
-                        return short.Parse(number.Value);
-                    case NumberTag.I32:
-                        return int.Parse(number.Value);
-                    case NumberTag.I64:
-                        return long.Parse(number.Value);
-                    case NumberTag.U8:
-                        return byte.Parse(number.Value);
-                    case NumberTag.U16:
-                        return ushort.Parse(number.Value);
-                    case NumberTag.U32:
-                        return uint.Parse(number.Value);
-                    case NumberTag.U64:
-                        return ulong.Parse(number.Value);
-                    case NumberTag.F32:
-                        return float.Parse(number.Value);
-                    case NumberTag.F64:
-                        return double.Parse(number.Value);
-                    default:
-                        throw new NotImplementedException($"Cannot interpret {expression.GetType().Name}");
-                }
-            }
+                return ToNumber(number.Value, number.Tag);
             else if (expression is Identifier reference)
                 return variables.Find(v => v.Name == reference.Value).Value;
+            else if (expression is DotExpression dot)
+            {
+                if (dot.Structure.Type is EnumerationDeclaration enumeration)
+                {
+                    var constant = enumeration.Constants.First(c => c.Name.Value == ((Identifier)dot.Field).Value);
+                    return ToNumber(constant.Value.Value, constant.Value.Tag);
+                }
+                else
+                    throw new NotImplementedException($"Cannot interpret {expression.GetType().Name}");
+            }
             else
                 throw new NotImplementedException($"Cannot interpret {expression.GetType().Name}");
         }
@@ -217,6 +201,35 @@ namespace Owen
             }
 
             return null;
+        }
+
+        private static dynamic ToNumber(string value, NumberTag tag)
+        {
+            switch (tag)
+            {
+                case NumberTag.I8:
+                    return sbyte.Parse(value);
+                case NumberTag.I16:
+                    return short.Parse(value);
+                case NumberTag.I32:
+                    return int.Parse(value);
+                case NumberTag.I64:
+                    return long.Parse(value);
+                case NumberTag.U8:
+                    return byte.Parse(value);
+                case NumberTag.U16:
+                    return ushort.Parse(value);
+                case NumberTag.U32:
+                    return uint.Parse(value);
+                case NumberTag.U64:
+                    return ulong.Parse(value);
+                case NumberTag.F32:
+                    return float.Parse(value);
+                case NumberTag.F64:
+                    return double.Parse(value);
+                default:
+                    throw new NotImplementedException($"Cannot interpret {tag} as a number.");
+            }
         }
     }
 }

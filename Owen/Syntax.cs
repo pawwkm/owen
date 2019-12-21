@@ -5,7 +5,7 @@ namespace Owen
 {
     internal static class Syntax
     {
-		public static void Parse(Program program, Source source)
+        public static void Parse(Program program, Source source)
         {
             var file = new File();
             file.Path = source.Position.Path;
@@ -14,13 +14,17 @@ namespace Owen
 
             Expect(source, "namespace");
             if ((file.Namespace = Identifier(source)) == null)
-                Report.Error("Identifier expected.");
+                Report.Error($"{source.Position} Identifier expected.");
 
             while (!source.EndOfText)
             {
                 var function = FunctionDeclaration(source);
                 if (function != null)
                     file.Functions.Add(function);
+
+                var enumeration = EnumerationDeclaration(source);
+                if (enumeration != null)
+                    file.Enumerations.Add(enumeration);
 
                 var expression = default(Expression);
                 if (Consume(source, "ctfe"))
@@ -32,8 +36,8 @@ namespace Owen
                         file.Ctfe.Add(expression);
                 }
 
-                if (function == null && expression == null)
-                    Report.Error($"{source.Position} Function or CTFE expression expected.");
+                if (function == null && enumeration == null && expression == null)
+                    Report.Error($"{source.Position} Function, enumeration or CTFE expression expected.");
             }
 
             program.Files.Add(file);
@@ -92,6 +96,54 @@ namespace Owen
                 }
 
                 declaration.Body = CompoundStatement(source);
+
+                return declaration;
+            }
+            else
+                return null;
+        }
+
+        private static EnumerationDeclaration EnumerationDeclaration(Source source)
+        {
+            if (Consume(source, "enumeration"))
+            {
+                var declaration = new EnumerationDeclaration();
+                declaration.Name = Identifier(source);
+                if (declaration.Name == null)
+                    Report.Error($"{source.Position} Identifier expected.");
+
+                Expect(source, "of");
+                
+                declaration.Type = Type(source);
+                if (declaration.Type == null)
+                    Report.Error($"{source.Position} Type expected.");
+
+                while (true)
+                {
+                    var name = Identifier(source);
+                    if (name == null)
+                        break;
+                    else
+                    {
+                        var constant = new EnumerationConstant()
+                        {
+                            Name = name
+                        };
+
+                        if (Consume(source, "="))
+                        {
+                            var value = (Number)Number(source);
+                            if (value == null || value.Value.Contains("."))
+                                Report.Error($"{source.Position} Integer expected.");
+                            else
+                                constant.Value = value;
+                        }
+
+                        declaration.Constants.Add(constant);
+                    }
+                }
+
+                Expect(source, "end");
 
                 return declaration;
             }
@@ -334,6 +386,20 @@ namespace Owen
                         Arguments = arguments,
                         End = arguments.Count == 0 ? expression.End :
                                                      arguments.Last().End
+                    };
+                }
+                else if (Consume(source, "."))
+                {
+                    var field = Expression(source);
+                    if (field == null)
+                        Report.Error($"{source.Position} Expression expected.");
+
+                    return new DotExpression()
+                    {
+                        Start = expression.Start,
+                        Structure = expression,
+                        Field = field,
+                        End = field.End
                     };
                 }
                 else

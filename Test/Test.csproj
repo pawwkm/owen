@@ -56,6 +56,9 @@
     <None Include="assignment\bitwise_xor_equal_not_defined_for_f64.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="assignment\enumerations.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="assignment\u16.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -122,7 +125,19 @@
     <None Include="assignment\refer_to_earlier_declarations.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="enumeration\type_of_non_integer.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="enumeration\declaration_name_and_constant_name_must_be_unique.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="enumeration\enumeration_with_differently_typed_constant.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="function\input_names_can_shadow_declarations.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="enumeration\names_must_be_unique.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="function\input_names_must_be_unique.owen">
@@ -137,7 +152,7 @@
     <None Include="function\main\no_main_defined.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="pointer\asdf.owen">
+    <None Include="pointer\can_dereference.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="return\call_outputting_multiple_values_must_be_the_only_expression.owen">

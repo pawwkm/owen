@@ -53,6 +53,53 @@ namespace Owen
             file.Scope = new Scope();
             file.Scope.Parent = program.Scope;
 
+            foreach (var enumeration in file.Enumerations)
+            {
+                file.Scope.Symbols.Add(new Symbol()
+                {
+                    Name = enumeration.Name.Value,
+                    Type = enumeration
+                });
+            }
+
+            foreach (var enumeration in file.Enumerations)
+            {
+                enumeration.Type = Analyze(enumeration.Type, program.Scope);
+                if (!(enumeration.Type is PrimitiveType) || enumeration.Type is PrimitiveType primitive && primitive.Tag > PrimitiveTypeTag.U64)
+                    Report.Error($"{enumeration.Name.Start} Enumeration type is not an integer type.");
+
+                var constantWithTheSameNameAsDeclaration = enumeration.Constants.FirstOrDefault(c => c.Name.Value == enumeration.Name.Value);
+                if (constantWithTheSameNameAsDeclaration != null)
+                    Report.Error($"{constantWithTheSameNameAsDeclaration.Name.Start} Constants cannot have the same name as the enumeration.");
+
+                var lastValue = 0;
+                foreach (var constant in enumeration.Constants)
+                {
+                    foreach (var other in enumeration.Constants)
+                    {
+                        if (constant == other)
+                            continue;
+                        else if (constant.Name.Value == other.Name.Value)
+                            Report.Error($"{other.Name.Start} Redeclares {other.Name.Value}.");
+                    }
+                }
+
+                foreach (var constant in enumeration.Constants)
+                {
+                    if (constant.Value == null)
+                    {
+                        constant.Value = new Number()
+                        {
+                            Tag = (NumberTag)((PrimitiveType)enumeration.Type).Tag,
+                            Value = (lastValue++).ToString(),
+                            Type = enumeration.Type
+                        };
+                    }
+                    else if (!Compare(enumeration.Type, Analyze(constant.Value, enumeration.Type, program.Scope)))
+                        Report.Error($"{constant.Name.Start} Enumeration is {enumeration.Type} but constant A is {constant.Value.Type}.");
+                }
+            }
+
             foreach (var function in file.Functions)
             {
                 for (var i = 0; i < function.Input.Count; i++)
@@ -312,6 +359,24 @@ namespace Owen
                     return dereference.Type = pointer.To;
                 else
                     Report.Error($"{dereference.Start} Cannot dereference {dereference.Expression.Type}.");
+            }
+            else if (expression is DotExpression dot)
+            {
+                var typeOfStructure = Analyze(dot.Structure, null, scope);
+                if (typeOfStructure is EnumerationDeclaration enumeration)
+                {
+                    if (dot.Field is Identifier constant)
+                    {
+                        if (!enumeration.Constants.Any(c => c.Name.Value == constant.Value))
+                            Report.Error($"{constant.Start} {constant.Value} is not a constant in {enumeration.Name.Value}.");
+                        else
+                            return enumeration.Type;
+                    }
+                    else
+                        Report.Error($"{dot.Field.Start} Identifier expected.");
+                }
+                else
+                    Report.Error($"{expression.Start} Cannot analyze {expression.GetType().Name}.");
             }
 
             throw new NotImplementedException($"Cannot analyze {expression.GetType().Name}.");

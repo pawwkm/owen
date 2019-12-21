@@ -67,10 +67,34 @@ namespace Owen
             var builder = new StringBuilder();
 
             builder.Append("import std.typecons; ");
+            foreach (var enumeration in file.Enumerations)
+                Generate(enumeration, builder);
+
             foreach (var function in file.Functions)
                 Generate(function, builder);
 
             return builder.ToString();
+        }
+
+        private static void Generate(EnumerationDeclaration enumeration, StringBuilder builder)
+        {
+            builder.Append("enum ");
+            builder.Append(enumeration.Name.Value);
+            builder.Append(':');
+            Generate(enumeration.Type, builder);
+            builder.Append('{');
+
+            for (var i = 0; i < enumeration.Constants.Count; i++)
+            {
+                builder.Append(enumeration.Constants[i].Name.Value);
+                builder.Append('=');
+                builder.Append(enumeration.Constants[i].Value.Value);
+
+                if (i + 1 != enumeration.Constants.Count)
+                    builder.Append(',');
+            }
+
+            builder.Append('}');
         }
 
         private static void Generate(FunctionDeclaration function, StringBuilder builder)
@@ -368,6 +392,12 @@ namespace Owen
             {
                 builder.Append('&');
                 Generate(addressOf.Expression, builder);
+            }
+            else if (expression is DotExpression dot)
+            {
+                Generate(dot.Structure, builder);
+                builder.Append('.');
+                Generate(dot.Field, builder);
             }
             else
                 Report.Error($"Cannot translate {expression.GetType().Name} to D.");
