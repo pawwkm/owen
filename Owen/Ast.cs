@@ -86,11 +86,6 @@ namespace Owen
             Tag.ToString();
     }
 
-    internal sealed class PointerTo : Type
-    {
-        public Type Type;
-    }
-
     internal sealed class UnresolvedType : Type
     {
         public Identifier Identifier;
