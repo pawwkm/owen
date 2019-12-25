@@ -149,6 +149,18 @@
     <None Include="enumeration\enumeration_with_differently_typed_constant.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="for\condition_must_be_a_boolean.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="for\executes_while_condition_is_true.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="for\for_statement_is_entered_if_condition_is_true.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="for\for_statement_is_skipped_if_condition_is_false.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="function\input_names_can_shadow_declarations.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

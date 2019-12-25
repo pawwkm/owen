@@ -349,6 +349,26 @@ namespace Owen
                 Generate(w.Body, builder);
                 builder.Append('}');
             }
+            else if (statement is ForStatement fs)
+            {
+                builder.Append('{');
+                Generate(fs.Assignment, builder);
+                builder.Append("for (;");
+                Generate(fs.Condition, builder);
+                builder.Append(';');
+
+                for (var i = 0; i < fs.Post.Count; i++)
+                {
+                    Generate(fs.Post[i], builder);
+                    if (i + 1 != fs.Post.Count)
+                        builder.Append(',');
+                }
+
+                builder.Append(')');
+                Generate(fs.Body, builder);
+
+                builder.Append('}');
+            }
             else
                 Report.Error($"Cannot translate {statement.GetType().Name} to D.");
         }

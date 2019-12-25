@@ -1,0 +1,14 @@
+﻿// expect 2
+
+namespace Test
+
+function main
+    output I32
+
+    b = 0i32
+    for a = 0i32; a != 2; a++  
+        b++
+    end
+
+    return b
+end

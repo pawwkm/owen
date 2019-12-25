@@ -201,6 +201,7 @@ namespace Owen
             {
                 var statement = AssignmentStatement(source) ??
                                 ExpressionStatement(source) ??
+                                ForStatement(source) ??
                                 WhileStatement(source) ??
                                 ReturnStatement(source) ??
                                 AssertStatement(source);
@@ -279,6 +280,33 @@ namespace Owen
                 {
                     Expression = expression
                 };
+        }
+
+        private static Statement ForStatement(Source source)
+        {
+            if (Consume(source, "for"))
+            {
+                var statement = new ForStatement();
+                statement.Assignment = (AssignmentStatement)AssignmentStatement(source);
+                if (statement.Assignment == null)
+                    Report.Error($"{source.Position} Assignment expected.");
+
+                Expect(source, ";");
+
+                statement.Condition = Expression(source);
+                if (statement.Condition == null)
+                    Report.Error($"{source.Position} Expression expected.");
+
+                Expect(source, ";");
+                statement.Post = Expressions(source);
+
+                statement.Body = CompoundStatement(source);
+                Expect(source, "end");
+
+                return statement;
+            }
+            else
+                return null;
         }
 
         private static Statement WhileStatement(Source source)

@@ -149,6 +149,14 @@ namespace Owen
         public List<Expression> Right;
     }
 
+    internal sealed class ForStatement : Statement
+    {
+        public AssignmentStatement Assignment;
+        public Expression Condition;
+        public List<Expression> Post;
+        public CompoundStatement Body;
+    }
+
     internal sealed class WhileStatement : Statement
     {
         public AssignmentStatement Assignment;
