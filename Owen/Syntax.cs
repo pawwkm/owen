@@ -22,6 +22,10 @@ namespace Owen
                 if (function != null)
                     file.Functions.Add(function);
 
+                var compound = CompoundDeclaration(source);
+                if (compound != null)
+                    file.Compounds.Add(compound);
+
                 var enumeration = EnumerationDeclaration(source);
                 if (enumeration != null)
                     file.Enumerations.Add(enumeration);
@@ -36,8 +40,8 @@ namespace Owen
                         file.Ctfe.Add(expression);
                 }
 
-                if (function == null && enumeration == null && expression == null)
-                    Report.Error($"{source.Position} Function, enumeration or CTFE expression expected.");
+                if (function == null && compound == null && enumeration == null && expression == null)
+                    Report.Error($"{source.Position} Function, structure, union, enumeration or CTFE expression expected.");
             }
 
             program.Files.Add(file);
@@ -101,6 +105,44 @@ namespace Owen
             }
             else
                 return null;
+        }
+
+        private static CompoundDeclaration CompoundDeclaration(Source source)
+        {
+            CompoundTypeTag tag;
+            if (Consume(source, "structure"))
+                tag = CompoundTypeTag.Struct;
+            else if (Consume(source, "union"))
+                tag = CompoundTypeTag.Union;
+            else
+                return null;
+
+            var declaration = new CompoundDeclaration()
+            {
+                Tag = tag,
+                Name = Identifier(source)
+            };
+
+            if (declaration.Name == null)
+                Report.Error($"{source.Position} Identifier expected.");
+
+            while (true)
+            {
+                var field = new Field();
+                field.Type = Type(source);
+                if (field.Type == null)
+                    break;
+
+                field.Name = Identifier(source);
+                if (field.Name == null)
+                    Report.Error($"{source.Position} Identifier expected.");
+
+                declaration.Fields.Add(field);
+            }
+
+            Expect(source, "end");
+
+            return declaration;
         }
 
         private static EnumerationDeclaration EnumerationDeclaration(Source source)
@@ -390,7 +432,7 @@ namespace Owen
                 }
                 else if (Consume(source, "."))
                 {
-                    var field = Expression(source);
+                    var field = PostfixExpression(source);
                     if (field == null)
                         Report.Error($"{source.Position} Expression expected.");
 
@@ -412,7 +454,60 @@ namespace Owen
         private static Expression PrimaryExpression(Source source)
         {
             return Number(source) ??
+                   StructureLiteral(source) ??
                    Identifier(source);
+        }
+
+        private static Expression StructureLiteral(Source source)
+        {
+            var start = source.Index;
+            var literal = new CompoundLiteral();
+            literal.Structure = Identifier(source);
+
+            if (literal.Structure == null)
+                return null;
+
+            var initializer = new FieldInitializer();
+            initializer.Name = Identifier(source);
+            if (initializer.Name == null)
+            {
+                source.Index = start;
+                return null;
+            }
+
+            if (Consume(source, "="))
+            {
+                initializer.Value = Expression(source);
+                if (initializer.Value == null)
+                    Report.Error($"{source.Position} Expression expected.");
+                else
+                    literal.Initializers.Add(initializer);
+
+                while (Consume(source, ","))
+                {
+                    initializer = new FieldInitializer();
+                    initializer.Name = Identifier(source);
+                    if (initializer.Name == null)
+                        break;
+                    else
+                        Expect(source, "=");
+
+                    initializer.Value = Expression(source);
+                    if (initializer.Value == null)
+                        Report.Error($"{source.Position} Expression expected.");
+                    else
+                        literal.Initializers.Add(initializer);
+                }
+
+                Expect(source, "end");
+
+                return literal;
+            }
+            else
+            {
+                source.Index = start;
+                return null;
+            }
         }
 
         private static Expression Number(Source source)
@@ -577,7 +672,7 @@ namespace Owen
 
             if (unresolved.Identifier == null)
             {
-                if (firstPointerOrArray == null)
+                if (firstPointerOrArray != null)
                     Report.Error($"{source.Position} Identifier expected.");
                 
                 return null;

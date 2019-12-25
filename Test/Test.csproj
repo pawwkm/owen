@@ -59,6 +59,18 @@
     <None Include="assignment\enumerations.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="compound\declaration_name_and_field_name_must_be_unique.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="compound\field_type_is_undefined.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="compound\indirectly_recursive.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="compound\directly_recursive.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="assignment\u16.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -125,6 +137,9 @@
     <None Include="assignment\refer_to_earlier_declarations.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="compound\names_must_be_unique.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="enumeration\type_of_non_integer.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -150,6 +165,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="function\main\no_main_defined.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="assignment\structures.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="pointer\can_dereference.owen">
@@ -180,5 +198,6 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

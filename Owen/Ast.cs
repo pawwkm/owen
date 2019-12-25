@@ -15,6 +15,7 @@ namespace Owen
         public string Path;
         public List<FunctionDeclaration> Functions = new List<FunctionDeclaration>();
         public List<EnumerationDeclaration> Enumerations = new List<EnumerationDeclaration>();
+        public List<CompoundDeclaration> Compounds = new List<CompoundDeclaration>();
         public List<Expression> Ctfe = new List<Expression>();
         public List<Expression> Mixins = new List<Expression>();
 	}
@@ -116,6 +117,27 @@ namespace Owen
         public Type To;
     }
 
+    internal sealed class CompoundDeclaration : Type
+    {
+        public CompoundTypeTag Tag;
+        public Identifier Name;
+        public List<Field> Fields = new List<Field>();
+
+        public override string ToString() => Name.Value;
+    }
+
+    internal enum CompoundTypeTag
+    {
+        Struct,
+        Union
+    }
+
+    internal sealed class Field
+    {
+        public Type Type;
+        public Identifier Name;
+    }
+
     internal abstract class Statement
     {
     }
@@ -200,6 +222,18 @@ namespace Owen
     {
         public Expression Structure;
         public Expression Field;
+    }
+
+    internal sealed class CompoundLiteral : Expression
+    {
+        public Identifier Structure;
+        public List<FieldInitializer> Initializers = new List<FieldInitializer>();
+    }
+
+    internal sealed class FieldInitializer
+    {
+        public Identifier Name;
+        public Expression Value;
     }
 
     internal sealed class Number : Expression

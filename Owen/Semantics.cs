@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Owen
@@ -53,18 +54,25 @@ namespace Owen
             file.Scope = new Scope();
             file.Scope.Parent = program.Scope;
 
-            foreach (var enumeration in file.Enumerations)
+            Analyze(file.Enumerations, program.Scope);
+            Analyze(file.Compounds, program.Scope);
+            Analyze(file.Functions, program.Scope);
+        }
+
+        private static void Analyze(List<EnumerationDeclaration> enumerations, Scope scope)
+        {
+            foreach (var enumeration in enumerations)
             {
-                file.Scope.Symbols.Add(new Symbol()
+                scope.Symbols.Add(new Symbol()
                 {
                     Name = enumeration.Name.Value,
                     Type = enumeration
                 });
             }
 
-            foreach (var enumeration in file.Enumerations)
+            foreach (var enumeration in enumerations)
             {
-                enumeration.Type = Analyze(enumeration.Type, program.Scope);
+                enumeration.Type = Analyze(enumeration.Type, scope);
                 if (!(enumeration.Type is PrimitiveType) || enumeration.Type is PrimitiveType primitive && primitive.Tag > PrimitiveTypeTag.U64)
                     Report.Error($"{enumeration.Name.Start} Enumeration type is not an integer type.");
 
@@ -72,7 +80,6 @@ namespace Owen
                 if (constantWithTheSameNameAsDeclaration != null)
                     Report.Error($"{constantWithTheSameNameAsDeclaration.Name.Start} Constants cannot have the same name as the enumeration.");
 
-                var lastValue = 0;
                 foreach (var constant in enumeration.Constants)
                 {
                     foreach (var other in enumeration.Constants)
@@ -84,6 +91,7 @@ namespace Owen
                     }
                 }
 
+                var lastValue = 0;
                 foreach (var constant in enumeration.Constants)
                 {
                     if (constant.Value == null)
@@ -95,39 +103,110 @@ namespace Owen
                             Type = enumeration.Type
                         };
                     }
-                    else if (!Compare(enumeration.Type, Analyze(constant.Value, enumeration.Type, program.Scope)))
-                        Report.Error($"{constant.Name.Start} Enumeration is {enumeration.Type} but constant A is {constant.Value.Type}.");
+                    else if (!Compare(enumeration.Type, Analyze(constant.Value, enumeration.Type, scope)))
+                        Report.Error($"{constant.Name.Start} Enumeration is {enumeration.Type} but constant {constant.Name.Value} is {constant.Value.Type}.");
+                }
+            }
+        }
+
+        private static void Analyze(List<CompoundDeclaration> compounds, Scope scope)
+        {
+            foreach (var compound in compounds)
+            {
+                scope.Symbols.Add(new Symbol()
+                {
+                    Name = compound.Name.Value,
+                    Type = compound
+                });
+            }
+
+            foreach (var compound in compounds)
+            {
+                var fieldWithTheSameNameAsDeclaration = compound.Fields.FirstOrDefault(f => f.Name.Value == compound.Name.Value);
+                if (fieldWithTheSameNameAsDeclaration != null)
+                    Report.Error($"{fieldWithTheSameNameAsDeclaration.Name.Start} Fields cannot have the same name as the compound.");
+
+                foreach (var field in compound.Fields)
+                {
+                    var positionOfType = ((UnresolvedType)field.Type).Identifier.Start;
+
+                    field.Type = Analyze(field.Type, scope);
+                    if (field.Type == null)
+                        Report.Error($"{positionOfType} {field.Name.Value} is undefined.");
                 }
             }
 
-            foreach (var function in file.Functions)
+            foreach (var compound in compounds)
+            {
+                foreach (var a in compound.Fields)
+                {
+                    foreach (var b in compound.Fields)
+                    {
+                        if (a != b && a.Name.Value == b.Name.Value)
+                            Report.Error($"{b.Name.Start} Redeclares {b.Name.Value}.");
+                    }
+                }
+            }
+
+            foreach (var compound in compounds)
+            {   
+                void CheckIfFieldIsRecursive(Field parent, List<Field> trace)
+                {
+                    if (parent.Type is CompoundDeclaration c)
+                    {
+                        trace.Add(parent);
+                        foreach (var field in c.Fields)
+                        {
+                            if (trace[0] == field)
+                            {
+                                if (trace.Count == 1)
+                                    Report.Error($"{field.Name.Start} The structure is directly recursive.");
+                                else if (trace.Count > 1)
+                                    Report.Error($"{((CompoundDeclaration)trace[1].Type).Name.Start} The structure is indirectly recursive:{Environment.NewLine}{string.Join(Environment.NewLine, trace.Select(a => $"{a.Name.Start} {a.Name.Value}"))}");
+                            }
+                            else if (field.Type is CompoundDeclaration)
+                                CheckIfFieldIsRecursive(field, trace);
+                        }
+
+                        trace.RemoveAt(trace.Count - 1);
+                    }
+                }
+                
+                foreach (var field in compound.Fields)
+                    CheckIfFieldIsRecursive(field, new List<Field>());
+            }
+        }
+
+        private static void Analyze(List<FunctionDeclaration> functions, Scope parent)
+        {
+            foreach (var function in functions)
             {
                 for (var i = 0; i < function.Input.Count; i++)
-                    function.Input[i].Type = Analyze(function.Input[i].Type, file.Scope);
+                    function.Input[i].Type = Analyze(function.Input[i].Type, parent);
 
                 if (function.Output is TupleType tuple)
                 {
                     for (var i = 0; i < tuple.Types.Count; i++)
-                        tuple.Types[i] = Analyze(tuple.Types[i], file.Scope);
+                        tuple.Types[i] = Analyze(tuple.Types[i], parent);
                 }
                 else if (function.Output != null)
-                    function.Output = Analyze(function.Output, file.Scope);
+                    function.Output = Analyze(function.Output, parent);
 
-                file.Scope.Symbols.Add(new Symbol()
+                parent.Symbols.Add(new Symbol()
                 {
                     Name = function.Name.Value,
                     Type = function
                 });
             }
 
-            foreach (var function in file.Functions)
+            foreach (var function in functions)
             {
-                function.Body.Scope.Parent = file.Scope;
+                function.Body.Scope.Parent = parent;
                 var index = default(ushort);
 
                 foreach (var argument in function.Input)
                 {
-                    if (NullableLookup(function.Body.Scope, argument.Name.Value) is PrimitiveType primitive)
+                    if (NullableLookup(argument.Name.Value, function.Body.Scope) is PrimitiveType primitive)
                         Report.Error($"{argument.Name.Start} Redeclares {argument.Name.Value}.");
                     else
                     {
@@ -158,7 +237,7 @@ namespace Owen
                     {
                         if (left is Identifier reference)
                         {
-                            var leftType = NullableLookup(compound.Scope, reference.Value);
+                            var leftType = NullableLookup(reference.Value, compound.Scope);
                             if (leftType == null)
                             {
                                 if (leftType == null && rightType == null)
@@ -227,7 +306,7 @@ namespace Owen
                             Mismatch(assignment.Left.Count, assignment.Right.Count);
                         else if (rightType == null && assignment.Left[r] is Identifier reference)
                         {
-                            rightType = NullableLookup(compound.Scope, reference.Value);
+                            rightType = NullableLookup(reference.Value, compound.Scope);
                             if (rightType == null)
                                 rightType = Analyze(assignment.Right[r], null, compound.Scope);
                             else
@@ -313,13 +392,13 @@ namespace Owen
                         return null;
                 }
                 else
-                    number.Type = NullableLookup(scope, number.Tag.ToString());
+                    number.Type = NullableLookup(number.Tag.ToString(), scope);
 
                 return number.Type;
             }
             else if (expression is Identifier reference)
             {
-                reference.Type = Lookup(scope, reference);
+                reference.Type = Lookup(reference, scope);
 
                 return reference.Type;
             }
@@ -362,7 +441,7 @@ namespace Owen
             }
             else if (expression is DotExpression dot)
             {
-                var typeOfStructure = Analyze(dot.Structure, null, scope);
+                var typeOfStructure = dot.Type ?? Analyze(dot.Structure, null, scope);
                 if (typeOfStructure is EnumerationDeclaration enumeration)
                 {
                     if (dot.Field is Identifier constant)
@@ -375,8 +454,52 @@ namespace Owen
                     else
                         Report.Error($"{dot.Field.Start} Identifier expected.");
                 }
+                else if (typeOfStructure is CompoundDeclaration compound)
+                {
+                    if (dot.Field is Identifier field)
+                    {
+                        dot.Type = compound.Fields.FirstOrDefault(f => f.Name.Value == field.Value).Type;
+                        if (dot.Type == null)
+                            Report.Error($"{field.Start} {field.Value} is not a field in {compound.Name.Value}.");
+                        else
+                            return dot.Type;
+                    }
+                    else if (dot.Field is DotExpression d)
+                    {
+                        if (d.Structure is Identifier f)
+                        {
+                            d.Type = compound.Fields.FirstOrDefault(a => a.Name.Value == f.Value).Type;
+                            d.Type = Analyze(d, null, scope);
+
+                            return d.Type;
+                        }
+                    }
+                }
                 else
                     Report.Error($"{expression.Start} Cannot analyze {expression.GetType().Name}.");
+            }
+            else if (expression is CompoundLiteral literal)
+            {
+                literal.Type = Lookup(literal.Structure, scope);
+                if (literal.Type is CompoundDeclaration compound)
+                {
+                    foreach (var initializer in literal.Initializers)
+                    {
+                        var field = compound.Fields.FirstOrDefault(f => f.Name.Value == initializer.Name.Value);
+                        if (field == null)
+                            Report.Error($"{initializer.Name.Start} Undefined reference to {initializer.Name.Value}.");
+                        else 
+                        {
+                            initializer.Value.Type = Analyze(initializer.Value, field.Type, scope);
+                            if (!Compare(field.Type, initializer.Value.Type))
+                                Report.Error($"{initializer.Value.Start} Expected {field.Type} but found {initializer.Value.Type}.");
+                        }
+                    }
+
+                    return compound;
+                }
+                else if (literal.Type != null)
+                    Report.Error($"{expression.Start} Compound expected");
             }
 
             throw new NotImplementedException($"Cannot analyze {expression.GetType().Name}.");
@@ -391,23 +514,23 @@ namespace Owen
                 return pointer;
             }
             else if (type is UnresolvedType unresolved)
-                return Lookup(scope, unresolved.Identifier);
+                return Lookup(unresolved.Identifier, scope);
             else
                 Report.Error($"Cannot analyze {type.GetType().Name}.");
 
             return null;
         }
 
-        private static Type Lookup(Scope scope, Identifier name)
+        private static Type Lookup(Identifier name, Scope scope)
         {
-            var type = NullableLookup(scope, name.Value);
+            var type = NullableLookup(name.Value, scope);
             if (type == null)
                 Report.Error($"{name.Start} Undefined reference to {name.Value}.");
 
             return type;
         }
 
-        private static Type NullableLookup(Scope scope, string name)
+        private static Type NullableLookup(string name, Scope scope)
         {
             foreach (var symbol in scope.Symbols)
             {
@@ -418,12 +541,14 @@ namespace Owen
             if (scope.Parent == null)
                 return null;
             else
-                return NullableLookup(scope.Parent, name);
+                return NullableLookup(name, scope.Parent);
         }
 
         private static bool Compare(Type a, Type b)
         {
-            if (a is PrimitiveType pa && b is PrimitiveType pb)
+            if (object.ReferenceEquals(a, b))
+                return true;
+            else if (a is PrimitiveType pa && b is PrimitiveType pb)
                 return pa.Tag == pb.Tag;
             else if (a is Pointer ptra && b is Pointer ptrb)
                 return Compare(ptra.To, ptrb.To);

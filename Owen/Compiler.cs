@@ -99,7 +99,7 @@ namespace Owen
                 }
 
                 Semantics.Analyze(program);
-                Interpreter.Run(program);
+                //Interpreter.Run(program);
 
                 if (!checkOnly)
                     D.Generate(program, output);

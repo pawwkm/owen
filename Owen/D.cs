@@ -70,6 +70,9 @@ namespace Owen
             foreach (var enumeration in file.Enumerations)
                 Generate(enumeration, builder);
 
+            foreach (var compound in file.Compounds)
+                Generate(compound, builder);
+
             foreach (var function in file.Functions)
                 Generate(function, builder);
 
@@ -92,6 +95,26 @@ namespace Owen
 
                 if (i + 1 != enumeration.Constants.Count)
                     builder.Append(',');
+            }
+
+            builder.Append('}');
+        }
+
+        private static void Generate(CompoundDeclaration compound, StringBuilder builder)
+        {
+            if (compound.Tag == CompoundTypeTag.Struct)
+                builder.Append("struct ");
+            else
+                builder.Append("union ");
+
+            builder.Append(compound.Name.Value);
+            builder.Append('{');
+            
+            foreach (var field in compound.Fields)
+            {
+                Generate(field.Type, builder);
+                builder.Append(field.Name.Value);
+                builder.Append(';');
             }
 
             builder.Append('}');
@@ -182,6 +205,11 @@ namespace Owen
                 }
 
                 builder.Append(')');
+            }
+            else if (type is CompoundDeclaration compound)
+            {
+                builder.Append(compound.Name.Value);
+                builder.Append(' ');
             }
             else
                 Report.Error($"Cannot translate {type} to D.");
@@ -398,6 +426,28 @@ namespace Owen
                 Generate(dot.Structure, builder);
                 builder.Append('.');
                 Generate(dot.Field, builder);
+            }
+            else if (expression is CompoundLiteral literal)
+            {
+                builder.Append(literal.Structure.Value);
+                builder.Append(' ');
+                builder.Append('(');
+
+                var fields = ((CompoundDeclaration)literal.Type).Fields;
+                for (var i = 0; i < fields.Count; i++)
+                {
+                    var initializer = literal.Initializers.FirstOrDefault(f => f.Name.Value == fields[i].Name.Value);
+                    if (initializer == null)
+                        builder.Append('0');
+                    else
+                        Generate(initializer.Value, builder);
+
+                    if (i + 1 != fields.Count)
+                        builder.Append(',');
+                }
+
+                builder.Append(')');
+
             }
             else
                 Report.Error($"Cannot translate {expression.GetType().Name} to D.");
