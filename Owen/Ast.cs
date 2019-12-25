@@ -48,7 +48,7 @@ namespace Owen
         public Number Value;
     }
 
-    internal sealed class CompoundStatement
+    internal sealed class CompoundStatement : Statement
     {
         public Scope Scope = new Scope();
         public List<Statement> Statements = new List<Statement>();
@@ -149,6 +149,13 @@ namespace Owen
         public List<Expression> Right;
     }
 
+    internal sealed class WhileStatement : Statement
+    {
+        public AssignmentStatement Assignment;
+        public Expression Condition;
+        public CompoundStatement Body;
+    }
+
     internal sealed class Operator
     {
         public Position Start;
@@ -224,6 +231,11 @@ namespace Owen
         public Expression Field;
     }
 
+    internal sealed class PostfixIncrement : Expression
+    {
+        public Expression Expression;
+    }
+
     internal sealed class CompoundLiteral : Expression
     {
         public Identifier Structure;
@@ -241,7 +253,12 @@ namespace Owen
         public string Value;
         public NumberTag Tag;
     }
-    
+
+    internal sealed class Boolean : Expression
+    {
+        public string Value;
+    }
+
     internal enum NumberTag
     {
         I8,

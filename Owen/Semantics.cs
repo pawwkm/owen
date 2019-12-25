@@ -223,143 +223,157 @@ namespace Owen
             }
         }
 
-        private static void Analyze(CompoundStatement compound, Type output, Scope parent)
+        private static void Analyze(Statement statement, Type output, Scope parent)
         {
-            foreach (var statement in compound.Statements)
+            if (statement is CompoundStatement c)
             {
-                if (statement is AssignmentStatement assignment)
-                {
-                    var locals = CountLocals(compound.Scope);
-                    void Mismatch(int left, int right) =>
-                        Report.Error($"{assignment.Operator.Start} Assignment mismatch of {left} variable{(left > 1 ? "s" : "")} and {right} output{(right > 1 ? "s" : "")}.");
-
-                    Expression Assign(Expression left, Type rightType, Position right)
-                    {
-                        if (left is Identifier reference)
-                        {
-                            var leftType = NullableLookup(reference.Value, compound.Scope);
-                            if (leftType == null)
-                            {
-                                if (leftType == null && rightType == null)
-                                    Report.Error($"{right} Cannot infer type of expression.");
-
-                                if (assignment.Operator.Tag != OperatorTag.Equal)
-                                    Report.Error($"{reference.Start} Undefined reference to {reference.Value}.");
-                                else
-                                {
-                                    left = new VariableDeclaration()
-                                    {
-                                        Type = rightType,
-                                        Variable = reference
-                                    };
-
-                                    compound.Scope.Symbols.Add(new LocalSymbol()
-                                    {
-                                        Name = reference.Value,
-                                        Type = rightType,
-                                        Index = locals++
-                                    });
-                                }
-                            }
-                            else if (!Compare(leftType, rightType))
-                                Report.Error($"{right} Expected {leftType} but found {rightType}.");
-                        }
-                        else if (!Compare(left.Type, rightType))
-                            Report.Error($"{left.Start} The expression is not addressable.");
-
-                        var operatorUsedOnNonInteger = (assignment.Operator.Tag == OperatorTag.BitwiseAndEqual  ||
-                                                        assignment.Operator.Tag == OperatorTag.BitwiseOrEqual   ||
-                                                        assignment.Operator.Tag == OperatorTag.BitwiseXorEqual  ||
-                                                        assignment.Operator.Tag == OperatorTag.LeftShiftEqual   ||
-                                                        assignment.Operator.Tag == OperatorTag.RightShiftEqual) &&
-                                                      (!(rightType is PrimitiveType) ||
-                                                      ((PrimitiveType)rightType).Tag > PrimitiveTypeTag.U64);
-
-                        if (operatorUsedOnNonInteger)
-                            Report.Error($"{assignment.Operator.Start} This operator is only defined for integer types.");
-
-                        return left;
-                    }
-
-                    for (var r = 0; r < assignment.Right.Count; r++)
-                    {
-                        var rightType = default(Type);
-                        if (assignment.Right[r] is Call call)
-                        {
-                            rightType = Analyze(assignment.Right[r], null, compound.Scope);
-                            if (rightType is TupleType tuple)
-                            {
-                                if (assignment.Right.Count != 1)
-                                    Report.Error($"{call.Start} A Call outputting multiple values must be the only expression on the right hand side.");
-                                else if (assignment.Left.Count != tuple.Types.Count)
-                                    Mismatch(assignment.Left.Count, tuple.Types.Count);
-                                else
-                                {
-                                    for (var l = 0; l < assignment.Left.Count; l++)
-                                        assignment.Left[l] = Assign(assignment.Left[l], tuple.Types[l], call.Start);
-                                }
-
-                                break;
-                            }
-                        }
-                        else if (assignment.Left.Count != assignment.Right.Count)
-                            Mismatch(assignment.Left.Count, assignment.Right.Count);
-                        else if (rightType == null && assignment.Left[r] is Identifier reference)
-                        {
-                            rightType = NullableLookup(reference.Value, compound.Scope);
-                            if (rightType == null)
-                                rightType = Analyze(assignment.Right[r], null, compound.Scope);
-                            else
-                                rightType = Analyze(assignment.Right[r], rightType, compound.Scope);
-                        }
-                        else
-                            rightType = Analyze(assignment.Right[r], Analyze(assignment.Left[r], null, compound.Scope), compound.Scope);
-
-                        assignment.Left[r] = Assign(assignment.Left[r], rightType, assignment.Right[r].Start); 
-                    }
-                }
-                else if (statement is ExpressionStatement e)
-                {
-                    Analyze(e.Expression, null, compound.Scope);
-                    if (!(e.Expression is Call))
-                        Report.Error($"{e.Expression.Start} Call or pre/post increment/decrement expression expected.");
-                }
-                else if (statement is ReturnStatement r)
-                {
-                    var expressionsAndOutputIsNotBalanced = false;
-                    if (output is TupleType t)
-                        expressionsAndOutputIsNotBalanced = r.Expressions.Count != t.Types.Count;
-                    else if (output == null && r.Expressions.Count != 0 || output != null && r.Expressions.Count != 1)
-                        expressionsAndOutputIsNotBalanced = true;
-
-                    if (expressionsAndOutputIsNotBalanced)
-                        Report.Error($"{r.EndOfKeyword} The amount of return values doesn't match the output.");
-
-                    if (output is TupleType tuple)
-                    {
-                        for (var i = 0; i < tuple.Types.Count; i++)
-                        {
-                            var expressionType = Analyze(r.Expressions[i], tuple.Types[i], compound.Scope);
-                            if (expressionType != tuple.Types[i])
-                                Report.Error($"{r.Expressions[i].Start} Expected {tuple.Types[i]} but found {expressionType}.");
-                        }
-                    }
-                    else if (output != null)
-                    {
-                        var expressionType = Analyze(r.Expressions[0], output, compound.Scope);
-                        if (expressionType != output)
-                            Report.Error($"{r.Expressions[0].Start} Expected {output} but found {expressionType}.");
-                    }
-                }
-                else if (statement is AssertStatement assert)
-                {
-                    var type = Analyze(assert.Assertion, null, compound.Scope);
-                    if (!Compare(type, Bool))
-                        Report.Error($"{assert.Assertion.Start} {Bool} expression expected.");
-                }
-                else
-                    Report.Error($"Cannot analyze {statement.GetType().Name}.");
+                foreach (var s in c.Statements)
+                    Analyze(s, output, parent);
             }
+            else if (statement is AssignmentStatement assignment)
+            {
+                var locals = CountLocals(parent);
+                void Mismatch(int left, int right) =>
+                    Report.Error($"{assignment.Operator.Start} Assignment mismatch of {left} variable{(left > 1 ? "s" : "")} and {right} output{(right > 1 ? "s" : "")}.");
+
+                Expression Assign(Expression left, Type rightType, Position right)
+                {
+                    if (left is Identifier reference)
+                    {
+                        var leftType = NullableLookup(reference.Value, parent);
+                        if (leftType == null)
+                        {
+                            if (leftType == null && rightType == null)
+                                Report.Error($"{right} Cannot infer type of expression.");
+
+                            if (assignment.Operator.Tag != OperatorTag.Equal)
+                                Report.Error($"{reference.Start} Undefined reference to {reference.Value}.");
+                            else
+                            {
+                                left = new VariableDeclaration()
+                                {
+                                    Type = rightType,
+                                    Variable = reference
+                                };
+
+                                parent.Symbols.Add(new LocalSymbol()
+                                {
+                                    Name = reference.Value,
+                                    Type = rightType,
+                                    Index = locals++
+                                });
+                            }
+                        }
+                        else if (!Compare(leftType, rightType))
+                            Report.Error($"{right} Expected {leftType} but found {rightType}.");
+                    }
+                    else if (!Compare(left.Type, rightType))
+                        Report.Error($"{left.Start} The expression is not addressable.");
+
+                    var operatorUsedOnNonInteger = (assignment.Operator.Tag == OperatorTag.BitwiseAndEqual ||
+                                                    assignment.Operator.Tag == OperatorTag.BitwiseOrEqual ||
+                                                    assignment.Operator.Tag == OperatorTag.BitwiseXorEqual ||
+                                                    assignment.Operator.Tag == OperatorTag.LeftShiftEqual ||
+                                                    assignment.Operator.Tag == OperatorTag.RightShiftEqual) &&
+                                                  (!(rightType is PrimitiveType) ||
+                                                  ((PrimitiveType)rightType).Tag > PrimitiveTypeTag.U64);
+
+                    if (operatorUsedOnNonInteger)
+                        Report.Error($"{assignment.Operator.Start} This operator is only defined for integer types.");
+
+                    return left;
+                }
+
+                for (var r = 0; r < assignment.Right.Count; r++)
+                {
+                    var rightType = default(Type);
+                    if (assignment.Right[r] is Call call)
+                    {
+                        rightType = Analyze(assignment.Right[r], null, parent);
+                        if (rightType is TupleType tuple)
+                        {
+                            if (assignment.Right.Count != 1)
+                                Report.Error($"{call.Start} A Call outputting multiple values must be the only expression on the right hand side.");
+                            else if (assignment.Left.Count != tuple.Types.Count)
+                                Mismatch(assignment.Left.Count, tuple.Types.Count);
+                            else
+                            {
+                                for (var l = 0; l < assignment.Left.Count; l++)
+                                    assignment.Left[l] = Assign(assignment.Left[l], tuple.Types[l], call.Start);
+                            }
+
+                            break;
+                        }
+                    }
+                    else if (assignment.Left.Count != assignment.Right.Count)
+                        Mismatch(assignment.Left.Count, assignment.Right.Count);
+                    else if (rightType == null && assignment.Left[r] is Identifier reference)
+                    {
+                        rightType = NullableLookup(reference.Value, parent);
+                        if (rightType == null)
+                            rightType = Analyze(assignment.Right[r], null, parent);
+                        else
+                            rightType = Analyze(assignment.Right[r], rightType, parent);
+                    }
+                    else
+                        rightType = Analyze(assignment.Right[r], Analyze(assignment.Left[r], null, parent), parent);
+
+                    assignment.Left[r] = Assign(assignment.Left[r], rightType, assignment.Right[r].Start);
+                }
+            }
+            else if (statement is ExpressionStatement e)
+            {
+                Analyze(e.Expression, null, parent);
+                if (!(e.Expression is Call || e.Expression is PostfixIncrement))
+                    Report.Error($"{e.Expression.Start} Call or pre/post increment/decrement expression expected.");
+            }
+            else if (statement is WhileStatement w)
+            {
+                w.Body.Scope.Parent = parent;
+                if (w.Assignment != null)
+                    Analyze(w.Assignment, output, w.Body.Scope);
+
+                w.Condition.Type = Analyze(w.Condition, null, w.Body.Scope);
+                if (!Compare(w.Condition.Type, Bool))
+                    Report.Error($"{w.Condition.Start} Bool expression expected.");
+
+                Analyze(w.Body, output, w.Body.Scope);
+            }
+            else if (statement is ReturnStatement r)
+            {
+                var expressionsAndOutputIsNotBalanced = false;
+                if (output is TupleType t)
+                    expressionsAndOutputIsNotBalanced = r.Expressions.Count != t.Types.Count;
+                else if (output == null && r.Expressions.Count != 0 || output != null && r.Expressions.Count != 1)
+                    expressionsAndOutputIsNotBalanced = true;
+
+                if (expressionsAndOutputIsNotBalanced)
+                    Report.Error($"{r.EndOfKeyword} The amount of return values doesn't match the output.");
+
+                if (output is TupleType tuple)
+                {
+                    for (var i = 0; i < tuple.Types.Count; i++)
+                    {
+                        var expressionType = Analyze(r.Expressions[i], tuple.Types[i], parent);
+                        if (expressionType != tuple.Types[i])
+                            Report.Error($"{r.Expressions[i].Start} Expected {tuple.Types[i]} but found {expressionType}.");
+                    }
+                }
+                else if (output != null)
+                {
+                    var expressionType = Analyze(r.Expressions[0], output, parent);
+                    if (expressionType != output)
+                        Report.Error($"{r.Expressions[0].Start} Expected {output} but found {expressionType}.");
+                }
+            }
+            else if (statement is AssertStatement assert)
+            {
+                var type = Analyze(assert.Assertion, null, parent);
+                if (!Compare(type, Bool))
+                    Report.Error($"{assert.Assertion.Start} {Bool} expression expected.");
+            }
+            else
+                Report.Error($"Cannot analyze {statement.GetType().Name}.");
         }
 
         public static Type Analyze(Expression expression, Type expectedType, Scope scope)
@@ -378,6 +392,12 @@ namespace Owen
                     Report.Error($"{binary.Right.Start} Expected {leftType} but found {rightType}.");
                 else
                     return binary.Type;
+            }
+            else if (expression is Boolean b)
+            {
+                b.Type = Bool;
+
+                return Bool;
             }
             else if (expression is Number number)
             {
@@ -488,7 +508,7 @@ namespace Owen
                         var field = compound.Fields.FirstOrDefault(f => f.Name.Value == initializer.Name.Value);
                         if (field == null)
                             Report.Error($"{initializer.Name.Start} Undefined reference to {initializer.Name.Value}.");
-                        else 
+                        else
                         {
                             initializer.Value.Type = Analyze(initializer.Value, field.Type, scope);
                             if (!Compare(field.Type, initializer.Value.Type))
@@ -500,6 +520,14 @@ namespace Owen
                 }
                 else if (literal.Type != null)
                     Report.Error($"{expression.Start} Compound expected");
+            }
+            else if (expression is PostfixIncrement pfi)
+            {
+                pfi.Type = Analyze(pfi.Expression, null, scope);
+                if (pfi.Expression is Identifier r && r.Type is PrimitiveType primitive && primitive.Tag < PrimitiveTypeTag.Bool)
+                    return pfi.Type;
+                else
+                    Report.Error($"{pfi.Expression.Start} Reference to number typed variable expected.");
             }
 
             throw new NotImplementedException($"Cannot analyze {expression.GetType().Name}.");
@@ -546,7 +574,7 @@ namespace Owen
 
         private static bool Compare(Type a, Type b)
         {
-            if (object.ReferenceEquals(a, b))
+            if (ReferenceEquals(a, b))
                 return true;
             else if (a is PrimitiveType pa && b is PrimitiveType pb)
                 return pa.Tag == pb.Tag;

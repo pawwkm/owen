@@ -215,128 +215,142 @@ namespace Owen
                 Report.Error($"Cannot translate {type} to D.");
         }
 
-        private static void Generate(CompoundStatement compound, StringBuilder builder)
+        private static void Generate(Statement statement, StringBuilder builder)
         {
-            builder.Append('{');
-            foreach (var statement in compound.Statements)
+            if (statement is CompoundStatement compound)
             {
-                if (statement is AssignmentStatement assignment)
+                builder.Append('{');
+                foreach (var s in compound.Statements)
+                    Generate(s, builder);
+
+                builder.Append('}');
+            }
+            else if (statement is AssignmentStatement assignment)
+            {
+                if (assignment.Right[0] is Call call && call.Declaration.Output is TupleType tuple)
                 {
-                    if (assignment.Right[0] is Call call && call.Declaration.Output is TupleType tuple)
+                    foreach (var left in assignment.Left)
                     {
-                        foreach (var left in assignment.Left)
+                        if (left is VariableDeclaration declaration)
                         {
-                            if (left is VariableDeclaration declaration)
-                            {
-                                Generate(declaration.Type, builder);
-                                builder.Append(declaration.Variable.Value);
-                                builder.Append(';');
-                            }
-                            else if (!(left is Identifier))
-                                Report.Error($"{left.Start} Cannot translate assignment to {left.GetType().Name} to D.");
-                        }
-
-                        var temp = CreateTempName();
-                        builder.Append($"auto {temp} = ");
-                        Generate(call, builder);
-                        builder.Append(';');
-
-                        for (var i = 0; i < assignment.Left.Count; i++)
-                        {
-                            if (assignment.Left[i] is VariableDeclaration declaration)
-                                builder.Append(declaration.Variable.Value);
-                            else if (assignment.Left[i] is Identifier reference)
-                                builder.Append(reference.Value);
-
-                            builder.Append($"={temp}[{i}];");
-                        }
-                    }
-                    else
-                    {
-                        for (var i = 0; i < assignment.Left.Count; i++)
-                        {
-                            var left = assignment.Left[i];
-                            if (left is VariableDeclaration declaration)
-                            {
-                                left = declaration.Variable;
-                                Generate(declaration.Type, builder);
-                            }
-
-                            Generate(left, builder);
-                            switch (assignment.Operator.Tag)
-                            {
-                                case OperatorTag.PlusEqual:
-                                    builder.Append("+=");
-                                    break;
-                                case OperatorTag.MinusEqual:
-                                    builder.Append("-=");
-                                    break;
-                                case OperatorTag.MultiplyEqual:
-                                    builder.Append("*=");
-                                    break;
-                                case OperatorTag.DivideEqual:
-                                    builder.Append("/=");
-                                    break;
-                                case OperatorTag.ModuloEqual:
-                                    builder.Append("%=");
-                                    break;
-                                case OperatorTag.BitwiseAndEqual:
-                                    builder.Append("&=");
-                                    break;
-                                case OperatorTag.BitwiseOrEqual:
-                                    builder.Append("|=");
-                                    break;
-                                case OperatorTag.BitwiseXorEqual:
-                                    builder.Append("^=");
-                                    break;
-                                case OperatorTag.LeftShiftEqual:
-                                    builder.Append("<<=");
-                                    break;
-                                case OperatorTag.RightShiftEqual:
-                                    builder.Append(">>=");
-                                    break;
-                                case OperatorTag.Equal:
-                                    builder.Append("=");
-                                    break;
-                                default:
-                                    Report.Error($"Cannot translate {assignment.Operator.Tag} to D.");
-                                    break;
-                            }
-
-                            Generate(assignment.Right[i], builder);
+                            Generate(declaration.Type, builder);
+                            builder.Append(declaration.Variable.Value);
                             builder.Append(';');
                         }
+                        else if (!(left is Identifier))
+                            Report.Error($"{left.Start} Cannot translate assignment to {left.GetType().Name} to D.");
+                    }
+
+                    var temp = CreateTempName();
+                    builder.Append($"auto {temp} = ");
+                    Generate(call, builder);
+                    builder.Append(';');
+
+                    for (var i = 0; i < assignment.Left.Count; i++)
+                    {
+                        if (assignment.Left[i] is VariableDeclaration declaration)
+                            builder.Append(declaration.Variable.Value);
+                        else if (assignment.Left[i] is Identifier reference)
+                            builder.Append(reference.Value);
+
+                        builder.Append($"={temp}[{i}];");
                     }
                 }
-                else if (statement is ExpressionStatement e)
-                {
-                    Generate(e.Expression, builder);
-                    builder.Append(';');
-                }
-                else if (statement is ReturnStatement r)
-                {
-                    builder.Append("return ");
-                    if (r.Expressions.Count > 1)
-                        builder.Append("tuple(");
-
-                    Generate(r.Expressions, builder);
-                    if (r.Expressions.Count > 1)
-                        builder.Append(')');
-
-                    builder.Append(';');
-                }
-                else if (statement is AssertStatement assert)
-                {
-                    builder.Append("assert(");
-                    Generate(assert.Assertion, builder);
-
-                    builder.Append(");");
-                }
                 else
-                    Report.Error($"Cannot translate {statement.GetType().Name} to D.");
-            }
+                {
+                    for (var i = 0; i < assignment.Left.Count; i++)
+                    {
+                        var left = assignment.Left[i];
+                        if (left is VariableDeclaration declaration)
+                        {
+                            left = declaration.Variable;
+                            Generate(declaration.Type, builder);
+                        }
 
-            builder.Append('}');
+                        Generate(left, builder);
+                        switch (assignment.Operator.Tag)
+                        {
+                            case OperatorTag.PlusEqual:
+                                builder.Append("+=");
+                                break;
+                            case OperatorTag.MinusEqual:
+                                builder.Append("-=");
+                                break;
+                            case OperatorTag.MultiplyEqual:
+                                builder.Append("*=");
+                                break;
+                            case OperatorTag.DivideEqual:
+                                builder.Append("/=");
+                                break;
+                            case OperatorTag.ModuloEqual:
+                                builder.Append("%=");
+                                break;
+                            case OperatorTag.BitwiseAndEqual:
+                                builder.Append("&=");
+                                break;
+                            case OperatorTag.BitwiseOrEqual:
+                                builder.Append("|=");
+                                break;
+                            case OperatorTag.BitwiseXorEqual:
+                                builder.Append("^=");
+                                break;
+                            case OperatorTag.LeftShiftEqual:
+                                builder.Append("<<=");
+                                break;
+                            case OperatorTag.RightShiftEqual:
+                                builder.Append(">>=");
+                                break;
+                            case OperatorTag.Equal:
+                                builder.Append("=");
+                                break;
+                            default:
+                                Report.Error($"Cannot translate {assignment.Operator.Tag} to D.");
+                                break;
+                        }
+
+                        Generate(assignment.Right[i], builder);
+                        builder.Append(';');
+                    }
+                }
+            }
+            else if (statement is ExpressionStatement e)
+            {
+                Generate(e.Expression, builder);
+                builder.Append(';');
+            }
+            else if (statement is ReturnStatement r)
+            {
+                builder.Append("return ");
+                if (r.Expressions.Count > 1)
+                    builder.Append("tuple(");
+
+                Generate(r.Expressions, builder);
+                if (r.Expressions.Count > 1)
+                    builder.Append(')');
+
+                builder.Append(';');
+            }
+            else if (statement is AssertStatement assert)
+            {
+                builder.Append("assert(");
+                Generate(assert.Assertion, builder);
+
+                builder.Append(");");
+            }
+            else if (statement is WhileStatement w)
+            {
+                builder.Append('{');
+                if (w.Assignment != null)
+                    Generate(w.Assignment, builder);
+
+                builder.Append("while (");
+                Generate(w.Condition, builder);
+                builder.Append(')');
+                Generate(w.Body, builder);
+                builder.Append('}');
+            }
+            else
+                Report.Error($"Cannot translate {statement.GetType().Name} to D.");
         }
 
         private static void Generate(List<Expression> expressions, StringBuilder builder)
@@ -447,10 +461,16 @@ namespace Owen
                 }
 
                 builder.Append(')');
-
+            }
+            else if (expression is Boolean boolean)
+                builder.Append(boolean.Value);
+            else if (expression is PostfixIncrement pfi)
+            {
+                Generate(pfi.Expression, builder);
+                builder.Append("++");
             }
             else
-                Report.Error($"Cannot translate {expression.GetType().Name} to D.");
+                Report.Error($"{expression.Start} Cannot translate {expression.GetType().Name} to D.");
         }
     }
 }

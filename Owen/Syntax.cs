@@ -100,6 +100,7 @@ namespace Owen
                 }
 
                 declaration.Body = CompoundStatement(source);
+                Expect(source, "end");
 
                 return declaration;
             }
@@ -200,6 +201,7 @@ namespace Owen
             {
                 var statement = AssignmentStatement(source) ??
                                 ExpressionStatement(source) ??
+                                WhileStatement(source) ??
                                 ReturnStatement(source) ??
                                 AssertStatement(source);
                 
@@ -208,8 +210,6 @@ namespace Owen
                 else
                     compound.Statements.Add(statement);
             }
-
-            Expect(source, "end");
 
             return compound;
         }
@@ -221,13 +221,10 @@ namespace Owen
             var left = Expressions(source);
             if (left.Count != 0)
             {
-                UpdatePosition(source, source.Index);
-
                 var assignment = new AssignmentStatement();
-                assignment.Left = left;
                 assignment.Operator = new Operator();
-                assignment.Operator.Start = source.Position.Copy();
 
+                var operatorStart = source.Index;
                 if (Consume(source, "+="))
                     assignment.Operator.Tag = OperatorTag.PlusEqual;
                 else if (Consume(source, "-="))
@@ -258,6 +255,10 @@ namespace Owen
                     return null;
                 }
 
+                UpdatePosition(source, operatorStart);
+                assignment.Left = left;
+                assignment.Operator.Start = source.Position.Copy();
+
                 assignment.Right = Expressions(source);
                 if (assignment.Right.Count == 0)
                     Report.Error($"{source.Position} One or more expressions expected.");
@@ -278,6 +279,29 @@ namespace Owen
                 {
                     Expression = expression
                 };
+        }
+
+        private static Statement WhileStatement(Source source)
+        {
+            if (Consume(source, "while"))
+            {
+                var statement = new WhileStatement();
+                statement.Assignment = (AssignmentStatement)AssignmentStatement(source);
+
+                if (statement.Assignment != null)
+                    Expect(source, ";");
+
+                statement.Condition = Expression(source);
+                if (statement.Condition == null)
+                    Report.Error($"{source.Position} Expression expected.");
+
+                statement.Body = CompoundStatement(source);
+                Expect(source, "end");
+
+                return statement;
+            }
+            else
+                return null;
         }
 
         private static Statement ReturnStatement(Source source)
@@ -444,6 +468,11 @@ namespace Owen
                         End = field.End
                     };
                 }
+                else if (Consume(source, "++"))
+                    return new PostfixIncrement()
+                    {
+                        Expression = expression
+                    };
                 else
                     return expression;
             }
@@ -454,60 +483,9 @@ namespace Owen
         private static Expression PrimaryExpression(Source source)
         {
             return Number(source) ??
+                   Boolean(source) ??
                    StructureLiteral(source) ??
                    Identifier(source);
-        }
-
-        private static Expression StructureLiteral(Source source)
-        {
-            var start = source.Index;
-            var literal = new CompoundLiteral();
-            literal.Structure = Identifier(source);
-
-            if (literal.Structure == null)
-                return null;
-
-            var initializer = new FieldInitializer();
-            initializer.Name = Identifier(source);
-            if (initializer.Name == null)
-            {
-                source.Index = start;
-                return null;
-            }
-
-            if (Consume(source, "="))
-            {
-                initializer.Value = Expression(source);
-                if (initializer.Value == null)
-                    Report.Error($"{source.Position} Expression expected.");
-                else
-                    literal.Initializers.Add(initializer);
-
-                while (Consume(source, ","))
-                {
-                    initializer = new FieldInitializer();
-                    initializer.Name = Identifier(source);
-                    if (initializer.Name == null)
-                        break;
-                    else
-                        Expect(source, "=");
-
-                    initializer.Value = Expression(source);
-                    if (initializer.Value == null)
-                        Report.Error($"{source.Position} Expression expected.");
-                    else
-                        literal.Initializers.Add(initializer);
-                }
-
-                Expect(source, "end");
-
-                return literal;
-            }
-            else
-            {
-                source.Index = start;
-                return null;
-            }
         }
 
         private static Expression Number(Source source)
@@ -592,6 +570,89 @@ namespace Owen
                 }
 
                 return number;
+            }
+        }
+
+        private static Expression Boolean(Source source)
+        {
+            var start = source.Index;
+            if (Consume(source, "true"))
+            {
+                UpdatePosition(source, start);
+                var boolean = new Boolean();
+
+                boolean.Start = source.Position.Copy();
+                boolean.Value = "true";
+                boolean.End = source.Position.Copy();
+                boolean.End.Column += boolean.Value.Length;
+
+                return boolean;
+            }
+            else if (Consume(source, "false"))
+            {
+                UpdatePosition(source, start);
+                var boolean = new Boolean();
+
+                boolean.Start = source.Position.Copy();
+                boolean.Value = "false";
+                boolean.End = source.Position.Copy();
+                boolean.End.Column += boolean.Value.Length;
+
+                return boolean;
+            }
+            else
+                return null;
+        }
+
+        private static Expression StructureLiteral(Source source)
+        {
+            var start = source.Index;
+            var literal = new CompoundLiteral();
+            literal.Structure = Identifier(source);
+
+            if (literal.Structure == null)
+                return null;
+
+            var initializer = new FieldInitializer();
+            initializer.Name = Identifier(source);
+            if (initializer.Name == null)
+            {
+                source.Index = start;
+                return null;
+            }
+
+            if (Consume(source, "="))
+            {
+                initializer.Value = Expression(source);
+                if (initializer.Value == null)
+                    Report.Error($"{source.Position} Expression expected.");
+                else
+                    literal.Initializers.Add(initializer);
+
+                while (Consume(source, ","))
+                {
+                    initializer = new FieldInitializer();
+                    initializer.Name = Identifier(source);
+                    if (initializer.Name == null)
+                        break;
+                    else
+                        Expect(source, "=");
+
+                    initializer.Value = Expression(source);
+                    if (initializer.Value == null)
+                        Report.Error($"{source.Position} Expression expected.");
+                    else
+                        literal.Initializers.Add(initializer);
+                }
+
+                Expect(source, "end");
+
+                return literal;
+            }
+            else
+            {
+                source.Index = start;
+                return null;
             }
         }
 
