@@ -1,0 +1,13 @@
+﻿// expect 0
+
+namespace Breaks
+
+function main
+    output I32
+
+    while true
+        break
+    end
+
+    return 0
+end

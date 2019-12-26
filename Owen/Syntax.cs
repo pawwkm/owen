@@ -204,6 +204,7 @@ namespace Owen
                                 IfStatement(source) ??
                                 ForStatement(source) ??
                                 WhileStatement(source) ??
+                                BreakStatement(source) ??
                                 ReturnStatement(source) ??
                                 AssertStatement(source);
                 
@@ -376,6 +377,20 @@ namespace Owen
                 Expect(source, "end");
 
                 return statement;
+            }
+            else
+                return null;
+        }
+
+        private static Statement BreakStatement(Source source)
+        {
+            var start = source.Position.Copy();
+            if (Consume(source, "break"))
+            {
+                return new BreakStatement()
+                {
+                    Start = start
+                };
             }
             else
                 return null;

@@ -344,7 +344,7 @@ namespace Owen
                     {
                         block.Condition.Type = Analyze(block.Condition, null, block.Body.Scope);
                         if (!Compare(block.Condition.Type, Bool))
-                            Report.Error($"{block.Condition.Start} Bool expression expected."); 
+                            Report.Error($"{block.Condition.Start} Bool expression expected.");
                     }
 
                     Analyze(block.Body, output, block.Body.Scope);
@@ -407,6 +407,8 @@ namespace Owen
                 if (!Compare(type, Bool))
                     Report.Error($"{assert.Assertion.Start} {Bool} expression expected.");
             }
+            else if (statement is BreakStatement)
+                ;
             else
                 Report.Error($"Cannot analyze {statement.GetType().Name}.");
         }

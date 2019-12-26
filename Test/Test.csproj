@@ -59,6 +59,9 @@
     <None Include="assignment\enumerations.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="break\can_break_out_of_while.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="compound\declaration_name_and_field_name_must_be_unique.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

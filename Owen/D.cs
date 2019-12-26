@@ -338,7 +338,7 @@ namespace Owen
                 builder.Append(");");
             }
             else if (statement is IfStatement ifStatement)
-            {   
+            {
                 for (var i = 0; i < ifStatement.Blocks.Count; i++)
                 {
                     builder.Append('{');
@@ -350,7 +350,7 @@ namespace Owen
                     Generate(block.Condition, builder);
                     builder.Append(')');
                     Generate(block.Body, builder);
-                    
+
                     if (i + 2 == ifStatement.Blocks.Count && ifStatement.Blocks[i + 1].Condition == null)
                     {
                         builder.Append("else ");
@@ -398,6 +398,8 @@ namespace Owen
                 Generate(whileStatement.Body, builder);
                 builder.Append('}');
             }
+            else if (statement is BreakStatement)
+                builder.Append("break;");
             else
                 Report.Error($"Cannot translate {statement.GetType().Name} to D.");
         }

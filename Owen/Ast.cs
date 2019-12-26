@@ -221,6 +221,11 @@ namespace Owen
         public Expression Assertion;
     }
 
+    internal sealed class BreakStatement : Statement
+    {
+        public Position Start;
+    }
+
     internal abstract class Expression
     {
         public Type Type;
