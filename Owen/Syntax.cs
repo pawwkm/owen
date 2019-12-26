@@ -482,12 +482,29 @@ namespace Owen
         private static Expression PrefixExpression(Source source)
         {
             var start = source.Position.Copy();
-            if (Consume(source, "&"))
+            if (Consume(source, "size"))
+            {
+                Expect(source, "of");
+
+                var type = Identifier(source);
+                if (type == null)
+                    Report.Error($"{source.Position} Identifier expected.");
+
+                return new SizeOf()
+                {
+                    Start = start,
+                    TypeBeingSizedUp = new UnresolvedType()
+                    {
+                        Identifier = type
+                    }
+                };
+            }
+            else if (Consume(source, "&"))
             {
                 var expression = PostfixExpression(source);
                 if (expression == null)
                     Report.Error($"{source.Position} Expression expected.");
-                
+
                 return new AddressOf()
                 {
                     Start = start,

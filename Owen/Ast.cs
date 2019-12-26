@@ -235,6 +235,11 @@ namespace Owen
         public Expression Right;
     }
 
+    internal sealed class SizeOf : Expression
+    {
+        public Type TypeBeingSizedUp;
+    }
+
     internal sealed class AddressOf : Expression
     {
         public Expression Expression;

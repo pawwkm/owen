@@ -518,6 +518,11 @@ namespace Owen
                 Generate(pfi.Expression, builder);
                 builder.Append("++");
             }
+            else if (expression is SizeOf sizeOf)
+            {
+                Generate(sizeOf.TypeBeingSizedUp, builder);
+                builder.Append(".sizeof");
+            }
             else
                 Report.Error($"{expression.Start} Cannot translate {expression.GetType().Name} to D.");
         }

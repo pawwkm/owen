@@ -564,6 +564,13 @@ namespace Owen
                 else
                     Report.Error($"{pfi.Expression.Start} Reference to number typed variable expected.");
             }
+            else if (expression is SizeOf sizeOf)
+            {
+                sizeOf.TypeBeingSizedUp = Lookup(((UnresolvedType)sizeOf.TypeBeingSizedUp).Identifier, scope);
+                sizeOf.Type = I32;
+
+                return sizeOf.Type;
+            }
 
             throw new NotImplementedException($"Cannot analyze {expression.GetType().Name}.");
         }

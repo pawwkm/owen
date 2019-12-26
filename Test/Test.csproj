@@ -221,6 +221,9 @@
     <None Include="assignment\multiple_assignment_of_literals.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="size_of\primitives.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="while\declare_variable_before_condition.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
