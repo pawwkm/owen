@@ -337,36 +337,65 @@ namespace Owen
 
                 builder.Append(");");
             }
-            else if (statement is WhileStatement w)
-            {
-                builder.Append('{');
-                if (w.Assignment != null)
-                    Generate(w.Assignment, builder);
+            else if (statement is IfStatement ifStatement)
+            {   
+                for (var i = 0; i < ifStatement.Blocks.Count; i++)
+                {
+                    builder.Append('{');
+                    var block = ifStatement.Blocks[i];
+                    if (block.Assignment != null)
+                        Generate(block.Assignment, builder);
 
-                builder.Append("while (");
-                Generate(w.Condition, builder);
-                builder.Append(')');
-                Generate(w.Body, builder);
-                builder.Append('}');
+                    builder.Append("if (");
+                    Generate(block.Condition, builder);
+                    builder.Append(')');
+                    Generate(block.Body, builder);
+                    
+                    if (i + 2 == ifStatement.Blocks.Count && ifStatement.Blocks[i + 1].Condition == null)
+                    {
+                        builder.Append("else ");
+                        Generate(ifStatement.Blocks[i + 1].Body, builder);
+
+                        break;
+                    }
+                }
+
+                foreach (var block in ifStatement.Blocks)
+                {
+                    if (block.Condition != null)
+                        builder.Append('}');
+                }
             }
-            else if (statement is ForStatement fs)
+            else if (statement is ForStatement forStatement)
             {
                 builder.Append('{');
-                Generate(fs.Assignment, builder);
+                Generate(forStatement.Assignment, builder);
                 builder.Append("for (;");
-                Generate(fs.Condition, builder);
+                Generate(forStatement.Condition, builder);
                 builder.Append(';');
 
-                for (var i = 0; i < fs.Post.Count; i++)
+                for (var i = 0; i < forStatement.Post.Count; i++)
                 {
-                    Generate(fs.Post[i], builder);
-                    if (i + 1 != fs.Post.Count)
+                    Generate(forStatement.Post[i], builder);
+                    if (i + 1 != forStatement.Post.Count)
                         builder.Append(',');
                 }
 
                 builder.Append(')');
-                Generate(fs.Body, builder);
+                Generate(forStatement.Body, builder);
 
+                builder.Append('}');
+            }
+            else if (statement is WhileStatement whileStatement)
+            {
+                builder.Append('{');
+                if (whileStatement.Assignment != null)
+                    Generate(whileStatement.Assignment, builder);
+
+                builder.Append("while (");
+                Generate(whileStatement.Condition, builder);
+                builder.Append(')');
+                Generate(whileStatement.Body, builder);
                 builder.Append('}');
             }
             else

@@ -201,6 +201,7 @@ namespace Owen
             {
                 var statement = AssignmentStatement(source) ??
                                 ExpressionStatement(source) ??
+                                IfStatement(source) ??
                                 ForStatement(source) ??
                                 WhileStatement(source) ??
                                 ReturnStatement(source) ??
@@ -280,6 +281,54 @@ namespace Owen
                 {
                     Expression = expression
                 };
+        }
+
+        private static Statement IfStatement(Source source)
+        {
+            if (Consume(source, "if"))
+            {
+                var block = new ConditionalBlock();
+                
+                block.Assignment = (AssignmentStatement)AssignmentStatement(source);
+                if (block.Assignment != null)
+                    Expect(source, ";");
+
+                block.Condition = Expression(source);
+                if (block.Condition == null)
+                    Report.Error($"{source.Position} Expression expected.");
+
+                block.Body = CompoundStatement(source);
+
+                var statement = new IfStatement();
+                statement.Blocks.Add(block);
+
+                while (Consume(source, "else"))
+                {
+                    block = new ConditionalBlock();
+                    if (Consume(source, "if"))
+                    {
+                        block.Assignment = (AssignmentStatement)AssignmentStatement(source);
+                        if (block.Assignment != null)
+                            Expect(source, ";");
+
+                        block.Condition = Expression(source);
+                        if (block.Condition == null)
+                            Report.Error($"{source.Position} Expression expected.");
+                    }
+
+                    block.Body = CompoundStatement(source);
+                    statement.Blocks.Add(block);
+
+                    if (block.Condition == null)
+                        break;
+                }
+
+                Expect(source, "end");
+
+                return statement;
+            }
+            else
+                return null;
         }
 
         private static Statement ForStatement(Source source)

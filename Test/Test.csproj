@@ -182,6 +182,18 @@
     <None Include="assignment\structures.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="if\declarations_can_be_referenced_in_later_blocks.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="if\if_first_condtion_is_false_then_the_next_block_is_tried.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="if\if_statement_is_entered_if_condition_is_true.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="if\if_statement_is_skipped_if_condition_is_false.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="pointer\can_dereference.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

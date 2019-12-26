@@ -149,6 +149,18 @@ namespace Owen
         public List<Expression> Right;
     }
 
+    internal sealed class IfStatement : Statement
+    {
+        public List<ConditionalBlock> Blocks = new List<ConditionalBlock>();
+    }
+
+    internal sealed class ConditionalBlock
+    {
+        public AssignmentStatement Assignment;
+        public Expression Condition;
+        public CompoundStatement Body;
+    }
+
     internal sealed class ForStatement : Statement
     {
         public AssignmentStatement Assignment;

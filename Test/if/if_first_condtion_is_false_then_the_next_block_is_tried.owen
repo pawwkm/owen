@@ -1,0 +1,15 @@
+﻿// expect 2
+
+namespace Test
+
+function main
+    output I32
+
+    if false
+        return 1
+    else if true
+        return 2
+    end
+
+    return 0
+end

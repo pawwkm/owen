@@ -327,6 +327,29 @@ namespace Owen
                 if (!(e.Expression is Call || e.Expression is PostfixIncrement))
                     Report.Error($"{e.Expression.Start} Call or pre/post increment/decrement expression expected.");
             }
+            else if (statement is IfStatement ifStatement)
+            {
+                for (var i = 0; i < ifStatement.Blocks.Count; i++)
+                {
+                    var block = ifStatement.Blocks[i];
+                    if (i == 0)
+                        block.Body.Scope.Parent = parent;
+                    else
+                        block.Body.Scope.Parent = ifStatement.Blocks[i - 1].Body.Scope;
+
+                    if (block.Assignment != null)
+                        Analyze(block.Assignment, output, block.Body.Scope);
+
+                    if (block.Condition != null)
+                    {
+                        block.Condition.Type = Analyze(block.Condition, null, block.Body.Scope);
+                        if (!Compare(block.Condition.Type, Bool))
+                            Report.Error($"{block.Condition.Start} Bool expression expected."); 
+                    }
+
+                    Analyze(block.Body, output, block.Body.Scope);
+                }
+            }
             else if (statement is ForStatement fs)
             {
                 fs.Body.Scope.Parent = parent;
