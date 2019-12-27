@@ -102,7 +102,7 @@ namespace Owen
                 //Interpreter.Run(program);
 
                 if (!checkOnly)
-                    D.Generate(program, output);
+                    D.Generate(program, includePropositions, output);
             }
         }
     }

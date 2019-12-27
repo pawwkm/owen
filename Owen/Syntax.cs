@@ -22,6 +22,10 @@ namespace Owen
                 if (function != null)
                     file.Functions.Add(function);
 
+                var proposition = PropositionDeclaration(source);
+                if (proposition != null)
+                    file.Propositions.Add(proposition);
+
                 var compound = CompoundDeclaration(source);
                 if (compound != null)
                     file.Compounds.Add(compound);
@@ -40,8 +44,8 @@ namespace Owen
                         file.Ctfe.Add(expression);
                 }
 
-                if (function == null && compound == null && enumeration == null && expression == null)
-                    Report.Error($"{source.Position} Function, structure, union, enumeration or CTFE expression expected.");
+                if (function == null && proposition == null && compound == null && enumeration == null && expression == null)
+                    Report.Error($"{source.Position} Function, proposition, structure, union, enumeration or CTFE expression expected.");
             }
 
             program.Files.Add(file);
@@ -103,6 +107,19 @@ namespace Owen
                 Expect(source, "end");
 
                 return declaration;
+            }
+            else
+                return null;
+        }
+
+        private static CompoundStatement PropositionDeclaration(Source source)
+        {
+            if (Consume(source, "proposition"))
+            {
+                var body = CompoundStatement(source);
+                Expect(source, "end");
+
+                return body;
             }
             else
                 return null;

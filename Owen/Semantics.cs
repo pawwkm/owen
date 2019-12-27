@@ -57,6 +57,7 @@ namespace Owen
             Analyze(file.Enumerations, program.Scope);
             Analyze(file.Compounds, program.Scope);
             Analyze(file.Functions, program.Scope);
+            Analyze(file.Propositions, program.Scope);
         }
 
         private static void Analyze(List<EnumerationDeclaration> enumerations, Scope scope)
@@ -220,6 +221,15 @@ namespace Owen
                 }
 
                 Analyze(function.Body, function.Output, function.Body.Scope);
+            }
+        }
+
+        private static void Analyze(List<CompoundStatement> propositions, Scope scope)
+        {
+            foreach (var proposition in propositions)
+            {
+                proposition.Scope.Parent = scope;
+                Analyze(proposition, null, proposition.Scope);
             }
         }
 

@@ -14,6 +14,7 @@ namespace Owen
 		public Identifier Namespace;
         public string Path;
         public List<FunctionDeclaration> Functions = new List<FunctionDeclaration>();
+        public List<CompoundStatement> Propositions = new List<CompoundStatement>();
         public List<EnumerationDeclaration> Enumerations = new List<EnumerationDeclaration>();
         public List<CompoundDeclaration> Compounds = new List<CompoundDeclaration>();
         public List<Expression> Ctfe = new List<Expression>();

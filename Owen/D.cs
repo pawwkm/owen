@@ -16,7 +16,7 @@ namespace Owen
             return $"å{tempNamesCreated++}";
         }
 
-        public static void Generate(Program program, string output)
+        public static void Generate(Program program, bool includePropositions, string output)
         {
             var root = Path.Combine(Path.GetTempPath(), "Owen");
             if (Directory.Exists(root))
@@ -33,7 +33,7 @@ namespace Owen
                 System.IO.File.WriteAllText
                 (
                     Path.Combine(root, $"_{i}.d"), // dmd does not like file names starting with a digit.
-                    Generate(program.Files[i]),
+                    Generate(program.Files[i], includePropositions),
                     Encoding.UTF8
                 );
             }
@@ -62,7 +62,7 @@ namespace Owen
             }
         }
 
-        private static string Generate(File file)
+        private static string Generate(File file, bool includePropositions)
         {
             var builder = new StringBuilder();
 
@@ -75,6 +75,13 @@ namespace Owen
 
             foreach (var function in file.Functions)
                 Generate(function, builder);
+
+            if (includePropositions)
+            {
+                builder.Append("unittest");
+                foreach (var proposition in file.Propositions)
+                    Generate(proposition, builder);
+            }
 
             return builder.ToString();
         }
