@@ -234,7 +234,7 @@ namespace Owen
             }
             else if (statement is AssignmentStatement assignment)
             {
-                if (assignment.Right[0] is Call call && call.Declaration.Output is TupleType tuple)
+                if (assignment.Right[0] is Call call && call.Declaration.Output is TupleType)
                 {
                     foreach (var left in assignment.Left)
                     {
