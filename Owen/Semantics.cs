@@ -278,7 +278,7 @@ namespace Owen
                                                   (!(rightType is PrimitiveType) ||
                                                   ((PrimitiveType)rightType).Tag > PrimitiveTypeTag.U64);
 
-                    if (operatorUsedOnNonInteger)
+                    if (operatorUsedOnNonInteger || !(rightType is PrimitiveType) && assignment.Operator.Tag != OperatorTag.Equal)
                         Report.Error($"{assignment.Operator.Start} This operator is only defined for integer types.");
 
                     return left;
