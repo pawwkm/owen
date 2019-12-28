@@ -62,11 +62,31 @@ namespace Owen
             }
         }
 
+        private static void Generate(string nameSpace, StringBuilder builder)
+        {
+            foreach (var c in nameSpace)
+            {
+                if (char.IsLetterOrDigit(c) || c == '_')
+                    builder.Append(c);
+            }
+
+            builder.Append(';');
+        }
+
         private static string Generate(File file, bool includePropositions)
         {
             var builder = new StringBuilder();
 
-            builder.Append("import std.typecons; ");
+            builder.Append("module ");
+            Generate(file.Path, builder);
+
+            builder.Append("import std.typecons;");
+            foreach (var nameSpace in file.PathsToRenferencedFiles)
+            {
+                builder.Append("import ");
+                Generate(nameSpace, builder);
+            }
+
             foreach (var enumeration in file.Enumerations)
                 Generate(enumeration, builder);
 

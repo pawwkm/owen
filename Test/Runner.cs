@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Linq;
 
 namespace Test
 {
@@ -13,12 +15,15 @@ namespace Test
             var exitCode = new Regex(@"^\s*\/\/\s*expect\s+(\d+)\s*$", RegexOptions.Compiled);
             var error = new Regex(@"^\s*\/\/\s*expect\s+(.*)$", RegexOptions.Compiled);
             var comment = new Regex(@"^\s*\/\/(.*)$", RegexOptions.Compiled);
+            var file = new Regex(@"^\s*\/\/\s*file\s+(.*)$", RegexOptions.Compiled);
 
             foreach (var path in Directory.EnumerateFiles(Environment.CurrentDirectory, "*.owen", SearchOption.AllDirectories))
             {
                 var meta = default(string);
                 var lines = File.ReadAllLines(path);
+                var files = new List<string>();
 
+                files.Add(path.Substring(Environment.CurrentDirectory.Length + 1));
                 for (var i = 0; i < lines.Length; i++)
                 {
                     var match = exitCode.Match(lines[i]);
@@ -35,18 +40,19 @@ namespace Test
                             i--;
                         }
                     }
+                    else if ((match = file.Match(lines[i])).Success)
+                        files.Add(match.Groups[1].Value);
                     else
                         break;
                 }
 
-                var relativePath = path.Substring(Environment.CurrentDirectory.Length + 1);
                 if (meta != null)
                 {
-                    var release = Run(meta, relativePath, true);
+                    var release = Run(meta, files, true);
                     if (release.Error)
                     {
                         Console.ForegroundColor = ConsoleColor.Red;
-                        Console.WriteLine(relativePath);
+                        Console.WriteLine(files[0]);
 
                         Console.ForegroundColor = ConsoleColor.White;
                       
@@ -66,7 +72,7 @@ namespace Test
                     else
                     {
                         Console.ForegroundColor = ConsoleColor.Green;
-                        Console.WriteLine(relativePath);
+                        Console.WriteLine(files[0]);
                     }
                 }
             }
@@ -74,13 +80,13 @@ namespace Test
             Console.ForegroundColor = ConsoleColor.White;
         }
 
-        private static (bool Error, string Message) Run(string expect, string path, bool release)
+        private static (bool Error, string Message) Run(string expect, List<string> paths, bool release)
         {
             if (File.Exists("program.exe"))
                 File.Delete("program.exe");
 
             var compiler = new Process();
-            compiler.StartInfo = new ProcessStartInfo("owen.exe", $"-input \"{Path.GetFullPath(path)}\" -output program.exe {(release ? "-release" : "")}")
+            compiler.StartInfo = new ProcessStartInfo("owen.exe", $"-input {string.Join(" ", paths.Select(p => $"\"{Path.GetFullPath(p)}\""))} -output program.exe {(release ? "-release" : "")}")
             {
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,

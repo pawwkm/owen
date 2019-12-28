@@ -16,9 +16,20 @@ namespace Owen
             if ((file.Namespace = Identifier(source)) == null)
                 Report.Error($"{source.Position} Identifier expected.");
 
+            while (Consume(source, "use"))
+            {
+                var use = Identifier(source);
+                if (use == null)
+                    Report.Error($"{source.Position} Identifier expected.");
+
+                file.Uses.Add(use);
+            }
+
             while (!source.EndOfText)
             {
-                var function = FunctionDeclaration(source);
+                var isPublic = Consume(source, "public");
+
+                var function = FunctionDeclaration(source, isPublic);
                 if (function != null)
                     file.Functions.Add(function);
 
@@ -26,11 +37,11 @@ namespace Owen
                 if (proposition != null)
                     file.Propositions.Add(proposition);
 
-                var compound = CompoundDeclaration(source);
+                var compound = CompoundDeclaration(source, isPublic);
                 if (compound != null)
                     file.Compounds.Add(compound);
 
-                var enumeration = EnumerationDeclaration(source);
+                var enumeration = EnumerationDeclaration(source, isPublic);
                 if (enumeration != null)
                     file.Enumerations.Add(enumeration);
 
@@ -51,7 +62,7 @@ namespace Owen
             program.Files.Add(file);
         }
 
-        private static FunctionDeclaration FunctionDeclaration(Source source)
+        private static FunctionDeclaration FunctionDeclaration(Source source, bool isPublic)
         {
             if (Consume(source, "function"))
             {
@@ -60,6 +71,7 @@ namespace Owen
                     Report.Error("Identifier expected.");
 
                 var declaration = new FunctionDeclaration();
+                declaration.IsPublic = isPublic;
                 declaration.Name = name;
 
                 if (Consume(source, "input"))
@@ -125,7 +137,7 @@ namespace Owen
                 return null;
         }
 
-        private static CompoundDeclaration CompoundDeclaration(Source source)
+        private static CompoundDeclaration CompoundDeclaration(Source source, bool isPublic)
         {
             CompoundTypeTag tag;
             if (Consume(source, "structure"))
@@ -137,6 +149,7 @@ namespace Owen
 
             var declaration = new CompoundDeclaration()
             {
+                IsPublic = isPublic,
                 Tag = tag,
                 Name = Identifier(source)
             };
@@ -163,11 +176,12 @@ namespace Owen
             return declaration;
         }
 
-        private static EnumerationDeclaration EnumerationDeclaration(Source source)
+        private static EnumerationDeclaration EnumerationDeclaration(Source source, bool isPublic)
         {
             if (Consume(source, "enumeration"))
             {
                 var declaration = new EnumerationDeclaration();
+                declaration.IsPublic = isPublic;
                 declaration.Name = Identifier(source);
                 if (declaration.Name == null)
                     Report.Error($"{source.Position} Identifier expected.");

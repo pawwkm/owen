@@ -12,6 +12,8 @@ namespace Owen
 	{
         public Scope Scope;
 		public Identifier Namespace;
+        public List<Identifier> Uses = new List<Identifier>();
+        public List<string> PathsToRenferencedFiles = new List<string>();
         public string Path;
         public List<FunctionDeclaration> Functions = new List<FunctionDeclaration>();
         public List<CompoundStatement> Propositions = new List<CompoundStatement>();
@@ -23,6 +25,7 @@ namespace Owen
 
     internal sealed class FunctionDeclaration : Type
     {
+        public bool IsPublic;
         public Identifier Name;
         public List<Argument> Input = new List<Argument>();
         public Type Output;
@@ -37,6 +40,7 @@ namespace Owen
 
     internal sealed class EnumerationDeclaration : Type
     {
+        public bool IsPublic;
         public Identifier Name;
         public Type Type;
 
@@ -120,6 +124,7 @@ namespace Owen
 
     internal sealed class CompoundDeclaration : Type
     {
+        public bool IsPublic;
         public CompoundTypeTag Tag;
         public Identifier Name;
         public List<Field> Fields = new List<Field>();

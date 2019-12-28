@@ -32,179 +32,147 @@ namespace Owen
             program.Scope.Symbols.Add(new Symbol() { Name = F64.Tag.ToString(), Type = F64 });
             program.Scope.Symbols.Add(new Symbol() { Name = Bool.Tag.ToString(), Type = Bool });
 
+            // Resolve namespaces.
             foreach (var file in program.Files)
-                Analyze(file, program);
-
-            var mainFunctions = program.Files.SelectMany(f => f.Functions)
-                                             .Where(f => f.Name.Value == "main")
-                                             .ToList();
-
-            if (mainFunctions.Count == 0)
-                Report.Error("No main function defined.");
-            else if (mainFunctions.Count > 1)
-                Report.Error($"Multiple main functons defined:\r\n{string.Join("\r\n", mainFunctions.Select(f => f.Name.Start))}");
-
-            var main = mainFunctions[0];
-            if (!Compare(main.Output, I32))
-                Report.Error($"{main.Name.Start} main must output a single {I32}.");
-        }
-
-        private static void Analyze(File file, Program program)
-        {
-            file.Scope = new Scope();
-            file.Scope.Parent = program.Scope;
-
-            Analyze(file.Enumerations, program.Scope);
-            Analyze(file.Compounds, program.Scope);
-            Analyze(file.Functions, program.Scope);
-            Analyze(file.Propositions, program.Scope);
-        }
-
-        private static void Analyze(List<EnumerationDeclaration> enumerations, Scope scope)
-        {
-            foreach (var enumeration in enumerations)
             {
-                scope.Symbols.Add(new Symbol()
+                file.Scope = new Scope();
+                file.Scope.Parent = program.Scope;
+
+                var visibleFiles = program.Files.Where(f => f.Namespace.Value == file.Namespace.Value || file.Uses.Any(u => u.Value == f.Namespace.Value));
+                foreach (var otherFile in visibleFiles)
                 {
-                    Name = enumeration.Name.Value,
-                    Type = enumeration
-                });
-            }
-
-            foreach (var enumeration in enumerations)
-            {
-                enumeration.Type = Analyze(enumeration.Type, scope);
-                if (!(enumeration.Type is PrimitiveType) || enumeration.Type is PrimitiveType primitive && primitive.Tag > PrimitiveTypeTag.U64)
-                    Report.Error($"{enumeration.Name.Start} Enumeration type is not an integer type.");
-
-                var constantWithTheSameNameAsDeclaration = enumeration.Constants.FirstOrDefault(c => c.Name.Value == enumeration.Name.Value);
-                if (constantWithTheSameNameAsDeclaration != null)
-                    Report.Error($"{constantWithTheSameNameAsDeclaration.Name.Start} Constants cannot have the same name as the enumeration.");
-
-                foreach (var constant in enumeration.Constants)
-                {
-                    foreach (var other in enumeration.Constants)
+                    if (file.Path != otherFile.Path && !file.PathsToRenferencedFiles.Contains(otherFile.Path))
+                        file.PathsToRenferencedFiles.Add(otherFile.Path);
+                    
+                    foreach (var enumeration in otherFile.Enumerations.Where(e => file.Enumerations.Contains(e) || e.IsPublic))
                     {
-                        if (constant == other)
-                            continue;
-                        else if (constant.Name.Value == other.Name.Value)
-                            Report.Error($"{other.Name.Start} Redeclares {other.Name.Value}.");
-                    }
-                }
-
-                var lastValue = 0;
-                foreach (var constant in enumeration.Constants)
-                {
-                    if (constant.Value == null)
-                    {
-                        constant.Value = new Number()
+                        file.Scope.Symbols.Add(new Symbol()
                         {
-                            Tag = (NumberTag)((PrimitiveType)enumeration.Type).Tag,
-                            Value = (lastValue++).ToString(),
-                            Type = enumeration.Type
-                        };
-                    }
-                    else if (!Compare(enumeration.Type, Analyze(constant.Value, enumeration.Type, scope)))
-                        Report.Error($"{constant.Name.Start} Enumeration is {enumeration.Type} but constant {constant.Name.Value} is {constant.Value.Type}.");
-                }
-            }
-        }
-
-        private static void Analyze(List<CompoundDeclaration> compounds, Scope scope)
-        {
-            foreach (var compound in compounds)
-            {
-                scope.Symbols.Add(new Symbol()
-                {
-                    Name = compound.Name.Value,
-                    Type = compound
-                });
-            }
-
-            foreach (var compound in compounds)
-            {
-                var fieldWithTheSameNameAsDeclaration = compound.Fields.FirstOrDefault(f => f.Name.Value == compound.Name.Value);
-                if (fieldWithTheSameNameAsDeclaration != null)
-                    Report.Error($"{fieldWithTheSameNameAsDeclaration.Name.Start} Fields cannot have the same name as the compound.");
-
-                foreach (var field in compound.Fields)
-                {
-                    var positionOfType = ((UnresolvedType)field.Type).Identifier.Start;
-
-                    field.Type = Analyze(field.Type, scope);
-                    if (field.Type == null)
-                        Report.Error($"{positionOfType} {field.Name.Value} is undefined.");
-                }
-            }
-
-            foreach (var compound in compounds)
-            {
-                foreach (var a in compound.Fields)
-                {
-                    foreach (var b in compound.Fields)
-                    {
-                        if (a != b && a.Name.Value == b.Name.Value)
-                            Report.Error($"{b.Name.Start} Redeclares {b.Name.Value}.");
+                            Name = enumeration.Name.Value,
+                            Type = enumeration
+                        });
                     }
                 }
-            }
 
-            foreach (var compound in compounds)
-            {   
-                void CheckIfFieldIsRecursive(Field parent, List<Field> trace)
+                foreach (var otherFile in visibleFiles)
                 {
-                    if (parent.Type is CompoundDeclaration c)
+                    if (file.Path != otherFile.Path && !file.PathsToRenferencedFiles.Contains(otherFile.Path))
+                        file.PathsToRenferencedFiles.Add(otherFile.Path);
+
+                    foreach (var compound in otherFile.Compounds.Where(c => file.Compounds.Contains(c) || c.IsPublic))
                     {
-                        trace.Add(parent);
-                        foreach (var field in c.Fields)
+                        file.Scope.Symbols.Add(new Symbol()
                         {
-                            if (trace[0] == field)
-                            {
-                                if (trace.Count == 1)
-                                    Report.Error($"{field.Name.Start} The structure is directly recursive.");
-                                else if (trace.Count > 1)
-                                    Report.Error($"{((CompoundDeclaration)trace[1].Type).Name.Start} The structure is indirectly recursive:{Environment.NewLine}{string.Join(Environment.NewLine, trace.Select(a => $"{a.Name.Start} {a.Name.Value}"))}");
-                            }
-                            else if (field.Type is CompoundDeclaration)
-                                CheckIfFieldIsRecursive(field, trace);
+                            Name = compound.Name.Value,
+                            Type = compound
+                        });
+                    }
+                }
+
+                foreach (var otherFile in visibleFiles)
+                {
+                    if (file.Path != otherFile.Path && !file.PathsToRenferencedFiles.Contains(otherFile.Path))
+                        file.PathsToRenferencedFiles.Add(otherFile.Path);
+
+                    foreach (var function in otherFile.Functions.Where(f => file.Functions.Contains(f) || f.IsPublic))
+                    {
+                        file.Scope.Symbols.Add(new Symbol()
+                        {
+                            Name = function.Name.Value,
+                            Type = function
+                        });
+                    }
+                }
+            }
+
+            // Analyze enumerations.
+            foreach (var enumeration in program.Files.SelectMany(f => f.Enumerations))
+                Analyze(enumeration, program.Scope);
+
+            // Analyze compounds.
+            foreach (var file in program.Files)
+            {
+                foreach (var compound in file.Compounds)
+                {
+                    var fieldWithTheSameNameAsDeclaration = compound.Fields.FirstOrDefault(f => f.Name.Value == compound.Name.Value);
+                    if (fieldWithTheSameNameAsDeclaration != null)
+                        Report.Error($"{fieldWithTheSameNameAsDeclaration.Name.Start} Fields cannot have the same name as the compound.");
+
+                    foreach (var field in compound.Fields)
+                    {
+                        var positionOfType = ((UnresolvedType)field.Type).Identifier.Start;
+
+                        field.Type = Analyze(field.Type, file.Scope);
+                        if (field.Type == null)
+                            Report.Error($"{positionOfType} {field.Name.Value} is undefined.");
+                    }
+
+                    foreach (var a in compound.Fields)
+                    {
+                        foreach (var b in compound.Fields)
+                        {
+                            if (a != b && a.Name.Value == b.Name.Value)
+                                Report.Error($"{b.Name.Start} Redeclares {b.Name.Value}.");
                         }
-
-                        trace.RemoveAt(trace.Count - 1);
                     }
                 }
-                
-                foreach (var field in compound.Fields)
-                    CheckIfFieldIsRecursive(field, new List<Field>());
             }
-        }
 
-        private static void Analyze(List<FunctionDeclaration> functions, Scope parent)
-        {
-            foreach (var function in functions)
+            // Analyze recursive compounds.
+            foreach (var file in program.Files)
             {
-                for (var i = 0; i < function.Input.Count; i++)
-                    function.Input[i].Type = Analyze(function.Input[i].Type, parent);
-
-                if (function.Output is TupleType tuple)
+                foreach (var compound in file.Compounds)
                 {
-                    for (var i = 0; i < tuple.Types.Count; i++)
-                        tuple.Types[i] = Analyze(tuple.Types[i], parent);
+                    void CheckIfFieldIsRecursive(Field parent, List<Field> trace)
+                    {
+                        if (parent.Type is CompoundDeclaration c)
+                        {
+                            trace.Add(parent);
+                            foreach (var field in c.Fields)
+                            {
+                                if (trace[0] == field)
+                                {
+                                    if (trace.Count == 1)
+                                        Report.Error($"{field.Name.Start} The structure is directly recursive.");
+                                    else if (trace.Count > 1)
+                                        Report.Error($"{((CompoundDeclaration)trace[1].Type).Name.Start} The structure is indirectly recursive:{Environment.NewLine}{string.Join(Environment.NewLine, trace.Select(a => $"{a.Name.Start} {a.Name.Value}"))}");
+                                }
+                                else if (field.Type is CompoundDeclaration)
+                                    CheckIfFieldIsRecursive(field, trace);
+                            }
+
+                            trace.RemoveAt(trace.Count - 1);
+                        }
+                    }
+
+                    foreach (var field in compound.Fields)
+                        CheckIfFieldIsRecursive(field, new List<Field>());
                 }
-                else if (function.Output != null)
-                    function.Output = Analyze(function.Output, parent);
-
-                parent.Symbols.Add(new Symbol()
-                {
-                    Name = function.Name.Value,
-                    Type = function
-                });
             }
 
-            foreach (var function in functions)
+            // Analyze function signatures.
+            foreach (var file in program.Files)
             {
-                function.Body.Scope.Parent = parent;
-                var index = default(ushort);
+                foreach (var function in file.Functions)
+                {
+                    function.Body.Scope.Parent = file.Scope;
+                    for (var i = 0; i < function.Input.Count; i++)
+                        function.Input[i].Type = Analyze(function.Input[i].Type, file.Scope);
 
+                    if (function.Output is TupleType tuple)
+                    {
+                        for (var i = 0; i < tuple.Types.Count; i++)
+                            tuple.Types[i] = Analyze(tuple.Types[i], file.Scope);
+                    }
+                    else if (function.Output != null)
+                        function.Output = Analyze(function.Output, file.Scope);
+                }
+            }
+
+            // Analyze functions bodies.
+            foreach (var function in program.Files.SelectMany(f => f.Functions))
+            {
+                var index = default(ushort);
                 foreach (var argument in function.Input)
                 {
                     if (NullableLookup(argument.Name.Value, function.Body.Scope) is PrimitiveType primitive)
@@ -221,6 +189,60 @@ namespace Owen
                 }
 
                 Analyze(function.Body, function.Output, function.Body.Scope);
+            }
+
+            foreach (var file in program.Files)
+                Analyze(file.Propositions, program.Scope);
+
+            var mainFunctions = program.Files.SelectMany(f => f.Functions)
+                                             .Where(f => f.Name.Value == "main")
+                                             .ToList();
+
+            if (mainFunctions.Count == 0)
+                Report.Error("No main function defined.");
+            else if (mainFunctions.Count > 1)
+                Report.Error($"Multiple main functons defined:\r\n{string.Join("\r\n", mainFunctions.Select(f => f.Name.Start))}");
+
+            var main = mainFunctions[0];
+            if (!Compare(main.Output, I32))
+                Report.Error($"{main.Name.Start} main must output a single {I32}.");
+        }
+
+        private static void Analyze(EnumerationDeclaration enumeration, Scope scope)
+        {
+            enumeration.Type = Analyze(enumeration.Type, scope);
+            if (!(enumeration.Type is PrimitiveType) || enumeration.Type is PrimitiveType primitive && primitive.Tag > PrimitiveTypeTag.U64)
+                Report.Error($"{enumeration.Name.Start} Enumeration type is not an integer type.");
+
+            var constantWithTheSameNameAsDeclaration = enumeration.Constants.FirstOrDefault(c => c.Name.Value == enumeration.Name.Value);
+            if (constantWithTheSameNameAsDeclaration != null)
+                Report.Error($"{constantWithTheSameNameAsDeclaration.Name.Start} Constants cannot have the same name as the enumeration.");
+
+            foreach (var constant in enumeration.Constants)
+            {
+                foreach (var other in enumeration.Constants)
+                {
+                    if (constant == other)
+                        continue;
+                    else if (constant.Name.Value == other.Name.Value)
+                        Report.Error($"{other.Name.Start} Redeclares {other.Name.Value}.");
+                }
+            }
+
+            var lastValue = 0;
+            foreach (var constant in enumeration.Constants)
+            {
+                if (constant.Value == null)
+                {
+                    constant.Value = new Number()
+                    {
+                        Tag = (NumberTag)((PrimitiveType)enumeration.Type).Tag,
+                        Value = (lastValue++).ToString(),
+                        Type = enumeration.Type
+                    };
+                }
+                else if (!Compare(enumeration.Type, Analyze(constant.Value, enumeration.Type, scope)))
+                    Report.Error($"{constant.Name.Start} Enumeration is {enumeration.Type} but constant {constant.Name.Value} is {constant.Value.Type}.");
             }
         }
 

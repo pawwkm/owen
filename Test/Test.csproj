@@ -224,6 +224,18 @@
     <None Include="if\if_statement_is_skipped_if_condition_is_false.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="namespace\use_includes_public_declarations_from_the_given_namespace_1.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="namespace\use_includes_public_declarations_from_the_given_namespace_2.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="namespace\public_declarations_are_included_if_they_share_namespace_2.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="namespace\public_declarations_are_included_if_they_share_namespace_1.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="pointer\can_dereference.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
