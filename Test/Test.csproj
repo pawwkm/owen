@@ -101,6 +101,9 @@
     <None Include="compound\declaration_name_and_field_name_must_be_unique.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="compound\ambiguous_reference_to_compound.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="compound\field_type_is_undefined.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

@@ -134,7 +134,7 @@ namespace Owen
 
     internal enum CompoundTypeTag
     {
-        Struct,
+        Structure,
         Union
     }
 

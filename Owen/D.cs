@@ -129,7 +129,7 @@ namespace Owen
 
         private static void Generate(CompoundDeclaration compound, StringBuilder builder)
         {
-            if (compound.Tag == CompoundTypeTag.Struct)
+            if (compound.Tag == CompoundTypeTag.Structure)
                 builder.Append("struct ");
             else
                 builder.Append("union ");

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace Owen
 {
@@ -175,7 +176,7 @@ namespace Owen
                 var index = default(ushort);
                 foreach (var argument in function.Input)
                 {
-                    if (NullableLookup(argument.Name.Value, function.Body.Scope) is PrimitiveType primitive)
+                    if (NullableLookup(argument.Name, function.Body.Scope) is PrimitiveType primitive)
                         Report.Error($"{argument.Name.Start} Redeclares {argument.Name.Value}.");
                     else
                     {
@@ -272,7 +273,7 @@ namespace Owen
                 {
                     if (left is Identifier reference)
                     {
-                        var leftType = NullableLookup(reference.Value, parent);
+                        var leftType = NullableLookup(reference, parent);
                         if (leftType == null)
                         {
                             if (leftType == null && rightType == null)
@@ -341,7 +342,7 @@ namespace Owen
                         Mismatch(assignment.Left.Count, assignment.Right.Count);
                     else if (rightType == null && assignment.Left[r] is Identifier reference)
                     {
-                        rightType = NullableLookup(reference.Value, parent);
+                        rightType = NullableLookup(reference, parent);
                         if (rightType == null)
                             rightType = Analyze(assignment.Right[r], null, parent);
                         else
@@ -481,7 +482,7 @@ namespace Owen
                         return null;
                 }
                 else
-                    number.Type = NullableLookup(number.Tag.ToString(), scope);
+                    number.Type = NullableLookup(number.Tag.ToString(), scope, number.Start);
 
                 return number.Type;
             }
@@ -677,25 +678,58 @@ namespace Owen
 
         private static Type Lookup(Identifier name, Scope scope)
         {
-            var type = NullableLookup(name.Value, scope);
+            var type = NullableLookup(name, scope);
             if (type == null)
                 Report.Error($"{name.Start} Undefined reference to {name.Value}.");
 
             return type;
         }
 
-        private static Type NullableLookup(string name, Scope scope)
+        private static void Lookup(string name, Scope scope, List<Type> types)
         {
             foreach (var symbol in scope.Symbols)
             {
                 if (symbol.Name == name)
-                    return symbol.Type;
+                    types.Add(symbol.Type);
             }
 
-            if (scope.Parent == null)
+            if (scope.Parent != null)
+                Lookup(name, scope.Parent, types);
+        }
+
+        private static Type NullableLookup(Identifier name, Scope scope)
+        {
+            return NullableLookup(name.Value, scope, name.Start);
+        }
+
+        private static Type NullableLookup(string name, Scope scope, Position position)
+        {
+            var types = new List<Type>();
+
+            Lookup(name, scope, types);
+            if (types.Count == 0)
                 return null;
-            else
-                return NullableLookup(name, scope.Parent);
+            else if (types.Count > 1)
+            {
+                var builder = new StringBuilder();
+                builder.AppendLine($"{position} Ambiguous reference to:");
+
+                foreach (var type in types)
+                {
+                    if (type is PrimitiveType primitive)
+                        builder.AppendLine(primitive.Tag.ToString());
+                    else if (type is EnumerationDeclaration enumeration)
+                        builder.AppendLine($"{enumeration.Name.Start} enumeration {enumeration.Name.Value}");
+                    else if (type is CompoundDeclaration compound)
+                        builder.AppendLine($"{compound.Name.Start} {compound.Tag} {compound.Name.Value}");
+                    else if (type is FunctionDeclaration function)
+                        builder.AppendLine($"{function.Name.Start} function {function.Name.Value}");
+                }
+
+                Report.Error(builder.ToString());
+            }
+
+            return types[0];
         }
 
         private static bool Compare(Type a, Type b)

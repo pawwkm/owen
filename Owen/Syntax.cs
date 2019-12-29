@@ -141,7 +141,7 @@ namespace Owen
         {
             CompoundTypeTag tag;
             if (Consume(source, "structure"))
-                tag = CompoundTypeTag.Struct;
+                tag = CompoundTypeTag.Structure;
             else if (Consume(source, "union"))
                 tag = CompoundTypeTag.Union;
             else
