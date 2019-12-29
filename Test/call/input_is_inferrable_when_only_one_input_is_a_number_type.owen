@@ -1,0 +1,23 @@
+﻿// expect 0
+
+namespace Overloading
+
+function do_work
+    input I32 a
+    output I32
+
+    return a
+end
+
+function do_work
+    input Bool a
+    output I8
+
+    return 1
+end
+
+function main
+    output I32
+
+    return do_work(0)
+end

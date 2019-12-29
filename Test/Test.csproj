@@ -89,6 +89,15 @@
     <None Include="break\can_break_out_of_while.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="call\input_is_inferrable_when_only_one_input_is_a_number_type.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="call\multiple_inferrable_input_at_different_positions.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="call\resolve_without_inference.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="compound\declaration_name_and_field_name_must_be_unique.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

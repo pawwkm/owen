@@ -493,24 +493,74 @@ namespace Owen
             }
             else if (expression is Call call)
             {
-                if (Analyze(call.Reference, null, scope) is FunctionDeclaration function)
+                if (call.Reference is Identifier functionName)
                 {
-                    if (call.Arguments.Count != function.Input.Count)
-                        Report.Error($"{call.Reference.Start} No function overload fitting the given input.");
+                    var functions = new List<FunctionDeclaration>();
+                    var s = scope;
 
-                    call.Declaration = function;
-                    for (var i = 0; i < call.Arguments.Count; i++)
+                    while (s != null)
                     {
-                        if (!Compare(function.Input[i].Type, Analyze(call.Arguments[i], function.Input[i].Type, scope)))
-                            Report.Error($"{call.Reference.Start} No function overload fitting the given input.");
+                        foreach (var symbol in s.Symbols)
+                        {
+                            if (symbol.Type is FunctionDeclaration function && function.Name.Value == functionName.Value)
+                                functions.Add(function);
+                        }
+
+                        s = s.Parent;
                     }
 
-                    call.Type = function.Output;
+                    if (functions.Count == 0)
+                        Report.Error($"{call.Reference.Start} Function expected.");
 
-                    return function.Output;
+                    foreach (var input in call.Arguments)
+                    {
+                        if (!(input is Number n && n.Tag == NumberTag.ToBeInfered))
+                            Analyze(input, null, scope);
+                    }
+
+                    var matches = new List<FunctionDeclaration>();
+                    foreach (var function in functions)
+                    {
+                        if (function.Input.Count == call.Arguments.Count)
+                        {
+                            var isMatch = true;
+                            for (var i = 0; i < call.Arguments.Count; i++)
+                            {
+                                var inputMatches = function.Input[i].Type is PrimitiveType pf &&
+                                                   call.Arguments[i] is Number pn &&
+                                                   pf.Tag != PrimitiveTypeTag.Bool &&
+                                                   pn.Tag == NumberTag.ToBeInfered ||
+                                                   Compare(function.Input[i].Type, call.Arguments[i].Type);
+
+                                if (!inputMatches)
+                                    isMatch = false;
+                            }
+
+                            if (isMatch)
+                                matches.Add(function);
+                        }
+                    }
+
+                    if (matches.Count == 1)
+                    {
+                        foreach (var input in call.Arguments)
+                        {
+                            if (input is Number n && n.Tag == NumberTag.ToBeInfered)
+                                Analyze(input, null, scope);
+                        }
+
+                        call.Declaration = matches[0];
+                        call.Type = matches[0].Output;
+
+                        return call.Type;
+                    }
+                    else if (matches.Count > 1)
+                        Report.Error($"{call.Reference.Start} Ambiguous call between:{Environment.NewLine}{string.Join(Environment.NewLine, matches.Select(f => $"{f.Name.Start} {f.Name.Value}({string.Join(", ", f.Input.Select(i => i.Type.ToString()))})"))}");
+                    else
+                        Report.Error($"{call.Reference.Start} Function expected.");
                 }
                 else
-                    Report.Error($"{call.Reference.Start} Function expected.");
+                    Report.Error($"{call.Reference.Start} Calling {call.Reference.GetType().Name} not yet supported.");
             }
             else if (expression is AddressOf ao)
             {
