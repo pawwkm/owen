@@ -94,7 +94,15 @@ namespace Owen
                 Generate(compound, builder);
 
             foreach (var function in file.Functions)
-                Generate(function, builder);
+            {
+                if (function.Resolved.Count == 0)
+                    Generate(function, builder);
+                else
+                {
+                    foreach (var resolved in function.Resolved)
+                        Generate(resolved, builder);
+                }
+            }
 
             if (includePropositions)
             {

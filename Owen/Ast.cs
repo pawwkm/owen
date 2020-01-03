@@ -27,6 +27,8 @@ namespace Owen
     {
         public bool IsPublic;
         public Identifier Name;
+        public List<Identifier> Generalized = new List<Identifier>();
+        public List<FunctionDeclaration> Resolved = new List<FunctionDeclaration>();
         public List<Argument> Input = new List<Argument>();
         public Type Output;
         public CompoundStatement Body;
@@ -312,6 +314,7 @@ namespace Owen
 
     internal sealed class Call : Expression
     {
+        public List<Type> Generics;
         public FunctionDeclaration Declaration;
         public Expression Reference;
         public List<Expression> Arguments;

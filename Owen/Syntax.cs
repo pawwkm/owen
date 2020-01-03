@@ -74,6 +74,18 @@ namespace Owen
                 declaration.IsPublic = isPublic;
                 declaration.Name = name;
 
+                if (Consume(source, "generalize"))
+                {
+                    do
+                    {
+                        var identifier = Identifier(source);
+                        if (identifier == null)
+                            Report.Error("Identifier expected.");
+                        else
+                            declaration.Generalized.Add(identifier);
+                    } while (Consume(source, ","));
+                }
+
                 if (Consume(source, "input"))
                 {
                     do
@@ -577,9 +589,50 @@ namespace Owen
 
         private static Expression PostfixExpression(Source source)
         {
+            var startOfInput = default(Position);
             var expression = PrimaryExpression(source);
             if (expression != null)
             {
+                var start = source.Index;
+                if (Consume(source, "<"))
+                {
+                    var type = Type(source);
+                    if (type == null)
+                        source.Index = start;
+                    else
+                    {
+                        var generics = new List<Type>();
+                        generics.Add(type);
+
+                        while (Consume(source, ","))
+                        {
+                            type = Type(source);
+                            if (type == null)
+                                Report.Error($"{source.Position} Type expected.");
+
+                            generics.Add(type);
+                        }
+
+                        Expect(source, ">");
+
+                        startOfInput = source.Position.Copy();
+                        Expect(source, "(");
+                        var arguments = Expressions(source);
+                        Expect(source, ")");
+
+                        return new Call()
+                        {
+                            Generics = generics,
+                            Start = startOfInput,
+                            Reference = expression,
+                            Arguments = arguments,
+                            End = arguments.Count == 0 ? expression.End :
+                                                         arguments.Last().End
+                        };
+                    }
+                }
+
+                startOfInput = source.Position.Copy();
                 if (Consume(source, "("))
                 {
                     var arguments = Expressions(source);
@@ -587,7 +640,8 @@ namespace Owen
 
                     return new Call()
                     {
-                        Start = expression.Start,
+                        Generics = new List<Type>(),
+                        Start = startOfInput,
                         Reference = expression,
                         Arguments = arguments,
                         End = arguments.Count == 0 ? expression.End :

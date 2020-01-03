@@ -1,0 +1,21 @@
+﻿// expect 1
+
+namespace Polymorphic_Functions
+
+function do_work
+    generalize T
+    input T a,
+          T b
+    output T, 
+           T
+
+    return a, b
+end
+
+function main
+    output I32
+
+    a, b = do_work(0i32, 1)
+
+    return b
+end

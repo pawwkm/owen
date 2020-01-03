@@ -32,8 +32,98 @@ namespace Owen
             program.Scope.Symbols.Add(new Symbol() { Name = F32.Tag.ToString(), Type = F32 });
             program.Scope.Symbols.Add(new Symbol() { Name = F64.Tag.ToString(), Type = F64 });
             program.Scope.Symbols.Add(new Symbol() { Name = Bool.Tag.ToString(), Type = Bool });
+            
+            ResolveNamespaces(program);
+            foreach (var enumeration in program.Files.SelectMany(f => f.Enumerations))
+                Analyze(enumeration, program.Scope);
 
-            // Resolve namespaces.
+            foreach (var file in program.Files)
+            {
+                foreach (var compound in file.Compounds)
+                {
+                    var fieldWithTheSameNameAsDeclaration = compound.Fields.FirstOrDefault(f => f.Name.Value == compound.Name.Value);
+                    if (fieldWithTheSameNameAsDeclaration != null)
+                        Report.Error($"{fieldWithTheSameNameAsDeclaration.Name.Start} Fields cannot have the same name as the compound.");
+
+                    foreach (var field in compound.Fields)
+                    {
+                        var positionOfType = ((UnresolvedType)field.Type).Identifier.Start;
+
+                        field.Type = Analyze(field.Type, file.Scope);
+                        if (field.Type == null)
+                            Report.Error($"{positionOfType} {field.Name.Value} is undefined.");
+                    }
+
+                    foreach (var a in compound.Fields)
+                    {
+                        foreach (var b in compound.Fields)
+                        {
+                            if (a != b && a.Name.Value == b.Name.Value)
+                                Report.Error($"{b.Name.Start} Redeclares {b.Name.Value}.");
+                        }
+                    }
+                }
+            }
+
+            foreach (var file in program.Files)
+            {
+                foreach (var compound in file.Compounds)
+                {
+                    void CheckIfFieldIsRecursive(Field parent, List<Field> trace)
+                    {
+                        if (parent.Type is CompoundDeclaration c)
+                        {
+                            trace.Add(parent);
+                            foreach (var field in c.Fields)
+                            {
+                                if (trace[0] == field)
+                                {
+                                    if (trace.Count == 1)
+                                        Report.Error($"{field.Name.Start} The structure is directly recursive.");
+                                    else if (trace.Count > 1)
+                                        Report.Error($"{((CompoundDeclaration)trace[1].Type).Name.Start} The structure is indirectly recursive:{Environment.NewLine}{string.Join(Environment.NewLine, trace.Select(a => $"{a.Name.Start} {a.Name.Value}"))}");
+                                }
+                                else if (field.Type is CompoundDeclaration)
+                                    CheckIfFieldIsRecursive(field, trace);
+                            }
+
+                            trace.RemoveAt(trace.Count - 1);
+                        }
+                    }
+
+                    foreach (var field in compound.Fields)
+                        CheckIfFieldIsRecursive(field, new List<Field>());
+                }
+            }
+
+            foreach (var file in program.Files)
+            {
+                foreach (var function in file.Functions)
+                    AnalyzeSignature(file.Scope, function);
+            }
+
+            foreach (var function in program.Files.SelectMany(f => f.Functions))
+                AnalyzeBody(function);
+
+            foreach (var file in program.Files)
+                Analyze(file.Propositions, program.Scope);
+
+            var mainFunctions = program.Files.SelectMany(f => f.Functions)
+                                             .Where(f => f.Name.Value == "main")
+                                             .ToList();
+
+            if (mainFunctions.Count == 0)
+                Report.Error("No main function defined.");
+            else if (mainFunctions.Count > 1)
+                Report.Error($"Multiple main functons defined:\r\n{string.Join("\r\n", mainFunctions.Select(f => f.Name.Start))}");
+
+            var main = mainFunctions[0];
+            if (!Compare(main.Output, I32))
+                Report.Error($"{main.Name.Start} main must output a single {I32}.");
+        }
+
+        private static void ResolveNamespaces(Program program)
+        {
             foreach (var file in program.Files)
             {
                 file.Scope = new Scope();
@@ -44,7 +134,7 @@ namespace Owen
                 {
                     if (file.Path != otherFile.Path && !file.PathsToRenferencedFiles.Contains(otherFile.Path))
                         file.PathsToRenferencedFiles.Add(otherFile.Path);
-                    
+
                     foreach (var enumeration in otherFile.Enumerations.Where(e => file.Enumerations.Contains(e) || e.IsPublic))
                     {
                         file.Scope.Symbols.Add(new Symbol()
@@ -85,128 +175,49 @@ namespace Owen
                     }
                 }
             }
+        }
 
-            // Analyze enumerations.
-            foreach (var enumeration in program.Files.SelectMany(f => f.Enumerations))
-                Analyze(enumeration, program.Scope);
-
-            // Analyze compounds.
-            foreach (var file in program.Files)
+        private static void AnalyzeSignature(Scope parent, FunctionDeclaration function)
+        {
+            function.Body.Scope.Parent = parent;
+            if (function.Generalized.Count == 0)
             {
-                foreach (var compound in file.Compounds)
+                for (var i = 0; i < function.Input.Count; i++)
+                    function.Input[i].Type = Analyze(function.Input[i].Type, parent);
+
+                if (function.Output is TupleType tuple)
                 {
-                    var fieldWithTheSameNameAsDeclaration = compound.Fields.FirstOrDefault(f => f.Name.Value == compound.Name.Value);
-                    if (fieldWithTheSameNameAsDeclaration != null)
-                        Report.Error($"{fieldWithTheSameNameAsDeclaration.Name.Start} Fields cannot have the same name as the compound.");
-
-                    foreach (var field in compound.Fields)
+                    for (var i = 0; i < tuple.Types.Count; i++)
                     {
-                        var positionOfType = ((UnresolvedType)field.Type).Identifier.Start;
-
-                        field.Type = Analyze(field.Type, file.Scope);
-                        if (field.Type == null)
-                            Report.Error($"{positionOfType} {field.Name.Value} is undefined.");
+                        if (!function.Generalized.Any(g => ((UnresolvedType)tuple.Types[i]).Identifier.Value == g.Value))
+                            tuple.Types[i] = Analyze(tuple.Types[i], parent);
                     }
+                }
+                else if (function.Output != null && !function.Generalized.Any(g => ((UnresolvedType)function.Output).Identifier.Value == g.Value))
+                    function.Output = Analyze(function.Output, parent);
+            }
+        }
 
-                    foreach (var a in compound.Fields)
+        private static void AnalyzeBody(FunctionDeclaration function)
+        {
+            var index = default(ushort);
+            foreach (var argument in function.Input)
+            {
+                if (NullableLookup(argument.Name, function.Body.Scope) is PrimitiveType primitive)
+                    Report.Error($"{argument.Name.Start} Redeclares {argument.Name.Value}.");
+                else
+                {
+                    function.Body.Scope.Symbols.Add(new InputSymbol()
                     {
-                        foreach (var b in compound.Fields)
-                        {
-                            if (a != b && a.Name.Value == b.Name.Value)
-                                Report.Error($"{b.Name.Start} Redeclares {b.Name.Value}.");
-                        }
-                    }
+                        Name = argument.Name.Value,
+                        Type = argument.Type,
+                        Index = index++
+                    });
                 }
             }
 
-            // Analyze recursive compounds.
-            foreach (var file in program.Files)
-            {
-                foreach (var compound in file.Compounds)
-                {
-                    void CheckIfFieldIsRecursive(Field parent, List<Field> trace)
-                    {
-                        if (parent.Type is CompoundDeclaration c)
-                        {
-                            trace.Add(parent);
-                            foreach (var field in c.Fields)
-                            {
-                                if (trace[0] == field)
-                                {
-                                    if (trace.Count == 1)
-                                        Report.Error($"{field.Name.Start} The structure is directly recursive.");
-                                    else if (trace.Count > 1)
-                                        Report.Error($"{((CompoundDeclaration)trace[1].Type).Name.Start} The structure is indirectly recursive:{Environment.NewLine}{string.Join(Environment.NewLine, trace.Select(a => $"{a.Name.Start} {a.Name.Value}"))}");
-                                }
-                                else if (field.Type is CompoundDeclaration)
-                                    CheckIfFieldIsRecursive(field, trace);
-                            }
-
-                            trace.RemoveAt(trace.Count - 1);
-                        }
-                    }
-
-                    foreach (var field in compound.Fields)
-                        CheckIfFieldIsRecursive(field, new List<Field>());
-                }
-            }
-
-            // Analyze function signatures.
-            foreach (var file in program.Files)
-            {
-                foreach (var function in file.Functions)
-                {
-                    function.Body.Scope.Parent = file.Scope;
-                    for (var i = 0; i < function.Input.Count; i++)
-                        function.Input[i].Type = Analyze(function.Input[i].Type, file.Scope);
-
-                    if (function.Output is TupleType tuple)
-                    {
-                        for (var i = 0; i < tuple.Types.Count; i++)
-                            tuple.Types[i] = Analyze(tuple.Types[i], file.Scope);
-                    }
-                    else if (function.Output != null)
-                        function.Output = Analyze(function.Output, file.Scope);
-                }
-            }
-
-            // Analyze functions bodies.
-            foreach (var function in program.Files.SelectMany(f => f.Functions))
-            {
-                var index = default(ushort);
-                foreach (var argument in function.Input)
-                {
-                    if (NullableLookup(argument.Name, function.Body.Scope) is PrimitiveType primitive)
-                        Report.Error($"{argument.Name.Start} Redeclares {argument.Name.Value}.");
-                    else
-                    {
-                        function.Body.Scope.Symbols.Add(new InputSymbol()
-                        {
-                            Name = argument.Name.Value,
-                            Type = argument.Type,
-                            Index = index++
-                        });
-                    }
-                }
-
+            if (function.Generalized.Count == 0)
                 Analyze(function.Body, function.Output, function.Body.Scope);
-            }
-
-            foreach (var file in program.Files)
-                Analyze(file.Propositions, program.Scope);
-
-            var mainFunctions = program.Files.SelectMany(f => f.Functions)
-                                             .Where(f => f.Name.Value == "main")
-                                             .ToList();
-
-            if (mainFunctions.Count == 0)
-                Report.Error("No main function defined.");
-            else if (mainFunctions.Count > 1)
-                Report.Error($"Multiple main functons defined:\r\n{string.Join("\r\n", mainFunctions.Select(f => f.Name.Start))}");
-
-            var main = mainFunctions[0];
-            if (!Compare(main.Output, I32))
-                Report.Error($"{main.Name.Start} main must output a single {I32}.");
         }
 
         private static void Analyze(EnumerationDeclaration enumeration, Scope scope)
@@ -453,11 +464,7 @@ namespace Owen
                 var leftType = Analyze(binary.Left, null, scope);
                 var rightType = Analyze(binary.Right, leftType, scope);
 
-                binary.Type = new PrimitiveType()
-                {
-                    Tag = PrimitiveTypeTag.Bool
-                };
-
+                binary.Type = Bool;
                 if (!Compare(leftType, rightType))
                     Report.Error($"{binary.Right.Start} Expected {leftType} but found {rightType}.");
                 else
@@ -527,7 +534,8 @@ namespace Owen
                             var isMatch = true;
                             for (var i = 0; i < call.Arguments.Count; i++)
                             {
-                                var inputMatches = function.Input[i].Type is PrimitiveType pf &&
+                                var inputMatches = function.Input[i].Type is UnresolvedType unresolved && function.Generalized.Any(g => g.Value == unresolved.Identifier.Value) ||
+                                                   function.Input[i].Type is PrimitiveType pf &&
                                                    call.Arguments[i] is Number pn &&
                                                    pf.Tag != PrimitiveTypeTag.Bool &&
                                                    pn.Tag == NumberTag.ToBeInfered ||
@@ -544,10 +552,15 @@ namespace Owen
 
                     if (matches.Count == 1)
                     {
-                        foreach (var input in call.Arguments)
+                        if (matches[0].Generalized.Count != 0)
+                            matches[0] = Resolve(matches[0], call.Generics, call.Arguments, call.Start, matches[0].Resolved);
+                        else if (call.Generics.Count != 0 && matches[0].Generalized.Count == 0)
+                            Report.Error($"{call.Start} {matches[0].Name.Value} is not generic.");
+
+                        for (var i = 0; i < call.Arguments.Count; i++)
                         {
-                            if (input is Number n && n.Tag == NumberTag.ToBeInfered)
-                                Analyze(input, null, scope);
+                            if (call.Arguments[i] is Number n && n.Tag == NumberTag.ToBeInfered)
+                                Analyze(call.Arguments[i], matches[0].Input[i].Type, scope);
                         }
 
                         call.Declaration = matches[0];
@@ -671,9 +684,7 @@ namespace Owen
             else if (type is UnresolvedType unresolved)
                 return Lookup(unresolved.Identifier, scope);
             else
-                Report.Error($"Cannot analyze {type.GetType().Name}.");
-
-            return null;
+                return type;
         }
 
         private static Type Lookup(Identifier name, Scope scope)
@@ -730,6 +741,169 @@ namespace Owen
             }
 
             return types[0];
+        }
+
+        private static FunctionDeclaration Resolve(FunctionDeclaration generic, List<Type> explicits, List<Expression> input, Position callSite, List<FunctionDeclaration> cache)
+        {
+            var resolved = new FunctionDeclaration();
+            resolved.Name = generic.Name;
+            resolved.Body = new CompoundStatement();
+            resolved.Body.Scope = generic.Body.Scope.Parent;
+            resolved.IsPublic = generic.IsPublic;
+
+            var genericToType = new Dictionary<string, Type>();
+            var types = default(List<Type>);
+            if (explicits.Count != 0)
+            {
+                if (explicits.Count > generic.Generalized.Count)
+                    Report.Error($"{callSite} To many types specified.");
+                else if (explicits.Count < generic.Generalized.Count)
+                    Report.Error($"{callSite} To few types specified.");
+                else
+                {
+                    types = explicits;
+                    for (var i = 0; i < explicits.Count; i++)
+                        genericToType.Add(generic.Generalized[i].Value, explicits[i]);
+                }
+            }
+            else
+            {
+                types = new List<Type>();
+                for (var i = 0; i < generic.Input.Count; i++)
+                {
+                    var unresolved = (UnresolvedType)generic.Input[i].Type;
+                    if (generic.Generalized.Any(g => g.Value == unresolved.Identifier.Value))
+                    {
+                        if (!genericToType.ContainsKey(unresolved.Identifier.Value))
+                        {
+                            if (input[i].Type == null)
+                                Report.Error($"{callSite} Specify all generics since not all can be inferred.");
+
+                            genericToType.Add(unresolved.Identifier.Value, input[i].Type);
+                            types.Add(input[i].Type);
+                        }
+                        else if (input[i].Type == null)
+                            types.Add(genericToType[unresolved.Identifier.Value]);
+                        else
+                            types.Add(input[i].Type);
+                    }
+                }
+            }
+
+            if (!generic.Generalized.All(g => genericToType.ContainsKey(g.Value)))
+                Report.Error($"{callSite} Specify all generics since not all can be inferred.");
+
+            for (var i = 0; i < generic.Input.Count; i++) 
+            {
+                if (generic.Input[i].Type is UnresolvedType)
+                {
+                    resolved.Input.Add(new Argument()
+                    {
+                        Name = generic.Input[i].Name,
+                        Type = types[i]
+                    });
+                }
+                else
+                    resolved.Input.Add(generic.Input[i]);
+            }
+ 
+            if (generic.Output is TupleType tuple)
+            {
+                var output = new TupleType();
+                output.Types = new List<Type>();
+
+                for (var i = 0; i < tuple.Types.Count; i++)
+                {
+                    if (tuple.Types[i] is UnresolvedType unresolved && genericToType.ContainsKey(unresolved.Identifier.Value))
+                        output.Types.Add(genericToType[unresolved.Identifier.Value]);
+                    else
+                        output.Types.Add(tuple.Types[i]);
+                }
+
+                resolved.Output = output;
+            }
+            else if (generic.Output is UnresolvedType unresolved)
+            {
+                for (var i = 0; i < generic.Generalized.Count; i++)
+                {
+                    if (generic.Generalized[i].Value == unresolved.Identifier.Value)
+                    {
+                        resolved.Output = types[i];
+                        break;
+                    }
+                }
+            }
+
+            AnalyzeSignature(resolved.Body.Scope.Parent, resolved);
+            foreach (var function in cache)
+            {
+                var match = true;
+                for (var i = 0; i < function.Input.Count; i++)
+                {
+                    if (!Compare(resolved.Input[i].Type, function.Input[i].Type))
+                    {
+                        match = false;
+                        break;
+                    }
+                }
+
+                if (match)
+                    return function;
+            }
+
+            resolved.Body = (CompoundStatement)ResolveStatement(generic.Body, generic.Body.Scope.Parent);
+            AnalyzeBody(resolved);
+            cache.Add(resolved);
+
+            return resolved;
+        }
+
+        private static Statement ResolveStatement(Statement statement, Scope parent)
+        {
+            if (statement is CompoundStatement compound)
+            {
+                var resolved = new CompoundStatement();
+                resolved.Scope.Parent = parent;
+
+                foreach (var s in compound.Statements)
+                    resolved.Statements.Add(ResolveStatement(s, resolved.Scope));
+
+                return resolved;
+            }
+            else if (statement is ReturnStatement returnStatement)
+                return new ReturnStatement()
+                {
+                    EndOfKeyword = returnStatement.EndOfKeyword,
+                    Expressions = returnStatement.Expressions.Select(e => ResolveExpression(e)).ToList()
+                };
+            else
+                Report.Error($"Cannot resolve {statement.GetType().Name}.");
+
+            return null;
+        }
+
+        private static Expression ResolveExpression(Expression expression)
+        {
+            if (expression is Number number)
+                return new Number
+                {
+                    Start = number.Start.Copy(),
+                    Tag = number.Tag,
+                    Type = number.Type,
+                    Value = number.Value,
+                    End = number.End.Copy()
+                };
+            else if (expression is Identifier reference)
+                return new Identifier
+                {
+                    Start = reference.Start.Copy(),
+                    Value = reference.Value,
+                    End = reference.End.Copy()
+                };
+            else
+                Report.Error($"Cannot resolve {expression.GetType().Name}.");
+
+            return null;
         }
 
         private static bool Compare(Type a, Type b)
