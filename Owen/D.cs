@@ -474,14 +474,17 @@ namespace Owen
                 Generate(binary.Left, builder);
                 switch (binary.Operator.Tag)
                 {
-                    case OperatorTag.LogicalOr:
-                        builder.Append("||");
-                        break;
                     case OperatorTag.EqualEqual:
                         builder.Append("==");
                         break;
                     case OperatorTag.NotEqual:
                         builder.Append("!=");
+                        break;
+                    case OperatorTag.LogicalOr:
+                        builder.Append("||");
+                        break;
+                    case OperatorTag.LogicalAnd:
+                        builder.Append("&&");
                         break;
                     default:
                         Report.Error($"Cannot translate {binary.Operator.Tag} to D.");

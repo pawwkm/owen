@@ -508,13 +508,49 @@ namespace Owen
 
         private static Expression LogicalOrExpression(Source source)
         {
-            var left = AdditiveExpression(source);
+            var left = LogicalAndExpression(source);
             while (true)
             {
                 var start = source.Position.Copy();
                 var tag = OperatorTag.LogicalOr;
 
                 if (!Consume(source, "||"))
+                    break;
+
+                var right = LogicalAndExpression(source);
+                if (right == null)
+                    Report.Error($"{source.Position} Expression expected.");
+                else
+                {
+                    if (left is BinaryExpression binary)
+                        binary.Right.End = right.End;
+
+                    left = new BinaryExpression()
+                    {
+                        Start = left.Start,
+                        Left = left,
+                        Operator = new Operator()
+                        {
+                            Start = start,
+                            Tag = tag
+                        },
+                        Right = right
+                    };
+                }
+            }
+
+            return left;
+        }
+
+        private static Expression LogicalAndExpression(Source source)
+        {
+            var left = AdditiveExpression(source);
+            while (true)
+            {
+                var start = source.Position.Copy();
+                var tag = OperatorTag.LogicalAnd;
+
+                if (!Consume(source, "&&"))
                     break;
 
                 var right = AdditiveExpression(source);

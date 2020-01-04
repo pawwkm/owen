@@ -479,7 +479,7 @@ namespace Owen
                 binary.Type = Bool;
                 if (!Compare(leftType, rightType))
                     Report.Error($"{binary.Right.Start} Expected {leftType} but found {rightType}.");
-                else if (binary.Operator.Tag == OperatorTag.LogicalOr)
+                else if (binary.Operator.Tag == OperatorTag.LogicalOr || binary.Operator.Tag == OperatorTag.LogicalAnd)
                 {
                     if (!Compare(leftType, Bool))
                         Report.Error($"{binary.Operator.Start} This operator is only defined for Bool operands.");

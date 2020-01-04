@@ -1,0 +1,11 @@
+﻿// expect 0
+
+namespace Binary_Operator_Precedence
+
+function main
+    output I32
+    
+    assert true || true && false
+
+    return 0
+end
