@@ -1,6 +1,6 @@
-﻿// expect binary\equal_equal_not_defined_for_compounds.owen:18:12: This operator is only defined for primtive and pointer operands.
+﻿// expect binary\not_equal_not_defined_for_compounds.owen:18:12: This operator is only defined for primtive and pointer operands.
 
-namespace Equal_Equal
+namespace Not_Equal
 
 structure Point
     I32 x
@@ -15,7 +15,7 @@ function main
         y = 2
     end
 
-    assert a == Point
+    assert a != Point
         x = 2,
         y = 2
     end

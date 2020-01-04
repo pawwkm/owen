@@ -110,6 +110,9 @@
     <None Include="assignment\pointers.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="binary\not_equal_not_defined_for_compounds.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="binary\equal_equal_not_defined_for_compounds.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
