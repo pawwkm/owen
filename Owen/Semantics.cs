@@ -481,12 +481,19 @@ namespace Owen
                     Report.Error($"{binary.Right.Start} Expected {leftType} but found {rightType}.");
                 else if (binary.Operator.Tag == OperatorTag.LogicalOr || binary.Operator.Tag == OperatorTag.LogicalAnd)
                 {
-                    if (!Compare(leftType, Bool))
-                        Report.Error($"{binary.Operator.Start} This operator is only defined for Bool operands.");
-                    else
+                    if (Compare(leftType, Bool))
                         binary.Type = Bool;
+                    else
+                        Report.Error($"{binary.Operator.Start} This operator is only defined for Bool operands.");
                 }
-                
+                else if (binary.Operator.Tag >= OperatorTag.EqualEqual && binary.Operator.Tag <= OperatorTag.NotEqual)
+                {
+                    if (leftType is PrimitiveType || leftType is Pointer)
+                        binary.Type = Bool;
+                    else
+                        Report.Error($"{binary.Operator.Start} This operator is only defined for primtive and pointer operands."); 
+                }
+
                 return binary.Type;
             }
             else if (expression is Boolean b)

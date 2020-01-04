@@ -6,6 +6,7 @@ function main
     output I32
     
     assert true || true && false
+    assert true && false == false
 
     return 0
 end

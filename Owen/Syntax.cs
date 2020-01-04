@@ -544,7 +544,7 @@ namespace Owen
 
         private static Expression LogicalAndExpression(Source source)
         {
-            var left = AdditiveExpression(source);
+            var left = RelationalExpression(source);
             while (true)
             {
                 var start = source.Position.Copy();
@@ -553,7 +553,7 @@ namespace Owen
                 if (!Consume(source, "&&"))
                     break;
 
-                var right = AdditiveExpression(source);
+                var right = RelationalExpression(source);
                 if (right == null)
                     Report.Error($"{source.Position} Expression expected.");
                 else
@@ -578,7 +578,7 @@ namespace Owen
             return left;
         }
 
-        private static Expression AdditiveExpression(Source source)
+        private static Expression RelationalExpression(Source source)
         {
             var left = PrefixExpression(source);
             while (true)
