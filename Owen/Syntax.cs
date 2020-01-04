@@ -64,6 +64,7 @@ namespace Owen
 
         private static FunctionDeclaration FunctionDeclaration(Source source, bool isPublic)
         {
+            var isExternal = Consume(source, "external");
             if (Consume(source, "function"))
             {
                 var name = Identifier(source);
@@ -108,14 +109,11 @@ namespace Owen
                     var types = new List<Type>();
                     do
                     {
-                        var identifier = Identifier(source);
-                        if (identifier == null)
-                            Report.Error("Identifier expected.");
+                        var type = Type(source);
+                        if (type == null)
+                            Report.Error("Type expected.");
                         else
-                            types.Add(new UnresolvedType()
-                            {
-                                Identifier = identifier
-                            });
+                            types.Add(type);
                     } while (Consume(source, ","));
 
                     if (types.Count == 1)
@@ -127,13 +125,24 @@ namespace Owen
                         };
                 }
 
-                declaration.Body = CompoundStatement(source);
-                Expect(source, "end");
+                if (isExternal)
+                {
+                    declaration.IsExternal = true;
+                    declaration.Library = String(source);
+                    declaration.Body = new CompoundStatement();
+                }
+                else
+                {
+                    declaration.Body = CompoundStatement(source);
+                    Expect(source, "end");
+                }
 
                 return declaration;
             }
-            else
-                return null;
+            else if (isExternal)
+                Report.Error($"{source.Position} Function declaration expected.");
+            
+            return null;
         }
 
         private static CompoundStatement PropositionDeclaration(Source source)
@@ -891,6 +900,33 @@ namespace Owen
                     return identifier;
                 }
             }
+        }
+
+        private static String String(Source source)
+        {
+            var start = source.Index;
+            if (!source.EndOfText && source.Text[source.Index] == '"')
+            {
+                source.Index++;
+                while (!source.EndOfText && source.Text[source.Index] != '"')
+                    source.Index++;
+
+                var s = new String();
+                s.Value = source.Text.Substring(start + 1, source.Index - start - 1);
+
+                UpdatePosition(source, start);
+                s.Start = source.Position.Copy();
+                s.End = source.Position.Copy();
+                s.End.Column += s.Value.Length;
+
+                Expect(source, "\"");
+
+                Whitespace(source);
+
+                return s;
+            }
+            else
+                return null;
         }
 
         private static Type Type(Source source)

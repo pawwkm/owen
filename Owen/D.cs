@@ -157,25 +157,40 @@ namespace Owen
 
         private static void Generate(FunctionDeclaration function, StringBuilder builder)
         {
-            if (function.Name.Value == "main")
-                builder.Append("extern(C) ");
-
-            Generate(function.Output, builder);
-            builder.Append(function.Name.Value);
-            builder.Append('(');
-
-            for (var i = 0; i < function.Input.Count; i++)
+            if (function.IsExternal)
             {
-                Generate(function.Input[i].Type, builder);
-                builder.Append(' ');
-                builder.Append(function.Input[i].Name.Value);
+                if (function.Name.Value == "malloc" || function.Name.Value == "free")
+                {
+                    if (function.IsPublic)
+                        builder.Append("public ");
 
-                if (i + 1 != function.Input.Count)
-                    builder.Append(',');
+                    builder.Append("import core.stdc.stdlib;");
+                }
+                else
+                    Report.Error($"{function.Name.Start} Limited FFI for now.");
             }
+            else
+            {
+                if (function.Name.Value == "main")
+                    builder.Append("extern(C) ");
 
-            builder.Append(')');
-            Generate(function.Body, builder);
+                Generate(function.Output, builder);
+                builder.Append(function.Name.Value);
+                builder.Append('(');
+
+                for (var i = 0; i < function.Input.Count; i++)
+                {
+                    Generate(function.Input[i].Type, builder);
+                    builder.Append(' ');
+                    builder.Append(function.Input[i].Name.Value);
+
+                    if (i + 1 != function.Input.Count)
+                        builder.Append(',');
+                }
+
+                builder.Append(')');
+                Generate(function.Body, builder);
+            }
         }
 
         private static void Generate(Type type, StringBuilder builder)
@@ -474,6 +489,13 @@ namespace Owen
             }
             else if (expression is Call call)
             {
+                if (!(call.Declaration.Output is TupleType))
+                {
+                    builder.Append("cast(");
+                    Generate(call.Declaration.Output, builder);
+                    builder.Append(')');
+                }
+
                 Generate(call.Reference, builder);
 
                 builder.Append('(');

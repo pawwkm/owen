@@ -26,6 +26,8 @@ namespace Owen
     internal sealed class FunctionDeclaration : Type
     {
         public bool IsPublic;
+        public bool IsExternal;
+        public String Library;
         public Identifier Name;
         public List<Identifier> Generalized = new List<Identifier>();
         public List<FunctionDeclaration> Resolved = new List<FunctionDeclaration>();
@@ -329,6 +331,11 @@ namespace Owen
     }
 
     internal sealed class Identifier : Expression
+    {
+        public string Value;
+    }
+
+    internal sealed class String : Expression
     {
         public string Value;
     }

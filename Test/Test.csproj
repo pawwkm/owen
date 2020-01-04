@@ -218,6 +218,9 @@
     <None Include="for\for_statement_is_skipped_if_condition_is_false.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="function\foreign_function.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="function\input_names_can_shadow_declarations.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

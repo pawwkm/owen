@@ -32,7 +32,7 @@ namespace Owen
             program.Scope.Symbols.Add(new Symbol() { Name = F32.Tag.ToString(), Type = F32 });
             program.Scope.Symbols.Add(new Symbol() { Name = F64.Tag.ToString(), Type = F64 });
             program.Scope.Symbols.Add(new Symbol() { Name = Bool.Tag.ToString(), Type = Bool });
-            
+
             ResolveNamespaces(program);
             foreach (var enumeration in program.Files.SelectMany(f => f.Enumerations))
                 Analyze(enumeration, program.Scope);
@@ -179,23 +179,33 @@ namespace Owen
 
         private static void AnalyzeSignature(Scope parent, FunctionDeclaration function)
         {
-            function.Body.Scope.Parent = parent;
-            if (function.Generalized.Count == 0)
+            bool Ass(Type t)
             {
-                for (var i = 0; i < function.Input.Count; i++)
-                    function.Input[i].Type = Analyze(function.Input[i].Type, parent);
+                if (t is UnresolvedType unresolved)
+                    return !function.Generalized.Any(g => unresolved.Identifier.Value == g.Value);
+                else if (t is Pointer pointer)
+                    return Ass(pointer.To);
 
-                if (function.Output is TupleType tuple)
-                {
-                    for (var i = 0; i < tuple.Types.Count; i++)
-                    {
-                        if (!function.Generalized.Any(g => ((UnresolvedType)tuple.Types[i]).Identifier.Value == g.Value))
-                            tuple.Types[i] = Analyze(tuple.Types[i], parent);
-                    }
-                }
-                else if (function.Output != null && !function.Generalized.Any(g => ((UnresolvedType)function.Output).Identifier.Value == g.Value))
-                    function.Output = Analyze(function.Output, parent);
+                return true;
             }
+
+            function.Body.Scope.Parent = parent;
+            for (var i = 0; i < function.Input.Count; i++)
+            {
+                if (Ass(function.Input[i].Type))
+                    function.Input[i].Type = Analyze(function.Input[i].Type, parent);
+            }
+
+            if (function.Output is TupleType tuple)
+            {
+                for (var i = 0; i < tuple.Types.Count; i++)
+                {
+                    if (Ass(tuple.Types[i]))
+                        tuple.Types[i] = Analyze(tuple.Types[i], parent);
+                }
+            }
+            else if (function.Output != null && Ass(function.Output))
+                function.Output = Analyze(function.Output, parent);
         }
 
         private static void AnalyzeBody(FunctionDeclaration function)
@@ -394,55 +404,55 @@ namespace Owen
                     Analyze(block.Body, output, block.Body.Scope);
                 }
             }
-            else if (statement is ForStatement fs)
+            else if (statement is ForStatement forStatement)
             {
-                fs.Body.Scope.Parent = parent;
-                Analyze(fs.Assignment, output, fs.Body.Scope);
+                forStatement.Body.Scope.Parent = parent;
+                Analyze(forStatement.Assignment, output, forStatement.Body.Scope);
 
-                fs.Condition.Type = Analyze(fs.Condition, null, fs.Body.Scope);
-                if (!Compare(fs.Condition.Type, Bool))
-                    Report.Error($"{fs.Condition.Start} Bool expression expected.");
+                forStatement.Condition.Type = Analyze(forStatement.Condition, null, forStatement.Body.Scope);
+                if (!Compare(forStatement.Condition.Type, Bool))
+                    Report.Error($"{forStatement.Condition.Start} Bool expression expected.");
 
-                foreach (var p in fs.Post)
-                    Analyze(p, null, fs.Body.Scope);
+                foreach (var p in forStatement.Post)
+                    Analyze(p, null, forStatement.Body.Scope);
             }
-            else if (statement is WhileStatement w)
+            else if (statement is WhileStatement whileStatement)
             {
-                w.Body.Scope.Parent = parent;
-                if (w.Assignment != null)
-                    Analyze(w.Assignment, output, w.Body.Scope);
+                whileStatement.Body.Scope.Parent = parent;
+                if (whileStatement.Assignment != null)
+                    Analyze(whileStatement.Assignment, output, whileStatement.Body.Scope);
 
-                w.Condition.Type = Analyze(w.Condition, null, w.Body.Scope);
-                if (!Compare(w.Condition.Type, Bool))
-                    Report.Error($"{w.Condition.Start} Bool expression expected.");
+                whileStatement.Condition.Type = Analyze(whileStatement.Condition, null, whileStatement.Body.Scope);
+                if (!Compare(whileStatement.Condition.Type, Bool))
+                    Report.Error($"{whileStatement.Condition.Start} Bool expression expected.");
 
-                Analyze(w.Body, output, w.Body.Scope);
+                Analyze(whileStatement.Body, output, whileStatement.Body.Scope);
             }
-            else if (statement is ReturnStatement r)
+            else if (statement is ReturnStatement returnStatement)
             {
                 var expressionsAndOutputIsNotBalanced = false;
                 if (output is TupleType t)
-                    expressionsAndOutputIsNotBalanced = r.Expressions.Count != t.Types.Count;
-                else if (output == null && r.Expressions.Count != 0 || output != null && r.Expressions.Count != 1)
+                    expressionsAndOutputIsNotBalanced = returnStatement.Expressions.Count != t.Types.Count;
+                else if (output == null && returnStatement.Expressions.Count != 0 || output != null && returnStatement.Expressions.Count != 1)
                     expressionsAndOutputIsNotBalanced = true;
 
                 if (expressionsAndOutputIsNotBalanced)
-                    Report.Error($"{r.EndOfKeyword} The amount of return values doesn't match the output.");
+                    Report.Error($"{returnStatement.EndOfKeyword} The amount of return values doesn't match the output.");
 
                 if (output is TupleType tuple)
                 {
                     for (var i = 0; i < tuple.Types.Count; i++)
                     {
-                        var expressionType = Analyze(r.Expressions[i], tuple.Types[i], parent);
+                        var expressionType = Analyze(returnStatement.Expressions[i], tuple.Types[i], parent);
                         if (expressionType != tuple.Types[i])
-                            Report.Error($"{r.Expressions[i].Start} Expected {tuple.Types[i]} but found {expressionType}.");
+                            Report.Error($"{returnStatement.Expressions[i].Start} Expected {tuple.Types[i]} but found {expressionType}.");
                     }
                 }
                 else if (output != null)
                 {
-                    var expressionType = Analyze(r.Expressions[0], output, parent);
+                    var expressionType = Analyze(returnStatement.Expressions[0], output, parent);
                     if (expressionType != output)
-                        Report.Error($"{r.Expressions[0].Start} Expected {output} but found {expressionType}.");
+                        Report.Error($"{returnStatement.Expressions[0].Start} Expected {output} but found {expressionType}.");
                 }
             }
             else if (statement is AssertStatement assert)
@@ -534,7 +544,17 @@ namespace Owen
                             var isMatch = true;
                             for (var i = 0; i < call.Arguments.Count; i++)
                             {
-                                var inputMatches = function.Input[i].Type is UnresolvedType unresolved && function.Generalized.Any(g => g.Value == unresolved.Identifier.Value) ||
+                                bool ContainsGenericParameter(Type t)
+                                {
+                                    if (t is UnresolvedType unresolved)
+                                        return function.Generalized.Any(g => g.Value == unresolved.Identifier.Value);
+                                    else if (t is Pointer pointer)
+                                        return ContainsGenericParameter(pointer.To);
+                                    else
+                                        return false;
+                                }
+
+                                var inputMatches = ContainsGenericParameter(function.Input[i].Type)  ||
                                                    function.Input[i].Type is PrimitiveType pf &&
                                                    call.Arguments[i] is Number pn &&
                                                    pf.Tag != PrimitiveTypeTag.Bool &&
@@ -750,6 +770,8 @@ namespace Owen
             resolved.Body = new CompoundStatement();
             resolved.Body.Scope = generic.Body.Scope.Parent;
             resolved.IsPublic = generic.IsPublic;
+            resolved.IsExternal = generic.IsExternal;
+            resolved.Library = generic.Library;
 
             var genericToType = new Dictionary<string, Type>();
             var types = default(List<Type>);
@@ -771,31 +793,69 @@ namespace Owen
                 types = new List<Type>();
                 for (var i = 0; i < generic.Input.Count; i++)
                 {
-                    var unresolved = (UnresolvedType)generic.Input[i].Type;
-                    if (generic.Generalized.Any(g => g.Value == unresolved.Identifier.Value))
+                    // copy the nested type.
+                    Type Copy(Type genericType, Type inputType)
                     {
-                        if (!genericToType.ContainsKey(unresolved.Identifier.Value))
+                        if (genericType is UnresolvedType unresolved)
                         {
-                            if (input[i].Type == null)
-                                Report.Error($"{callSite} Specify all generics since not all can be inferred.");
+                            if (generic.Generalized.Any(g => g.Value == unresolved.Identifier.Value))
+                            {
+                                if (!genericToType.ContainsKey(unresolved.Identifier.Value))
+                                {
+                                    if (input[i].Type == null)
+                                        Report.Error($"{callSite} Specify all generics since not all can be inferred.");
 
-                            genericToType.Add(unresolved.Identifier.Value, input[i].Type);
-                            types.Add(input[i].Type);
+                                    genericToType.Add(unresolved.Identifier.Value, input[i].Type);
+                                    return inputType;
+                                }
+                                else if (inputType == null)
+                                    return genericToType[unresolved.Identifier.Value];
+                                else
+                                    return inputType;
+                            }
                         }
-                        else if (input[i].Type == null)
-                            types.Add(genericToType[unresolved.Identifier.Value]);
-                        else
-                            types.Add(input[i].Type);
+                        else if (genericType is Pointer pa && inputType is Pointer pb)
+                            return new Pointer()
+                            {
+                                To = Copy(pa.To, pb.To)
+                            };
+                        
+                        throw new NotImplementedException(genericType.GetType().Name);
                     }
+
+                    types.Add(Copy(generic.Input[i].Type, input[i].Type));
                 }
             }
 
             if (!generic.Generalized.All(g => genericToType.ContainsKey(g.Value)))
                 Report.Error($"{callSite} Specify all generics since not all can be inferred.");
 
-            for (var i = 0; i < generic.Input.Count; i++) 
+            Type Resolve(Type t)
             {
-                if (generic.Input[i].Type is UnresolvedType)
+                if (t is UnresolvedType u)
+                    return genericToType[u.Identifier.Value];
+                else if (t is Pointer pointer)
+                    return new Pointer()
+                    {
+                        To = Resolve(pointer.To)
+                    };
+                else
+                    return t;
+            }
+
+            for (var i = 0; i < generic.Input.Count; i++)
+            {
+                bool HasUnresolvedType(Type t)
+                {
+                    if (t is UnresolvedType)
+                        return true;
+                    else if (t is Pointer pointer)
+                        return HasUnresolvedType(pointer.To);
+
+                    return false;
+                }
+
+                if (HasUnresolvedType(generic.Input[i].Type))
                 {
                     resolved.Input.Add(new Argument()
                     {
@@ -806,7 +866,7 @@ namespace Owen
                 else
                     resolved.Input.Add(generic.Input[i]);
             }
- 
+
             if (generic.Output is TupleType tuple)
             {
                 var output = new TupleType();
@@ -822,17 +882,8 @@ namespace Owen
 
                 resolved.Output = output;
             }
-            else if (generic.Output is UnresolvedType unresolved)
-            {
-                for (var i = 0; i < generic.Generalized.Count; i++)
-                {
-                    if (generic.Generalized[i].Value == unresolved.Identifier.Value)
-                    {
-                        resolved.Output = types[i];
-                        break;
-                    }
-                }
-            }
+            else
+                resolved.Output = Resolve(generic.Output);
 
             AnalyzeSignature(resolved.Body.Scope.Parent, resolved);
             foreach (var function in cache)
