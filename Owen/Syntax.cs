@@ -688,6 +688,7 @@ namespace Owen
             return Number(source) ??
                    Boolean(source) ??
                    StructureLiteral(source) ??
+                   Null(source) ??
                    Identifier(source);
         }
 
@@ -857,6 +858,18 @@ namespace Owen
                 source.Index = start;
                 return null;
             }
+        }
+
+        private static Expression Null(Source source)
+        {
+            var start = source.Position.Copy();
+            if (Consume(source, "null"))
+                return new Null()
+                {
+                    Start = start
+                };
+            else
+                return null;
         }
 
         private static Identifier Identifier(Source source)

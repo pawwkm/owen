@@ -126,6 +126,10 @@ namespace Owen
         public Type To;
     }
 
+    internal sealed class Null : Expression
+    {
+    }
+
     internal sealed class CompoundDeclaration : Type
     {
         public bool IsPublic;

@@ -582,6 +582,8 @@ namespace Owen
                 Generate(sizeOf.TypeBeingSizedUp, builder);
                 builder.Append(".sizeof");
             }
+            else if (expression is Null)
+                builder.Append("null");
             else
                 Report.Error($"{expression.Start} Cannot translate {expression.GetType().Name} to D.");
         }

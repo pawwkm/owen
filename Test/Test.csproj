@@ -47,6 +47,27 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="assignment\right_shift_equal_not_defined_for_null.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="assignment\left_shift_equal_not_defined_for_null.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="assignment\divide_equal_not_defined_for_null.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="assignment\bitwise_xor_equal_not_defined_for_null.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="assignment\bitwise_or_equal_not_defined_for_null.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="assignment\equal_not_defined_for_null.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="assignment\bitwise_and_equal_not_defined_for_null.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="assignment\left_shift_equal_not_defined_for_compounds.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -84,6 +105,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="assignment\enumerations.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="assignment\pointers.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="break\can_break_out_of_while.owen">

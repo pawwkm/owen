@@ -318,9 +318,11 @@ namespace Owen
                                 });
                             }
                         }
-                        else if (!Compare(leftType, rightType))
+                        else if (!(leftType is Pointer && rightType == null) && !Compare(leftType, rightType))
                             Report.Error($"{right} Expected {leftType} but found {rightType}.");
                     }
+                    else if (left.Type == null)
+                        Report.Error($"{assignment.Operator.Start} Null can't be assigned to.");
                     else if (!Compare(left.Type, rightType))
                         Report.Error($"{left.Start} The expression is not addressable.");
 
@@ -554,7 +556,7 @@ namespace Owen
                                         return false;
                                 }
 
-                                var inputMatches = ContainsGenericParameter(function.Input[i].Type)  ||
+                                var inputMatches = ContainsGenericParameter(function.Input[i].Type) ||
                                                    function.Input[i].Type is PrimitiveType pf &&
                                                    call.Arguments[i] is Number pn &&
                                                    pf.Tag != PrimitiveTypeTag.Bool &&
@@ -689,8 +691,12 @@ namespace Owen
 
                 return sizeOf.Type;
             }
+            else if (expression is Null)
+                return null;
+            else
+                Report.Error($"{expression.Start} Cannot analyze {expression.GetType().Name}.");
 
-            throw new NotImplementedException($"Cannot analyze {expression.GetType().Name}.");
+            return null;
         }
 
         private static Type Analyze(Type type, Scope scope)
