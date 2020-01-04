@@ -198,6 +198,8 @@ namespace Owen
 
     internal enum OperatorTag
     {
+        LogicalOr,
+
         PlusEqual,
         MinusEqual,
         MultiplyEqual,

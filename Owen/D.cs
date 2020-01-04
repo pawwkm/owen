@@ -474,6 +474,9 @@ namespace Owen
                 Generate(binary.Left, builder);
                 switch (binary.Operator.Tag)
                 {
+                    case OperatorTag.LogicalOr:
+                        builder.Append("||");
+                        break;
                     case OperatorTag.EqualEqual:
                         builder.Append("==");
                         break;

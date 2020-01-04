@@ -1,0 +1,11 @@
+﻿// expect binary\logical_or_not_defined_for_i8.owen:8:9: This operator is only defined for Bool operands.
+
+namespace Logical_Or_Expressions
+
+function main
+    output I32
+    
+    a = 1i8 || 2i8
+
+    return 0
+end

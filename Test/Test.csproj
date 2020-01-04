@@ -110,6 +110,45 @@
     <None Include="assignment\pointers.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="binary\logical_or_not_defined_for_enumerations.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="binary\logical_or_not_defined_for_u16.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="binary\logical_or_not_defined_for_u32.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="binary\logical_or_not_defined_for_u64.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="binary\logical_or_not_defined_for_i64.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="binary\logical_or_not_defined_for_u8.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="binary\logical_or_not_defined_for_i8.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="binary\logical_or_not_defined_for_i16.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="binary\logical_or_not_defined_for_i32.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="binary\logical_or_not_defined_for_f32.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="binary\logical_or_not_defined_for_f64.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="binary\logical_or_not_defined_for_compounds.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="binary\logical_or.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="break\can_break_out_of_while.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

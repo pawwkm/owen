@@ -1,0 +1,13 @@
+﻿// expect 0
+
+namespace Logical_Or_Expressions
+
+function main
+    output I32
+
+    assert false || true
+    assert true || false
+    assert true || true
+
+    return 0
+end

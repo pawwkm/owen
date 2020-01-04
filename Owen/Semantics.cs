@@ -479,8 +479,15 @@ namespace Owen
                 binary.Type = Bool;
                 if (!Compare(leftType, rightType))
                     Report.Error($"{binary.Right.Start} Expected {leftType} but found {rightType}.");
-                else
-                    return binary.Type;
+                else if (binary.Operator.Tag == OperatorTag.LogicalOr)
+                {
+                    if (!Compare(leftType, Bool))
+                        Report.Error($"{binary.Operator.Start} This operator is only defined for Bool operands.");
+                    else
+                        binary.Type = Bool;
+                }
+                
+                return binary.Type;
             }
             else if (expression is Boolean b)
             {
