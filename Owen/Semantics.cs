@@ -179,12 +179,12 @@ namespace Owen
 
         private static void AnalyzeSignature(Scope parent, FunctionDeclaration function)
         {
-            bool Ass(Type t)
+            bool IsGenericType(Type t)
             {
                 if (t is UnresolvedType unresolved)
                     return !function.Generalized.Any(g => unresolved.Identifier.Value == g.Value);
                 else if (t is Pointer pointer)
-                    return Ass(pointer.To);
+                    return IsGenericType(pointer.To);
 
                 return true;
             }
@@ -192,7 +192,7 @@ namespace Owen
             function.Body.Scope.Parent = parent;
             for (var i = 0; i < function.Input.Count; i++)
             {
-                if (Ass(function.Input[i].Type))
+                if (IsGenericType(function.Input[i].Type))
                     function.Input[i].Type = Analyze(function.Input[i].Type, parent);
             }
 
@@ -200,11 +200,11 @@ namespace Owen
             {
                 for (var i = 0; i < tuple.Types.Count; i++)
                 {
-                    if (Ass(tuple.Types[i]))
+                    if (IsGenericType(tuple.Types[i]))
                         tuple.Types[i] = Analyze(tuple.Types[i], parent);
                 }
             }
-            else if (function.Output != null && Ass(function.Output))
+            else if (function.Output != null && IsGenericType(function.Output))
                 function.Output = Analyze(function.Output, parent);
         }
 
