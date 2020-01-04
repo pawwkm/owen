@@ -12,6 +12,10 @@ function main
     assert true && 1i32 >= 0
     assert true && 0i32 < 1
     assert true && 1i32 > 0
+    assert true && 1i32 + 1 == 2
+    assert true && 1i32 - 1 == 0
+    assert true && 1i32 | 2 == 3
+    assert true && 1i32 ^ 2 == 3
 
     return 0
 end

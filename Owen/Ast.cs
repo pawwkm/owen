@@ -217,7 +217,12 @@ namespace Owen
         LessThanOrEqual,
         GreaterThanOrEqual,
         LessThan,
-        GreaterThan
+        GreaterThan,
+
+        Add,
+        Minus,
+        BitwiseOr,
+        BitwiseXor
     }
 
     internal sealed class VariableDeclaration : Expression

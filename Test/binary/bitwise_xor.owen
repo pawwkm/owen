@@ -1,0 +1,25 @@
+﻿// expect 0
+
+namespace Bitwise_Xor
+
+enumeration Direction of U8
+    North
+    South
+    East
+    West
+end
+
+function main
+    output I32
+
+    assert 1i8 ^ 2 == 3
+    assert 1i16 ^ 2 == 3
+    assert 1i64 ^ 2 == 3
+    assert 1u8 ^ 2 == 3
+    assert 1u16 ^ 2 == 3
+    assert 1u32 ^ 2 == 3
+    assert 1u64 ^ 2 == 3
+    assert Direction.South ^ Direction.East == Direction.West
+
+    return 0
+end

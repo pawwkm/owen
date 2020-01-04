@@ -476,7 +476,6 @@ namespace Owen
                 var leftType = Analyze(binary.Left, null, scope);
                 var rightType = Analyze(binary.Right, leftType, scope);
 
-                binary.Type = Bool;
                 if (!Compare(leftType, rightType))
                     Report.Error($"{binary.Right.Start} Expected {leftType} but found {rightType}.");
                 else if (binary.Operator.Tag == OperatorTag.LogicalOr || binary.Operator.Tag == OperatorTag.LogicalAnd)
@@ -488,7 +487,7 @@ namespace Owen
                 }
                 else if (binary.Operator.Tag == OperatorTag.EqualEqual || binary.Operator.Tag == OperatorTag.NotEqual)
                 {
-                    if (leftType is PrimitiveType || leftType is Pointer)
+                    if (leftType is PrimitiveType || leftType is Pointer || leftType is EnumerationDeclaration)
                         binary.Type = Bool;
                     else
                         Report.Error($"{binary.Operator.Start} This operator is only defined for primtive and pointer operands."); 
@@ -499,6 +498,17 @@ namespace Owen
                         binary.Type = Bool;
                     else
                         Report.Error($"{binary.Operator.Start} This operator is only defined for number, pointer or enumeration operands.");
+                }
+                else if (binary.Operator.Tag >= OperatorTag.Add && binary.Operator.Tag <= OperatorTag.BitwiseXor)
+                {
+                    if (leftType is PrimitiveType p1 && p1.Tag != PrimitiveTypeTag.Bool)
+                        binary.Type = leftType;
+                    else if (leftType is Pointer && rightType is PrimitiveType p2 && p2.Tag != PrimitiveTypeTag.Bool)
+                        binary.Type = leftType;
+                    else if (leftType is EnumerationDeclaration && (binary.Operator.Tag == OperatorTag.BitwiseOr || binary.Operator.Tag == OperatorTag.BitwiseXor))
+                        binary.Type = leftType;
+                    else
+                        Report.Error($"{binary.Operator.Start} This operator is only defined for number and pointer operands.");
                 }
 
                 return binary.Type;
@@ -645,7 +655,7 @@ namespace Owen
                         if (!enumeration.Constants.Any(c => c.Name.Value == constant.Value))
                             Report.Error($"{constant.Start} {constant.Value} is not a constant in {enumeration.Name.Value}.");
                         else
-                            return enumeration.Type;
+                            return enumeration;
                     }
                     else
                         Report.Error($"{dot.Field.Start} Identifier expected.");

@@ -580,7 +580,7 @@ namespace Owen
 
         private static Expression RelationalExpression(Source source)
         {
-            var left = PrefixExpression(source);
+            var left = AdditiveExpression(source);
             while (true)
             {
                 var i = source.Index;
@@ -599,6 +599,54 @@ namespace Owen
                     tag = OperatorTag.LessThan;
                 else if (Consume(source, ">"))
                     tag = OperatorTag.GreaterThan;
+                else
+                    break;
+
+                var right = AdditiveExpression(source);
+                if (right == null)
+                {
+                    source.Index = i;
+                    break;
+                }
+                else
+                {
+                    if (left is BinaryExpression binary)
+                        binary.Right.End = right.End;
+
+                    left = new BinaryExpression()
+                    {
+                        Start = left.Start,
+                        Left = left,
+                        Operator = new Operator()
+                        {
+                            Start = start,
+                            Tag = tag
+                        },
+                        Right = right
+                    };
+                }
+            }
+
+            return left;
+        }
+
+        private static Expression AdditiveExpression(Source source)
+        {
+            var left = PrefixExpression(source);
+            while (true)
+            {
+                var i = source.Index;
+                var start = source.Position.Copy();
+                var tag = default(OperatorTag);
+
+                if (Consume(source, "+"))
+                    tag = OperatorTag.Add;
+                else if (Consume(source, "-"))
+                    tag = OperatorTag.Minus;
+                else if (Consume(source, "|"))
+                    tag = OperatorTag.BitwiseOr;
+                else if (Consume(source, "^"))
+                    tag = OperatorTag.BitwiseXor;
                 else
                     break;
 

@@ -261,6 +261,11 @@ namespace Owen
                 builder.Append(compound.Name.Value);
                 builder.Append(' ');
             }
+            else if (type is EnumerationDeclaration enumeration)
+            {
+                builder.Append(enumeration.Name.Value);
+                builder.Append(' ');
+            }
             else
                 Report.Error($"Cannot translate {type} to D.");
         }
@@ -471,6 +476,7 @@ namespace Owen
         {
             if (expression is BinaryExpression binary)
             {
+                builder.Append('(');
                 Generate(binary.Left, builder);
                 switch (binary.Operator.Tag)
                 {
@@ -498,12 +504,25 @@ namespace Owen
                     case OperatorTag.GreaterThan:
                         builder.Append(">");
                         break;
+                    case OperatorTag.Add:
+                        builder.Append("+");
+                        break;
+                    case OperatorTag.Minus:
+                        builder.Append("-");
+                        break;
+                    case OperatorTag.BitwiseOr:
+                        builder.Append("|");
+                        break;
+                    case OperatorTag.BitwiseXor:
+                        builder.Append("^");
+                        break;
                     default:
                         Report.Error($"Cannot translate {binary.Operator.Tag} to D.");
                         break;
                 }
 
                 Generate(binary.Right, builder);
+                builder.Append(')');
             }
             else if (expression is Call call)
             {

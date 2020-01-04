@@ -110,6 +110,45 @@
     <None Include="assignment\pointers.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="binary\bitwise_xor.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="binary\bitwise_or.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="binary\bitwise_xor_not_defined_for_bool.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="binary\bitwise_or_not_defined_for_bool.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="binary\bitwise_xor_not_defined_for_compounds.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="binary\bitwise_or_not_defined_for_compounds.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="binary\minus_not_defined_for_bool.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="binary\add_not_defined_for_bool.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="binary\minus.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="binary\add.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="binary\minus_not_defined_for_compounds.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="binary\add_not_defined_for_compounds.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="binary\minus_not_defined_for_enumerations.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="binary\greater_than_or_equal.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -129,6 +168,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="binary\less_than_or_equal_not_defined_for_bool.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="binary\add_not_defined_for_enumerations.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="binary\not_equal_not_defined_for_compounds.owen">
