@@ -8,6 +8,10 @@ function main
     assert true || true && false
     assert true && false == false
     assert true && false != true
+    assert true && 0i32 <= 1
+    assert true && 1i32 >= 0
+    assert true && 0i32 < 1
+    assert true && 1i32 > 0
 
     return 0
 end

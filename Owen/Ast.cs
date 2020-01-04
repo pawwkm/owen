@@ -213,7 +213,11 @@ namespace Owen
         Equal,
 
         EqualEqual,
-        NotEqual
+        NotEqual,
+        LessThanOrEqual,
+        GreaterThanOrEqual,
+        LessThan,
+        GreaterThan
     }
 
     internal sealed class VariableDeclaration : Expression

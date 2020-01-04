@@ -486,12 +486,19 @@ namespace Owen
                     else
                         Report.Error($"{binary.Operator.Start} This operator is only defined for Bool operands.");
                 }
-                else if (binary.Operator.Tag >= OperatorTag.EqualEqual && binary.Operator.Tag <= OperatorTag.NotEqual)
+                else if (binary.Operator.Tag == OperatorTag.EqualEqual || binary.Operator.Tag == OperatorTag.NotEqual)
                 {
                     if (leftType is PrimitiveType || leftType is Pointer)
                         binary.Type = Bool;
                     else
                         Report.Error($"{binary.Operator.Start} This operator is only defined for primtive and pointer operands."); 
+                }
+                else if (binary.Operator.Tag >= OperatorTag.LessThanOrEqual && binary.Operator.Tag <= OperatorTag.GreaterThan)
+                {
+                    if (leftType is PrimitiveType primitive && primitive.Tag != PrimitiveTypeTag.Bool || leftType is Pointer || leftType is EnumerationDeclaration)
+                        binary.Type = Bool;
+                    else
+                        Report.Error($"{binary.Operator.Start} This operator is only defined for number, pointer or enumeration operands.");
                 }
 
                 return binary.Type;

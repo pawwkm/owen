@@ -583,6 +583,7 @@ namespace Owen
             var left = PrefixExpression(source);
             while (true)
             {
+                var i = source.Index;
                 var start = source.Position.Copy();
                 var tag = default(OperatorTag);
 
@@ -590,12 +591,23 @@ namespace Owen
                     tag = OperatorTag.EqualEqual;
                 else if (Consume(source, "!="))
                     tag = OperatorTag.NotEqual;
+                else if (Consume(source, "<="))
+                    tag = OperatorTag.LessThanOrEqual;
+                else if (Consume(source, ">="))
+                    tag = OperatorTag.GreaterThanOrEqual;
+                else if (Consume(source, "<"))
+                    tag = OperatorTag.LessThan;
+                else if (Consume(source, ">"))
+                    tag = OperatorTag.GreaterThan;
                 else
                     break;
 
                 var right = PrefixExpression(source);
                 if (right == null)
-                    Report.Error($"{source.Position} Expression expected.");
+                {
+                    source.Index = i;
+                    break;
+                }
                 else
                 {
                     if (left is BinaryExpression binary)
@@ -694,22 +706,25 @@ namespace Owen
                             generics.Add(type);
                         }
 
-                        Expect(source, ">");
-
-                        startOfInput = source.Position.Copy();
-                        Expect(source, "(");
-                        var arguments = Expressions(source);
-                        Expect(source, ")");
-
-                        return new Call()
+                        if (Consume(source, ">"))
                         {
-                            Generics = generics,
-                            Start = startOfInput,
-                            Reference = expression,
-                            Arguments = arguments,
-                            End = arguments.Count == 0 ? expression.End :
-                                                         arguments.Last().End
-                        };
+                            startOfInput = source.Position.Copy();
+                            Expect(source, "(");
+                            var arguments = Expressions(source);
+                            Expect(source, ")");
+
+                            return new Call()
+                            {
+                                Generics = generics,
+                                Start = startOfInput,
+                                Reference = expression,
+                                Arguments = arguments,
+                                End = arguments.Count == 0 ? expression.End :
+                                                             arguments.Last().End
+                            };
+                        }
+                        else
+                            source.Index = start;
                     }
                 }
 
