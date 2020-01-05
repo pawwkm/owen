@@ -278,6 +278,12 @@
     <None Include="binary\not_equal.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="not\cant_invert_non_bool.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="not\can_invert_bool.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="precedence.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

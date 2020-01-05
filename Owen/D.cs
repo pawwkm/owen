@@ -639,6 +639,11 @@ namespace Owen
             }
             else if (expression is Null)
                 builder.Append("null");
+            else if (expression is Not not)
+            {
+                builder.Append('!');
+                Generate(not.Expression, builder);
+            }
             else
                 Report.Error($"{expression.Start} Cannot translate {expression.GetType().Name} to D.");
         }

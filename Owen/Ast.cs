@@ -316,6 +316,11 @@ namespace Owen
         public NumberTag Tag;
     }
 
+    internal sealed class Not : Expression
+    {
+        public Expression Expression;
+    }
+
     internal sealed class Boolean : Expression
     {
         public string Value;

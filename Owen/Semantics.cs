@@ -747,6 +747,16 @@ namespace Owen
             }
             else if (expression is Null)
                 return null;
+            else if (expression is Not not)
+            {
+                not.Type = Bool;
+                Analyze(not.Expression, null, scope);
+
+                if (not.Expression.Type != Bool)
+                    Report.Error($"{not.Expression.Start} Bool expression expected.");
+
+                return Bool;
+            }
             else
                 Report.Error($"{expression.Start} Cannot analyze {expression.GetType().Name}.");
 
