@@ -644,6 +644,11 @@ namespace Owen
                 builder.Append('!');
                 Generate(not.Expression, builder);
             }
+            else if (expression is Negate negate)
+            {
+                builder.Append('-');
+                Generate(negate.Expression, builder);
+            }
             else
                 Report.Error($"{expression.Start} Cannot translate {expression.GetType().Name} to D.");
         }

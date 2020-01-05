@@ -746,6 +746,19 @@ namespace Owen
                     End = expression.End
                 };
             }
+            else if (Consume(source, "-"))
+            {
+                var expression = PostfixExpression(source);
+                if (expression == null)
+                    Report.Error($"{source.Position} Expression expected.");
+
+                return new Negate()
+                {
+                    Start = start,
+                    Expression = expression,
+                    End = expression.End
+                };
+            }
             else if (Consume(source, "size"))
             {
                 Expect(source, "of");
@@ -887,7 +900,7 @@ namespace Owen
         {
             return Number(source) ??
                    Boolean(source) ??
-                   StructureLiteral(source) ??
+                   CompoundLiteral(source) ??
                    Null(source) ??
                    Identifier(source);
         }
@@ -1008,10 +1021,11 @@ namespace Owen
                 return null;
         }
 
-        private static Expression StructureLiteral(Source source)
+        private static Expression CompoundLiteral(Source source)
         {
             var start = source.Index;
             var literal = new CompoundLiteral();
+            literal.Start = source.Position.Copy();
             literal.Structure = Identifier(source);
 
             if (literal.Structure == null)

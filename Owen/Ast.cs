@@ -321,6 +321,11 @@ namespace Owen
         public Expression Expression;
     }
 
+    internal sealed class Negate : Expression
+    {
+        public Expression Expression;
+    }
+
     internal sealed class Boolean : Expression
     {
         public string Value;

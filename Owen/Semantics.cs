@@ -757,6 +757,14 @@ namespace Owen
 
                 return Bool;
             }
+            else if (expression is Negate negate)
+            {
+                Analyze(negate.Expression, expectedType, scope);
+                if (!(negate.Expression.Type is PrimitiveType primitive && (primitive.Tag < PrimitiveTypeTag.U8 || primitive.Tag == PrimitiveTypeTag.F32 || primitive.Tag == PrimitiveTypeTag.F64)))
+                    Report.Error($"{negate.Expression.Start} IXX or FXX expression expected.");
+                else
+                    return negate.Type = negate.Expression.Type;
+            }
             else
                 Report.Error($"{expression.Start} Cannot analyze {expression.GetType().Name}.");
 
