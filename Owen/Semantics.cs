@@ -476,7 +476,7 @@ namespace Owen
                 var leftType = Analyze(binary.Left, null, scope);
                 var rightType = Analyze(binary.Right, leftType, scope);
 
-                if (!Compare(leftType, rightType))
+                if (!Compare(leftType, rightType) && !(leftType is Pointer && rightType == U64))
                     Report.Error($"{binary.Right.Start} Expected {leftType} but found {rightType}.");
                 else if (binary.Operator.Tag == OperatorTag.LogicalOr || binary.Operator.Tag == OperatorTag.LogicalAnd)
                 {
@@ -527,6 +527,11 @@ namespace Owen
                     {
                         number.Tag = (NumberTag)primitive.Tag;
                         number.Type = primitive;
+                    }
+                    else if (expectedType is Pointer)
+                    {
+                        number.Tag = NumberTag.U64;
+                        number.Type = U64;
                     }
                     else
                         return null;

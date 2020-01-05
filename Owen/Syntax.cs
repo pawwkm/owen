@@ -984,9 +984,13 @@ namespace Owen
                         literal.Initializers.Add(initializer);
                 }
 
-                Expect(source, "end");
-
-                return literal;
+                if (!Consume(source, "end"))
+                {
+                    source.Index = start;
+                    return null;
+                }
+                else
+                    return literal;
             }
             else
             {
