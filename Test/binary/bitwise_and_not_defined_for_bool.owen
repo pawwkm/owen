@@ -1,0 +1,11 @@
+﻿// expect binary\bitwise_and_not_defined_for_bool.owen:8:9: This operator is only defined for number operands.
+
+namespace Bitwise_And
+
+function main
+    output I32
+
+    a = true & true
+
+    return 0
+end

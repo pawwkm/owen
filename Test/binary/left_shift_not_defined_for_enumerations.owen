@@ -1,0 +1,18 @@
+﻿// expect binary\left_shift_not_defined_for_enumerations.owen:15:19: This operator is only defined for number operands.
+
+namespace Multiply
+
+enumeration Direction of U8
+    North
+    South
+    East
+    West
+end
+
+function main
+    output I32
+
+    a = Direction.North << Direction.South
+
+    return 0
+end

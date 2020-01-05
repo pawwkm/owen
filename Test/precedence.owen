@@ -1,6 +1,6 @@
 ﻿// expect 0
 
-namespace Binary_Operator_Precedence
+namespace Precedence
 
 function main
     output I32
@@ -16,6 +16,11 @@ function main
     assert true && 1i32 - 1 == 0
     assert true && 1i32 | 2 == 3
     assert true && 1i32 ^ 2 == 3
+    assert 1i32 + 2 * 3 == 7
+    assert 2i32 + 4 / 2 == 4
+    assert 1i32 + 5 % 2 == 2
+    assert 1i32 + 6 & 3 == 3
+    assert 1i32 + 1 << 1 == 3
 
     return 0
 end

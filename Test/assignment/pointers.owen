@@ -14,8 +14,8 @@ function main
 
     a = 0i32
     
-    b = &a
-    *b = 1
+    b = #a
+    @b = 1
     
     assert a == 1
     

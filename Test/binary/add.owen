@@ -16,7 +16,7 @@ function main
     assert 1.0f64 + 1.0 == 2.0
 
     a = 1i64
-    b = &a
+    b = #a
 
     c = b + 1
 

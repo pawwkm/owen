@@ -222,7 +222,14 @@ namespace Owen
         Add,
         Minus,
         BitwiseOr,
-        BitwiseXor
+        BitwiseXor,
+
+        Multiply,
+        Divide,
+        Modulo,
+        BitwiseAnd,
+        LeftShift,
+        RightShift
     }
 
     internal sealed class VariableDeclaration : Expression

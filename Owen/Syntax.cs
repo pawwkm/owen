@@ -632,7 +632,7 @@ namespace Owen
 
         private static Expression AdditiveExpression(Source source)
         {
-            var left = PrefixExpression(source);
+            var left = MultiplicativeExpression(source);
             while (true)
             {
                 var i = source.Index;
@@ -647,6 +647,58 @@ namespace Owen
                     tag = OperatorTag.BitwiseOr;
                 else if (Consume(source, "^"))
                     tag = OperatorTag.BitwiseXor;
+                else
+                    break;
+
+                var right = MultiplicativeExpression(source);
+                if (right == null)
+                {
+                    source.Index = i;
+                    break;
+                }
+                else
+                {
+                    if (left is BinaryExpression binary)
+                        binary.Right.End = right.End;
+
+                    left = new BinaryExpression()
+                    {
+                        Start = left.Start,
+                        Left = left,
+                        Operator = new Operator()
+                        {
+                            Start = start,
+                            Tag = tag
+                        },
+                        Right = right
+                    };
+                }
+            }
+
+            return left;
+        }
+
+        private static Expression MultiplicativeExpression(Source source)
+        {
+            var left = PrefixExpression(source);
+            while (true)
+            {
+                var i = source.Index;
+                var start = source.Position.Copy();
+                var tag = default(OperatorTag);
+
+                if (Consume(source, "*"))
+                    tag = OperatorTag.Multiply;
+                else if (Consume(source, "/"))
+                    tag = OperatorTag.Divide;
+                else if (Consume(source, "%"))
+                    tag = OperatorTag.Modulo;
+                else if (Consume(source, "&"))
+                    tag = OperatorTag.BitwiseAnd;
+                else if (Consume(source, "<<"))
+                    tag = OperatorTag.LeftShift;
+                else if (Consume(source, ">>"))
+                    tag = OperatorTag.RightShift;
                 else
                     break;
 
@@ -698,7 +750,7 @@ namespace Owen
                     }
                 };
             }
-            else if (Consume(source, "&"))
+            else if (Consume(source, "#"))
             {
                 var expression = PostfixExpression(source);
                 if (expression == null)
@@ -711,7 +763,7 @@ namespace Owen
                     End = expression.End
                 };
             }
-            else if (Consume(source, "*"))
+            else if (Consume(source, "@"))
             {
                 var expression = PostfixExpression(source);
                 if (expression == null)
@@ -1088,7 +1140,7 @@ namespace Owen
 
             while (true)
             {
-                if (Consume(source, "*"))
+                if (Consume(source, "#"))
                 {
                     if (firstPointerOrArray == null)
                     {

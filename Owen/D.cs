@@ -516,6 +516,24 @@ namespace Owen
                     case OperatorTag.BitwiseXor:
                         builder.Append("^");
                         break;
+                    case OperatorTag.Multiply:
+                        builder.Append("*");
+                        break;
+                    case OperatorTag.Divide:
+                        builder.Append("/");
+                        break;
+                    case OperatorTag.Modulo:
+                        builder.Append("%");
+                        break;
+                    case OperatorTag.BitwiseAnd:
+                        builder.Append("&");
+                        break;
+                    case OperatorTag.LeftShift:
+                        builder.Append("<<");
+                        break;
+                    case OperatorTag.RightShift:
+                        builder.Append(">>");
+                        break;
                     default:
                         Report.Error($"Cannot translate {binary.Operator.Tag} to D.");
                         break;

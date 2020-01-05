@@ -7,12 +7,12 @@ ctfe main()
 external function malloc
     generalize T
     input U64 amount
-    output *T
+    output #T
     "msvcr100.dll"
 
 external function free
     generalize T
-    input *T data
+    input #T data
     "msvcr100.dll"
 
 function main 

@@ -473,7 +473,7 @@ namespace Owen
         {
             if (expression is BinaryExpression binary)
             {
-                var leftType = Analyze(binary.Left, null, scope);
+                var leftType = Analyze(binary.Left, expectedType, scope);
                 var rightType = Analyze(binary.Right, leftType, scope);
 
                 if (!Compare(leftType, rightType) && !(leftType is Pointer && rightType == U64))
@@ -490,7 +490,7 @@ namespace Owen
                     if (leftType is PrimitiveType || leftType is Pointer || leftType is EnumerationDeclaration)
                         binary.Type = Bool;
                     else
-                        Report.Error($"{binary.Operator.Start} This operator is only defined for primtive and pointer operands."); 
+                        Report.Error($"{binary.Operator.Start} This operator is only defined for primtive and pointer operands.");
                 }
                 else if (binary.Operator.Tag >= OperatorTag.LessThanOrEqual && binary.Operator.Tag <= OperatorTag.GreaterThan)
                 {
@@ -501,14 +501,32 @@ namespace Owen
                 }
                 else if (binary.Operator.Tag >= OperatorTag.Add && binary.Operator.Tag <= OperatorTag.BitwiseXor)
                 {
-                    if (leftType is PrimitiveType p1 && p1.Tag != PrimitiveTypeTag.Bool)
+                    if (leftType is PrimitiveType p1 && (p1.Tag == PrimitiveTypeTag.F32 || p1.Tag == PrimitiveTypeTag.F64) && binary.Operator.Tag == OperatorTag.BitwiseXor)
+                        Report.Error($"{binary.Operator.Start} This operator is only defined for number and pointer operands.");
+                    else if (leftType is PrimitiveType p2 && p2.Tag != PrimitiveTypeTag.Bool)
                         binary.Type = leftType;
-                    else if (leftType is Pointer && rightType is PrimitiveType p2 && p2.Tag != PrimitiveTypeTag.Bool)
+                    else if (leftType is Pointer && rightType is PrimitiveType p3 && p3.Tag != PrimitiveTypeTag.Bool)
                         binary.Type = leftType;
                     else if (leftType is EnumerationDeclaration && (binary.Operator.Tag == OperatorTag.BitwiseOr || binary.Operator.Tag == OperatorTag.BitwiseXor))
                         binary.Type = leftType;
                     else
                         Report.Error($"{binary.Operator.Start} This operator is only defined for number and pointer operands.");
+                }
+                else if (binary.Operator.Tag >= OperatorTag.Multiply && binary.Operator.Tag <= OperatorTag.RightShift)
+                {
+                    if (binary.Operator.Tag >= OperatorTag.Multiply && binary.Operator.Tag <= OperatorTag.Modulo && leftType is PrimitiveType p1 && (p1.Tag == PrimitiveTypeTag.F32 || p1.Tag == PrimitiveTypeTag.F64))
+                        binary.Type = leftType;
+                    else if (leftType is PrimitiveType p2 && p2.Tag != PrimitiveTypeTag.Bool)
+                    {
+                        if ((p2.Tag == PrimitiveTypeTag.F32 || p2.Tag == PrimitiveTypeTag.F64) && (binary.Operator.Tag == OperatorTag.LeftShift || binary.Operator.Tag == OperatorTag.RightShift || binary.Operator.Tag == OperatorTag.BitwiseAnd || binary.Operator.Tag == OperatorTag.BitwiseXor))
+                            Report.Error($"{binary.Operator.Start} This operator is only defined for number operands.");
+                        else
+                            binary.Type = leftType;
+                    }
+                    else if (binary.Operator.Tag == OperatorTag.BitwiseAnd && leftType is EnumerationDeclaration)
+                        binary.Type = leftType;
+                    else
+                        Report.Error($"{binary.Operator.Start} This operator is only defined for number operands.");
                 }
 
                 return binary.Type;
