@@ -293,10 +293,16 @@
     <None Include="negate\negate.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="not\cant_invert_non_bool.owen">
+    <None Include="not\not.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="not\can_invert_bool.owen">
+    <None Include="not\not_not_defined_for_compounds.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="not\not_not_defined_for_enumerations.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="not\not_not_defined_for_null.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="precedence.owen">
