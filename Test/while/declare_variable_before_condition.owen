@@ -6,7 +6,7 @@ function main
     output I32
 
     while a = 0i32; a != 3
-        a++
+        a += 1
     end
 
     return 0

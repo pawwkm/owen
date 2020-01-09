@@ -5,7 +5,7 @@ namespace Test
 function main
     output I32
 
-    for a = 0i32; true; a++
+    for a = 0i32; true; a += 1
         return 1
     end
 

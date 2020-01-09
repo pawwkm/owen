@@ -7,7 +7,7 @@ function main
 
     a = 0i32
     while a != 2 
-        a++
+        a += 1
     end
 
     return a

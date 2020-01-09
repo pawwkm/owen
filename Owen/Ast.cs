@@ -49,6 +49,7 @@ namespace Owen
         public Type Type;
 
         public List<EnumerationConstant> Constants = new List<EnumerationConstant>();
+        public override string ToString() => Name.Value;
     }
 
     internal sealed class EnumerationConstant
@@ -124,9 +125,15 @@ namespace Owen
     internal sealed class Pointer : Type
     {
         public Type To;
+        public override string ToString() => $"#{To}";
     }
 
-    internal sealed class Null : Expression
+    internal sealed class Null : Type
+    {
+        public override string ToString() => "null";
+    }
+
+    internal sealed class NullLiteral : Expression
     {
     }
 
@@ -179,7 +186,7 @@ namespace Owen
     {
         public AssignmentStatement Assignment;
         public Expression Condition;
-        public List<Expression> Post;
+        public AssignmentStatement Post;
         public CompoundStatement Body;
     }
 
@@ -291,11 +298,6 @@ namespace Owen
     {
         public Expression Structure;
         public Expression Field;
-    }
-
-    internal sealed class PostfixIncrement : Expression
-    {
-        public Expression Expression;
     }
 
     internal sealed class CompoundLiteral : Expression

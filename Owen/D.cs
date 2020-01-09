@@ -270,7 +270,7 @@ namespace Owen
                 Report.Error($"Cannot translate {type} to D.");
         }
 
-        private static void Generate(Statement statement, StringBuilder builder)
+        private static void Generate(Statement statement, StringBuilder builder, bool isForPost = false)
         {
             if (statement is CompoundStatement compound)
             {
@@ -364,7 +364,8 @@ namespace Owen
                         }
 
                         Generate(assignment.Right[i], builder);
-                        builder.Append(';');
+                        if (!isForPost)
+                            builder.Append(';');
                     }
                 }
             }
@@ -429,12 +430,7 @@ namespace Owen
                 Generate(forStatement.Condition, builder);
                 builder.Append(';');
 
-                for (var i = 0; i < forStatement.Post.Count; i++)
-                {
-                    Generate(forStatement.Post[i], builder);
-                    if (i + 1 != forStatement.Post.Count)
-                        builder.Append(',');
-                }
+                Generate(forStatement.Post, builder, true);
 
                 builder.Append(')');
                 Generate(forStatement.Body, builder);
@@ -627,17 +623,12 @@ namespace Owen
             }
             else if (expression is Boolean boolean)
                 builder.Append(boolean.Value);
-            else if (expression is PostfixIncrement pfi)
-            {
-                Generate(pfi.Expression, builder);
-                builder.Append("++");
-            }
             else if (expression is SizeOf sizeOf)
             {
                 Generate(sizeOf.TypeBeingSizedUp, builder);
                 builder.Append(".sizeof");
             }
-            else if (expression is Null)
+            else if (expression is NullLiteral)
                 builder.Append("null");
             else if (expression is Not not)
             {

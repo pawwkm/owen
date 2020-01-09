@@ -400,7 +400,7 @@ namespace Owen
                     Report.Error($"{source.Position} Expression expected.");
 
                 Expect(source, ";");
-                statement.Post = Expressions(source);
+                statement.Post = (AssignmentStatement)AssignmentStatement(source);
 
                 statement.Body = CompoundStatement(source);
                 Expect(source, "end");
@@ -884,11 +884,6 @@ namespace Owen
                         End = field.End
                     };
                 }
-                else if (Consume(source, "++"))
-                    return new PostfixIncrement()
-                    {
-                        Expression = expression
-                    };
                 else
                     return expression;
             }
@@ -1082,7 +1077,7 @@ namespace Owen
         {
             var start = source.Position.Copy();
             if (Consume(source, "null"))
-                return new Null()
+                return new NullLiteral()
                 {
                     Start = start
                 };

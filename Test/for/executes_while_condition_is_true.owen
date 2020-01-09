@@ -6,8 +6,8 @@ function main
     output I32
 
     b = 0i32
-    for a = 0i32; a != 2; a++  
-        b++
+    for a = 0i32; a != 2; a += 1
+        b += 1
     end
 
     return b

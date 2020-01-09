@@ -290,7 +290,13 @@ namespace Owen
                 void Mismatch(int left, int right) =>
                     Report.Error($"{assignment.Operator.Start} Assignment mismatch of {left} variable{(left > 1 ? "s" : "")} and {right} output{(right > 1 ? "s" : "")}.");
 
-                Expression Assign(Expression left, Type rightType, Position right)
+                // this method needs to be split up into two methods.
+                // the first one figures out whether or not to declare 
+                // symbols. 
+                // the second method only deals with figuring out whether 
+                // or not the type on the right hand side can be assigned to 
+                // left hand side
+                Expression DeclareVariableIfUndefined(Expression left, Type rightType, Position right)
                 {
                     if (left is Identifier reference)
                     {
@@ -318,12 +324,33 @@ namespace Owen
                                 });
                             }
                         }
-                        else if (!(leftType is Pointer && rightType == null) && !Compare(leftType, rightType))
-                            Report.Error($"{right} Expected {leftType} but found {rightType}.");
                     }
-                    else if (left.Type == null)
+
+                    return left;
+                }
+
+                void Assign(Expression left, Type right, Position positionOfTheRightHandExpression)
+                {
+                    if (left is Identifier reference)
+                    {
+                        var leftType = NullableLookup(reference, parent);
+                        if (leftType is Pointer pointer)
+                        {
+                            if (right is Null)
+                            {
+                                //Report.Error($"{positionOfTheRightHandExpression} How to .");
+                            }
+                            else if (right != null && !Compare(pointer, right) && !Compare(pointer.To, right) && right != U64)
+                                Report.Error($"{positionOfTheRightHandExpression} Expected {leftType} but found {right}.");
+                        }
+                        else if (!Compare(leftType, right))
+                            Report.Error($"{positionOfTheRightHandExpression} Expected {leftType} but found {right}.");
+                    }
+                    else if (left is Dereference dereference)
+                        Assign(dereference.Expression, right, positionOfTheRightHandExpression);
+                    else if (left.Type is Null)
                         Report.Error($"{assignment.Operator.Start} Null can't be assigned to.");
-                    else if (!Compare(left.Type, rightType))
+                    else if (!Compare(left.Type, right))
                         Report.Error($"{left.Start} The expression is not addressable.");
 
                     var operatorUsedOnNonInteger = (assignment.Operator.Tag == OperatorTag.BitwiseAndEqual ||
@@ -331,13 +358,11 @@ namespace Owen
                                                     assignment.Operator.Tag == OperatorTag.BitwiseXorEqual ||
                                                     assignment.Operator.Tag == OperatorTag.LeftShiftEqual ||
                                                     assignment.Operator.Tag == OperatorTag.RightShiftEqual) &&
-                                                  (!(rightType is PrimitiveType) ||
-                                                  ((PrimitiveType)rightType).Tag > PrimitiveTypeTag.U64);
+                                                  (!(right is PrimitiveType) ||
+                                                  ((PrimitiveType)right).Tag > PrimitiveTypeTag.U64);
 
-                    if (operatorUsedOnNonInteger || !(rightType is PrimitiveType) && assignment.Operator.Tag != OperatorTag.Equal)
+                    if (operatorUsedOnNonInteger || !(right is PrimitiveType) && assignment.Operator.Tag != OperatorTag.Equal)
                         Report.Error($"{assignment.Operator.Start} This operator is only defined for integer types.");
-
-                    return left;
                 }
 
                 for (var r = 0; r < assignment.Right.Count; r++)
@@ -355,7 +380,10 @@ namespace Owen
                             else
                             {
                                 for (var l = 0; l < assignment.Left.Count; l++)
-                                    assignment.Left[l] = Assign(assignment.Left[l], tuple.Types[l], call.Start);
+                                {
+                                    assignment.Left[l] = DeclareVariableIfUndefined(assignment.Left[l], tuple.Types[l], call.Start);
+                                    Assign(assignment.Left[l], tuple.Types[l], call.Start);
+                                }
                             }
 
                             break;
@@ -364,24 +392,19 @@ namespace Owen
                     else if (assignment.Left.Count != assignment.Right.Count)
                         Mismatch(assignment.Left.Count, assignment.Right.Count);
                     else if (rightType == null && assignment.Left[r] is Identifier reference)
-                    {
-                        rightType = NullableLookup(reference, parent);
-                        if (rightType == null)
-                            rightType = Analyze(assignment.Right[r], null, parent);
-                        else
-                            rightType = Analyze(assignment.Right[r], rightType, parent);
-                    }
+                        rightType = Analyze(assignment.Right[r], NullableLookup(reference, parent), parent);
                     else
                         rightType = Analyze(assignment.Right[r], Analyze(assignment.Left[r], null, parent), parent);
 
-                    assignment.Left[r] = Assign(assignment.Left[r], rightType, assignment.Right[r].Start);
+                    assignment.Left[r] = DeclareVariableIfUndefined(assignment.Left[r], rightType, assignment.Right[r].Start);
+                    Assign(assignment.Left[r], rightType, assignment.Right[r].Start);
                 }
             }
             else if (statement is ExpressionStatement e)
             {
                 Analyze(e.Expression, null, parent);
-                if (!(e.Expression is Call || e.Expression is PostfixIncrement))
-                    Report.Error($"{e.Expression.Start} Call or pre/post increment/decrement expression expected.");
+                if (!(e.Expression is Call))
+                    Report.Error($"{e.Expression.Start} Call expected.");
             }
             else if (statement is IfStatement ifStatement)
             {
@@ -415,8 +438,7 @@ namespace Owen
                 if (!Compare(forStatement.Condition.Type, Bool))
                     Report.Error($"{forStatement.Condition.Start} Bool expression expected.");
 
-                foreach (var p in forStatement.Post)
-                    Analyze(p, null, forStatement.Body.Scope);
+                Analyze(forStatement.Post, output, forStatement.Body.Scope);
             }
             else if (statement is WhileStatement whileStatement)
             {
@@ -457,11 +479,11 @@ namespace Owen
                         Report.Error($"{returnStatement.Expressions[0].Start} Expected {output} but found {expressionType}.");
                 }
             }
-            else if (statement is AssertStatement assert)
+            else if (statement is AssertStatement assertStatement)
             {
-                var type = Analyze(assert.Assertion, null, parent);
+                var type = Analyze(assertStatement.Assertion, null, parent);
                 if (!Compare(type, Bool))
-                    Report.Error($"{assert.Assertion.Start} {Bool} expression expected.");
+                    Report.Error($"{assertStatement.Assertion.Start} {Bool} expression expected.");
             }
             else if (statement is BreakStatement)
                 ;
@@ -730,14 +752,6 @@ namespace Owen
                 else if (literal.Type != null)
                     Report.Error($"{expression.Start} Compound expected");
             }
-            else if (expression is PostfixIncrement pfi)
-            {
-                pfi.Type = Analyze(pfi.Expression, null, scope);
-                if (pfi.Expression is Identifier r && r.Type is PrimitiveType primitive && primitive.Tag < PrimitiveTypeTag.Bool)
-                    return pfi.Type;
-                else
-                    Report.Error($"{pfi.Expression.Start} Reference to number typed variable expected.");
-            }
             else if (expression is SizeOf sizeOf)
             {
                 sizeOf.TypeBeingSizedUp = Lookup(((UnresolvedType)sizeOf.TypeBeingSizedUp).Identifier, scope);
@@ -745,8 +759,8 @@ namespace Owen
 
                 return sizeOf.Type;
             }
-            else if (expression is Null)
-                return null;
+            else if (expression is NullLiteral nullLiteral)
+                return nullLiteral.Type = new Null();
             else if (expression is Not not)
             {
                 not.Type = Bool;
