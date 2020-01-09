@@ -5,7 +5,7 @@ namespace Owen
 {
     internal static class Syntax
     {
-        public static void Parse(Program program, Source source)
+        public static File Parse(Source source)
         {
             var file = new File();
             file.Path = source.Position.Path;
@@ -59,7 +59,7 @@ namespace Owen
                     Report.Error($"{source.Position} Function, proposition, structure, union, enumeration or CTFE expression expected.");
             }
 
-            program.Files.Add(file);
+            return file;
         }
 
         private static FunctionDeclaration FunctionDeclaration(Source source, bool isPublic)

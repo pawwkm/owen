@@ -72,14 +72,14 @@ namespace Owen
 
                     try
                     {
-                        Syntax.Parse(program, new Source()
+                        program.Files.Add(Syntax.Parse(new Source()
                         {
                             Text = System.IO.File.ReadAllText(path, Encoding.UTF8),
                             Position = new Position()
                             {
                                 Path = mightBeRelativePath
                             }
-                        });
+                        }));
                     }
                     catch (PathTooLongException)
                     {
