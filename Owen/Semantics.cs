@@ -1033,15 +1033,13 @@ namespace Owen
                     Start = number.Start.Copy(),
                     Tag = number.Tag,
                     Type = number.Type,
-                    Value = number.Value,
-                    End = number.End.Copy()
+                    Value = number.Value
                 };
             else if (expression is Identifier reference)
                 return new Identifier
                 {
                     Start = reference.Start.Copy(),
-                    Value = reference.Value,
-                    End = reference.End.Copy()
+                    Value = reference.Value
                 };
             else
                 Report.Error($"Cannot resolve {expression.GetType().Name}.");

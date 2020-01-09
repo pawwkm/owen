@@ -269,7 +269,6 @@ namespace Owen
     {
         public Type Type;
         public Position Start;
-        public Position End;
     }
 
     internal sealed class BinaryExpression : Expression

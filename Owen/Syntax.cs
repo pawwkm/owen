@@ -522,9 +522,6 @@ namespace Owen
                     Report.Error($"{source.Position} Expression expected.");
                 else
                 {
-                    if (left is BinaryExpression binary)
-                        binary.Right.End = right.End;
-
                     left = new BinaryExpression()
                     {
                         Start = left.Start,
@@ -558,9 +555,6 @@ namespace Owen
                     Report.Error($"{source.Position} Expression expected.");
                 else
                 {
-                    if (left is BinaryExpression binary)
-                        binary.Right.End = right.End;
-
                     left = new BinaryExpression()
                     {
                         Start = left.Start,
@@ -610,9 +604,6 @@ namespace Owen
                 }
                 else
                 {
-                    if (left is BinaryExpression binary)
-                        binary.Right.End = right.End;
-
                     left = new BinaryExpression()
                     {
                         Start = left.Start,
@@ -658,9 +649,6 @@ namespace Owen
                 }
                 else
                 {
-                    if (left is BinaryExpression binary)
-                        binary.Right.End = right.End;
-
                     left = new BinaryExpression()
                     {
                         Start = left.Start,
@@ -710,9 +698,6 @@ namespace Owen
                 }
                 else
                 {
-                    if (left is BinaryExpression binary)
-                        binary.Right.End = right.End;
-
                     left = new BinaryExpression()
                     {
                         Start = left.Start,
@@ -742,8 +727,7 @@ namespace Owen
                 return new Not()
                 {
                     Start = start,
-                    Expression = expression,
-                    End = expression.End
+                    Expression = expression
                 };
             }
             else if (Consume(source, "-"))
@@ -755,8 +739,7 @@ namespace Owen
                 return new Negate()
                 {
                     Start = start,
-                    Expression = expression,
-                    End = expression.End
+                    Expression = expression
                 };
             }
             else if (Consume(source, "size"))
@@ -785,8 +768,7 @@ namespace Owen
                 return new AddressOf()
                 {
                     Start = start,
-                    Expression = expression,
-                    End = expression.End
+                    Expression = expression
                 };
             }
             else if (Consume(source, "@"))
@@ -798,8 +780,7 @@ namespace Owen
                 return new Dereference()
                 {
                     Start = start,
-                    Expression = expression,
-                    End = expression.End
+                    Expression = expression
                 };
             }
             else
@@ -844,9 +825,7 @@ namespace Owen
                                 Generics = generics,
                                 Start = startOfInput,
                                 Reference = expression,
-                                Arguments = arguments,
-                                End = arguments.Count == 0 ? expression.End :
-                                                             arguments.Last().End
+                                Arguments = arguments
                             };
                         }
                         else
@@ -865,9 +844,7 @@ namespace Owen
                         Generics = new List<Type>(),
                         Start = startOfInput,
                         Reference = expression,
-                        Arguments = arguments,
-                        End = arguments.Count == 0 ? expression.End :
-                                                     arguments.Last().End
+                        Arguments = arguments
                     };
                 }
                 else if (Consume(source, "."))
@@ -880,8 +857,7 @@ namespace Owen
                     {
                         Start = expression.Start,
                         Structure = expression,
-                        Field = field,
-                        End = field.End
+                        Field = field
                     };
                 }
                 else
@@ -934,8 +910,6 @@ namespace Owen
 
                 UpdatePosition(source, start);
                 number.Start = source.Position.Copy();
-                number.End = source.Position.Copy();
-                number.End.Column += number.Value.Length;
 
                 if (Consume(source, "f32"))
                     number.Tag = NumberTag.F32;
@@ -956,8 +930,6 @@ namespace Owen
 
                 UpdatePosition(source, start);
                 number.Start = source.Position.Copy();
-                number.End = source.Position.Copy();
-                number.End.Column += number.Value.Length;
 
                 if (Consume(source, "i8"))
                     number.Tag = NumberTag.I8;
@@ -995,8 +967,6 @@ namespace Owen
 
                 boolean.Start = source.Position.Copy();
                 boolean.Value = "true";
-                boolean.End = source.Position.Copy();
-                boolean.End.Column += boolean.Value.Length;
 
                 return boolean;
             }
@@ -1007,8 +977,6 @@ namespace Owen
 
                 boolean.Start = source.Position.Copy();
                 boolean.Value = "false";
-                boolean.End = source.Position.Copy();
-                boolean.End.Column += boolean.Value.Length;
 
                 return boolean;
             }
@@ -1118,8 +1086,6 @@ namespace Owen
                 {
                     UpdatePosition(source, start);
                     identifier.Start = source.Position.Copy();
-                    identifier.End = source.Position.Copy();
-                    identifier.End.Column += identifier.Value.Length;
 
                     Whitespace(source);
 
@@ -1142,8 +1108,6 @@ namespace Owen
 
                 UpdatePosition(source, start);
                 s.Start = source.Position.Copy();
-                s.End = source.Position.Copy();
-                s.End.Column += s.Value.Length;
 
                 Expect(source, "\"");
 
