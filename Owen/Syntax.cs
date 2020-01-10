@@ -32,31 +32,37 @@ namespace Owen
                 var function = FunctionDeclaration(source, isPublic);
                 if (function != null)
                     file.Functions.Add(function);
-
-                var proposition = PropositionDeclaration(source);
-                if (proposition != null)
-                    file.Propositions.Add(proposition);
-
-                var compound = CompoundDeclaration(source, isPublic);
-                if (compound != null)
-                    file.Compounds.Add(compound);
-
-                var enumeration = EnumerationDeclaration(source, isPublic);
-                if (enumeration != null)
-                    file.Enumerations.Add(enumeration);
-
-                var expression = default(Expression);
-                if (Consume(source, "ctfe"))
+                else
                 {
-                    expression = Expression(source);
-                    if (expression == null)
-                        Report.Error($"{source.Position} Expression expected.");
+                    var proposition = PropositionDeclaration(source);
+                    if (proposition != null)
+                        file.Propositions.Add(proposition);
                     else
-                        file.Ctfe.Add(expression);
+                    {
+                        var compound = CompoundDeclaration(source, isPublic);
+                        if (compound != null)
+                            file.Compounds.Add(compound);
+                        else
+                        {
+                            var enumeration = EnumerationDeclaration(source, isPublic);
+                            if (enumeration != null)
+                                file.Enumerations.Add(enumeration);
+                            else
+                            {
+                                if (Consume(source, "ctfe"))
+                                {
+                                    var expression = Expression(source);
+                                    if (expression == null)
+                                        Report.Error($"{source.Position} Expression expected.");
+                                    else
+                                        file.Ctfe.Add(expression);
+                                }
+                                else
+                                    Report.Error($"{source.Position} Function, proposition, structure, union, enumeration or CTFE expression expected.");
+                            }
+                        }
+                    }
                 }
-
-                if (function == null && proposition == null && compound == null && enumeration == null && expression == null)
-                    Report.Error($"{source.Position} Function, proposition, structure, union, enumeration or CTFE expression expected.");
             }
 
             return file;
