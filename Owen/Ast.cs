@@ -128,6 +128,15 @@ namespace Owen
         public override string ToString() => $"#{To}";
     }
 
+    internal sealed class Array : Type
+    {
+        public Number Length;
+        public Type Of;
+        public override string ToString() => Length == null ? 
+                                             $"[]{Of}" : 
+                                             $"[{Length}]{Of}";
+    }
+
     internal sealed class Null : Type
     {
         public override string ToString() => "null";
@@ -305,6 +314,11 @@ namespace Owen
         public List<FieldInitializer> Initializers = new List<FieldInitializer>();
     }
 
+    internal sealed class ArrayLiteral : Expression
+    {
+        public Type ElementType;
+    }
+
     internal sealed class FieldInitializer
     {
         public Identifier Name;
@@ -371,6 +385,18 @@ namespace Owen
     internal sealed class String : Expression
     {
         public string Value;
+    }
+
+    internal sealed class Cast : Expression
+    {
+        public Expression Expression;
+        public Type To;
+    }
+
+    internal sealed class Index : Expression
+    {
+        public Expression Array;
+        public Expression Position;
     }
 
     internal sealed class Position

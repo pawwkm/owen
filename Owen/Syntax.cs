@@ -789,6 +789,21 @@ namespace Owen
                     Expression = expression
                 };
             }
+            else if (Consume(source, "cast"))
+            {
+                Expect(source, "(");
+                var type = Type(source);
+                if (type == null)
+                    Report.Error($"{source.Position} Type expected.");
+
+                Expect(source, ")");
+                return new Cast()
+                {
+                    Start = start,
+                    Expression = Expression(source),
+                    To = type
+                };
+            }
             else
                 return PostfixExpression(source);
         }
@@ -866,6 +881,21 @@ namespace Owen
                         Field = field
                     };
                 }
+                else if (Consume(source, "["))
+                {
+                    var position = Expression(source);
+                    if (position == null)
+                        Report.Error($"{source.Position} Expression expected.");
+
+                    Expect(source, "]");
+
+                    return new Index()
+                    {
+                        Start = startOfInput,
+                        Array = expression,
+                        Position = position
+                    };
+                }
                 else
                     return expression;
             }
@@ -878,8 +908,10 @@ namespace Owen
             return Number(source) ??
                    Boolean(source) ??
                    CompoundLiteral(source) ??
+                   ArrayLiteral(source) ??
                    Null(source) ??
-                   Identifier(source);
+                   Identifier(source) ?? 
+                   ParentherizedExpression(source);
         }
 
         private static Expression Number(Source source)
@@ -1047,6 +1079,24 @@ namespace Owen
             }
         }
 
+        private static Expression ArrayLiteral(Source source)
+        {
+            if (Consume(source, "["))
+            {
+                Expect(source, "]");
+                var type = Type(source);
+                if (type == null)
+                    Report.Error($"{source.Position} Type expected.");
+
+                return new ArrayLiteral()
+                {
+                    ElementType = type
+                };
+            }
+            else
+                return null;
+        }
+
         private static Expression Null(Source source)
         {
             var start = source.Position.Copy();
@@ -1080,7 +1130,7 @@ namespace Owen
                     "namespace", "use", "public", "function", "input", "output", "end", 
                     "if", "else", "for", "while", "break", "structure", "proposition", 
                     "enumeration", "of", "size", "union", "return", "mixin", "ctfe", 
-                    "true", "false", "assert", "null", "generalize", "version" 
+                    "true", "false", "assert", "null", "generalize", "version", "cast"
                 };
 
                 if (keywords.Contains(identifier.Value))
@@ -1098,6 +1148,22 @@ namespace Owen
                     return identifier;
                 }
             }
+        }
+
+        private static Expression ParentherizedExpression(Source source)
+        {
+            if (Consume(source, "("))
+            {
+                var expression = Expression(source);
+                if (expression == null)
+                    Report.Error($"{source.Position} Expression expected.");
+                else
+                    Expect(source, ")");
+
+                return expression;
+            }
+            else
+                return null;
         }
 
         private static String String(Source source)
@@ -1144,6 +1210,30 @@ namespace Owen
                         pointer.To = new Pointer();
                         lastPointerOrArray = pointer.To;
                     }
+                    else if (lastPointerOrArray is Array array)
+                    {
+                        array.Of = new Array();
+                        lastPointerOrArray = array.Of;
+                    }
+                }
+                else if (Consume(source, "["))
+                {
+                    Expect(source, "]");
+                    if (firstPointerOrArray == null)
+                    {
+                        firstPointerOrArray = new Array();
+                        lastPointerOrArray = firstPointerOrArray;
+                    }
+                    else if (lastPointerOrArray is Pointer pointer)
+                    {
+                        pointer.To = new Array();
+                        lastPointerOrArray = pointer.To;
+                    }
+                    else if (lastPointerOrArray is Array array)
+                    {
+                        array.Of = new Array();
+                        lastPointerOrArray = array.Of;
+                    }
                 }
                 else
                     break;
@@ -1166,13 +1256,17 @@ namespace Owen
             }
             else
             {
-                if (lastPointerOrArray is Pointer pointer)
+                if (lastPointerOrArray == null)
+                    return unresolved;
+                else
                 {
-                    pointer.To = unresolved;
+                    if (lastPointerOrArray is Pointer pointer)
+                        pointer.To = unresolved;
+                    else if (lastPointerOrArray is Array array)
+                        array.Of = unresolved;
+
                     return firstPointerOrArray;
                 }
-                else
-                    return unresolved;
             }
         }
 

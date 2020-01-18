@@ -38,10 +38,12 @@ namespace Owen
                 );
             }
 
+            System.IO.File.WriteAllText(Path.Combine(root, "arrays.d"), "module owen.arrays; struct OwenArray { uint length; uint capacity; void* data; }");
+
             try
             {
                 var compiler = new Process();
-                compiler.StartInfo = new ProcessStartInfo("dmd.exe", $"-release -betterC -O -noboundscheck -check=assert=on \"-of{output}\" {string.Join(" ", Enumerable.Range(0, program.Files.Count).Select(i => $"_{i}.d"))}")
+                compiler.StartInfo = new ProcessStartInfo("dmd.exe", $"-release -betterC -O -noboundscheck -check=assert=on \"-of{output}\" {string.Join(" ", Enumerable.Range(0, program.Files.Count).Select(i => $"_{i}.d"))} arrays.d")
                 {
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
@@ -81,6 +83,7 @@ namespace Owen
             Generate(file.Path, builder);
 
             builder.Append("import std.typecons;");
+            builder.Append("import owen.arrays;");
             foreach (var nameSpace in file.PathsToRenferencedFiles)
             {
                 builder.Append("import ");
@@ -159,7 +162,7 @@ namespace Owen
         {
             if (function.IsExternal)
             {
-                if (function.Name.Value == "malloc" || function.Name.Value == "free")
+                if (function.Name.Value == "malloc" || function.Name.Value == "free" || function.Name.Value == "realloc")
                 {
                     if (function.IsPublic)
                         builder.Append("public ");
@@ -266,6 +269,8 @@ namespace Owen
                 builder.Append(enumeration.Name.Value);
                 builder.Append(' ');
             }
+            else if (type is Array)
+                builder.Append("OwenArray ");
             else
                 Report.Error($"Cannot translate {type} to D.");
         }
@@ -586,7 +591,9 @@ namespace Owen
                 builder.Append(reference.Value);
             else if (expression is Dereference dereference)
             {
-                builder.Append('*');
+                builder.Append("*cast(");
+                Generate(dereference.Expression.Type, builder);
+                builder.Append(')');
                 Generate(dereference.Expression, builder);
             }
             else if (expression is AddressOf addressOf)
@@ -639,6 +646,25 @@ namespace Owen
             {
                 builder.Append('-');
                 Generate(negate.Expression, builder);
+            }
+            else if (expression is ArrayLiteral arrayLiteral)
+                builder.Append("OwenArray(0, 0, null)");
+            else if (expression is Cast cast)
+            {
+                builder.Append("cast(");
+                Generate(cast.To, builder);
+                builder.Append(")");
+                Generate(cast.Expression, builder);
+            }
+            else if (expression is Index index)
+            {
+                builder.Append("(cast(");
+                Generate(index.Type, builder);
+                builder.Append(")");
+                Generate(index.Array, builder);
+                builder.Append(".data)[");
+                Generate(index.Position, builder);
+                builder.Append(']');
             }
             else
                 Report.Error($"{expression.Start} Cannot translate {expression.GetType().Name} to D.");

@@ -185,6 +185,8 @@ namespace Owen
                     return !function.Generalized.Any(g => unresolved.Identifier.Value == g.Value);
                 else if (t is Pointer pointer)
                     return IsGenericType(pointer.To);
+                else if (t is PrimitiveType)
+                    return false;
 
                 return true;
             }
@@ -350,7 +352,7 @@ namespace Owen
                         Assign(dereference.Expression, right, positionOfTheRightHandExpression);
                     else if (left.Type is Null)
                         Report.Error($"{assignment.Operator.Start} Null can't be assigned to.");
-                    else if (!Compare(left.Type, right))
+                    else if (!Compare(left.Type, right) && (left.Type is Pointer pointer1 && !Compare(pointer1, right) && !Compare(pointer1.To, right) && right != U64))
                         Report.Error($"{left.Start} The expression is not addressable.");
 
                     var operatorUsedOnNonInteger = (assignment.Operator.Tag == OperatorTag.BitwiseAndEqual ||
@@ -554,11 +556,7 @@ namespace Owen
                 return binary.Type;
             }
             else if (expression is Boolean b)
-            {
-                b.Type = Bool;
-
-                return Bool;
-            }
+                return b.Type = Bool;
             else if (expression is Number number)
             {
                 if (number.Tag == NumberTag.ToBeInfered)
@@ -582,11 +580,7 @@ namespace Owen
                 return number.Type;
             }
             else if (expression is Identifier reference)
-            {
-                reference.Type = Lookup(reference, scope);
-
-                return reference.Type;
-            }
+                return reference.Type = Lookup(reference, scope);
             else if (expression is Call call)
             {
                 if (call.Reference is Identifier functionName)
@@ -662,9 +656,8 @@ namespace Owen
                         }
 
                         call.Declaration = matches[0];
-                        call.Type = matches[0].Output;
 
-                        return call.Type;
+                        return call.Type = matches[0].Output;
                     }
                     else if (matches.Count > 1)
                         Report.Error($"{call.Reference.Start} Ambiguous call between:{Environment.NewLine}{string.Join(Environment.NewLine, matches.Select(f => $"{f.Name.Start} {f.Name.Value}({string.Join(", ", f.Input.Select(i => i.Type.ToString()))})"))}");
@@ -676,12 +669,10 @@ namespace Owen
             }
             else if (expression is AddressOf ao)
             {
-                ao.Type = new Pointer()
+                return ao.Type = new Pointer()
                 {
                     To = Analyze(ao.Expression, null, scope)
                 };
-
-                return ao.Type;
             }
             else if (expression is Dereference dereference)
             {
@@ -689,6 +680,13 @@ namespace Owen
                     return dereference.Type = pointer.To;
                 else
                     Report.Error($"{dereference.Start} Cannot dereference {dereference.Expression.Type}.");
+            }
+            else if (expression is ArrayLiteral arrayLiteral)
+            {
+                return arrayLiteral.Type = new Array()
+                {
+                    Of = Analyze(arrayLiteral.ElementType, scope)
+                };
             }
             else if (expression is DotExpression dot)
             {
@@ -725,6 +723,46 @@ namespace Owen
                             return d.Type;
                         }
                     }
+                }
+                else if (typeOfStructure is Array array)
+                {
+                    array.Of = Analyze(array.Of, scope);
+                    if (dot.Field is Identifier field)
+                    {
+                        if (field.Value == "length" || field.Value == "capacity")
+                            dot.Type = U32;
+                        else if (field.Value == "data")
+                            dot.Type = new Pointer()
+                            {
+                                To = array.Of
+                            };
+                        else
+                            Report.Error($"{field.Start} Undefined reference to {field.Value}.");
+                    }
+                    else if (dot.Field is Cast cast)
+                    {
+                        dot.Type = Analyze(cast.To, scope);
+                        Analyze(cast.Expression, null, scope);
+                    }
+                    else
+                        Report.Error($"{dot.Field.Start} Cannot analyze {dot.Field.GetType().Name}.");
+
+                    return dot.Type;
+                }
+                else if (typeOfStructure is Pointer pointer && pointer.To is Array array1 && dot.Field is Identifier field)
+                {
+                    Analyze(pointer, scope);
+                    if (field.Value == "length" || field.Value == "capacity")
+                        dot.Type = U32;
+                    else if (field.Value == "data")
+                        dot.Type = new Pointer()
+                        {
+                            To = array1.Of
+                        };
+                    else
+                        Report.Error($"{field.Start} Undefined reference to {field.Value}.");
+
+                    return dot.Type;
                 }
                 else
                     Report.Error($"{expression.Start} Cannot analyze {expression.GetType().Name}.");
@@ -779,6 +817,28 @@ namespace Owen
                 else
                     return negate.Type = negate.Expression.Type;
             }
+            else if (expression is Cast cast)
+            {
+                Analyze(cast.Expression, null, scope);
+                return cast.To = Analyze(cast.To, scope);
+            }
+            else if (expression is Index index)
+            {
+                Analyze(index.Position, U32, scope);
+                if (index.Position.Type is PrimitiveType primitive && primitive.Tag == PrimitiveTypeTag.U32)
+                {
+                    Analyze(index.Array, null, scope);
+                    if (index.Array.Type is Array array)
+                        return index.Type = new Pointer()
+                        {
+                            To = array.Of
+                        };
+                    else
+                        Report.Error($"{index.Position} Expected array but found {index.Array.Type}.");
+                }
+                else
+                    Report.Error($"{index.Position} Expected {U32} but found {index.Position.Type}.");
+            }
             else
                 Report.Error($"{expression.Start} Cannot analyze {expression.GetType().Name}.");
 
@@ -790,8 +850,12 @@ namespace Owen
             if (type is Pointer pointer)
             {
                 pointer.To = Analyze(pointer.To, scope);
-
                 return pointer;
+            }
+            else if (type is Array array)
+            {
+                array.Of = Analyze(array.Of, scope);
+                return array;
             }
             else if (type is UnresolvedType unresolved)
                 return Lookup(unresolved.Identifier, scope);
@@ -897,7 +961,7 @@ namespace Owen
                                     if (input[i].Type == null)
                                         Report.Error($"{callSite} Specify all generics since not all can be inferred.");
 
-                                    genericToType.Add(unresolved.Identifier.Value, input[i].Type);
+                                    genericToType.Add(unresolved.Identifier.Value, inputType);
                                     return inputType;
                                 }
                                 else if (inputType == null)
@@ -911,7 +975,9 @@ namespace Owen
                             {
                                 To = Copy(pa.To, pb.To)
                             };
-                        
+                        else if (genericType is PrimitiveType)
+                            return genericType;
+
                         throw new NotImplementedException(genericType.GetType().Name);
                     }
 
@@ -1055,6 +1121,8 @@ namespace Owen
                 return pa.Tag == pb.Tag;
             else if (a is Pointer ptra && b is Pointer ptrb)
                 return Compare(ptra.To, ptrb.To);
+            else if (a is Array leftArray && b is Array rightArray)
+                return Compare(leftArray.Of, rightArray.Of);
             else if (a is TupleType ta && b is TupleType tb)
             {
                 if (ta.Types.Count != tb.Types.Count)

@@ -47,6 +47,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="assignment\arrays.owen">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="assignment\right_shift_equal_not_defined_for_null.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

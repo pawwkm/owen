@@ -1,0 +1,54 @@
+﻿// expect 0
+
+namespace Arrays
+
+ctfe main()
+
+external function malloc
+    generalize T
+    input U32 amount
+    output #T
+    "msvcr100.dll"
+
+external function realloc
+    generalize T
+    input #T data,
+          U32 amount
+    output #T
+    "msvcr100.dll"
+
+external function free
+    generalize T
+    input #T data
+    "msvcr100.dll"
+
+function append
+    input #[]I32 array, 
+          I32 element
+
+    if array.capacity == array.length
+        if array.capacity == 0
+            array.capacity = 4
+        else
+            array.capacity *= 2
+        end
+
+        array.data = realloc(array.data, array.capacity * cast(U32)size of I32)
+    end
+
+    @(array.data + cast(U64)array.length) = element 
+    array.length += 1
+end
+
+function main
+    output I32
+
+    one_d = []I32
+    append(#one_d, 1)
+
+    assert one_d[0] == 1
+
+    free(one_d.data) 
+
+    return 0
+end
