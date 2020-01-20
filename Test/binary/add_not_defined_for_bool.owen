@@ -1,4 +1,4 @@
-﻿// expect binary\add_not_defined_for_bool.owen:8:9: This operator is only defined for number and pointer operands.
+﻿// expect binary\add_not_defined_for_bool.owen:8:14: This operator is only defined for number and pointer operands.
 
 namespace Add
 

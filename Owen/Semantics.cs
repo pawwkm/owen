@@ -463,7 +463,7 @@ namespace Owen
                     expressionsAndOutputIsNotBalanced = true;
 
                 if (expressionsAndOutputIsNotBalanced)
-                    Report.Error($"{returnStatement.EndOfKeyword} The amount of return values doesn't match the output.");
+                    Report.Error($"{returnStatement.Start} The amount of return values doesn't match the output.");
 
                 if (output is TupleType tuple)
                 {
@@ -523,7 +523,7 @@ namespace Owen
                     else
                         Report.Error($"{binary.Operator.Start} This operator is only defined for number, pointer or enumeration operands.");
                 }
-                else if (binary.Operator.Tag >= OperatorTag.Add && binary.Operator.Tag <= OperatorTag.BitwiseXor)
+                else if (binary.Operator.Tag >= OperatorTag.Plus && binary.Operator.Tag <= OperatorTag.BitwiseXor)
                 {
                     if (leftType is PrimitiveType p1 && (p1.Tag == PrimitiveTypeTag.F32 || p1.Tag == PrimitiveTypeTag.F64) && binary.Operator.Tag == OperatorTag.BitwiseXor)
                         Report.Error($"{binary.Operator.Start} This operator is only defined for number and pointer operands.");
@@ -1082,7 +1082,7 @@ namespace Owen
             else if (statement is ReturnStatement returnStatement)
                 return new ReturnStatement()
                 {
-                    EndOfKeyword = returnStatement.EndOfKeyword,
+                    Start = returnStatement.Start,
                     Expressions = returnStatement.Expressions.Select(e => ResolveExpression(e)).ToList()
                 };
             else

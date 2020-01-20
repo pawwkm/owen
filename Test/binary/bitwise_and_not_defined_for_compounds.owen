@@ -1,4 +1,4 @@
-﻿// expect binary\bitwise_and_not_defined_for_compounds.owen:18:9: This operator is only defined for number operands.
+﻿// expect binary\bitwise_and_not_defined_for_compounds.owen:18:11: This operator is only defined for number operands.
 
 namespace Bitwise_And
 

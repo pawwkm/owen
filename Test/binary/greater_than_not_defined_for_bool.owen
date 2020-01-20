@@ -1,4 +1,4 @@
-﻿// expect binary\greater_than_not_defined_for_bool.owen:8:9: This operator is only defined for number, pointer or enumeration operands.
+﻿// expect binary\greater_than_not_defined_for_bool.owen:8:14: This operator is only defined for number, pointer or enumeration operands.
 
 namespace Greater_Than
 

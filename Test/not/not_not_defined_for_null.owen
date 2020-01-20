@@ -1,4 +1,4 @@
-﻿// expect not\not_not_defined_for_null.owen:8:7: Bool expression expected.
+﻿// expect not\not_not_defined_for_null.owen:8:10: Bool expression expected.
 
 namespace Not
 

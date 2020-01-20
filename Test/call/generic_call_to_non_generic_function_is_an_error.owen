@@ -1,4 +1,4 @@
-﻿// expect call\generic_call_to_non_generic_function_is_an_error.owen:15:20: do_work is not generic.
+﻿// expect call\generic_call_to_non_generic_function_is_an_error.owen:15:23: do_work is not generic.
 
 namespace Polymorphic_Functions
 

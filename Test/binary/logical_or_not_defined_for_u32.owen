@@ -1,4 +1,4 @@
-﻿// expect binary\logical_or_not_defined_for_u32.owen:8:9: This operator is only defined for Bool operands.
+﻿// expect binary\logical_or_not_defined_for_u32.owen:8:14: This operator is only defined for Bool operands.
 
 namespace Logical_Or_Expressions
 

@@ -1,4 +1,4 @@
-﻿// expect call\specify_all_generics_if_not_all_are_defined_via_input.owen:17:12: Specify all generics since not all can be inferred.
+﻿// expect call\specify_all_generics_if_not_all_are_defined_via_input.owen:17:19: Specify all generics since not all can be inferred.
 
 namespace Polymorphic_Functions
 

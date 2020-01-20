@@ -1,4 +1,4 @@
-﻿// expect binary\equal_equal_not_defined_for_compounds.owen:18:12: This operator is only defined for primtive and pointer operands.
+﻿// expect binary\equal_equal_not_defined_for_compounds.owen:18:14: This operator is only defined for primtive and pointer operands.
 
 namespace Equal_Equal
 

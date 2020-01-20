@@ -1,4 +1,4 @@
-﻿// expect not\not_not_defined_for_compounds.owen:13:7: Bool expression expected.
+﻿// expect not\not_not_defined_for_compounds.owen:13:10: Bool expression expected.
 
 namespace Not
 

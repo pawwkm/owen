@@ -1,4 +1,4 @@
-﻿// expect return\call_outputting_multiple_values_must_be_the_only_expression.owen:8:15: A Call outputting multiple values must be the only expression on the right hand side.
+﻿// expect return\call_outputting_multiple_values_must_be_the_only_expression.owen:8:52: A Call outputting multiple values must be the only expression on the right hand side.
 
 namespace Return_Statements
 

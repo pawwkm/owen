@@ -1,4 +1,4 @@
-﻿// expect binary\right_shift_not_defined_for_f64.owen:8:9: This operator is only defined for number operands.
+﻿// expect binary\right_shift_not_defined_for_f64.owen:8:16: This operator is only defined for number operands.
 
 namespace Right_Shift
 

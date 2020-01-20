@@ -1,4 +1,4 @@
-﻿// expect negate\negate_not_defined_for_compounds.owen:13:7: IXX or FXX expression expected.
+﻿// expect negate\negate_not_defined_for_compounds.owen:13:10: IXX or FXX expression expected.
 
 namespace Negate
 

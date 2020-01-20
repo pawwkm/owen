@@ -505,7 +505,7 @@ namespace Owen
                     case OperatorTag.GreaterThan:
                         builder.Append(">");
                         break;
-                    case OperatorTag.Add:
+                    case OperatorTag.Plus:
                         builder.Append("+");
                         break;
                     case OperatorTag.Minus:

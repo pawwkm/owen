@@ -1,4 +1,4 @@
-﻿// expect binary\logical_or_not_defined_for_enumerations.owen:15:19: This operator is only defined for Bool operands.
+﻿// expect binary\logical_or_not_defined_for_enumerations.owen:15:25: This operator is only defined for Bool operands.
 
 namespace Logical_Or_Expressions
 

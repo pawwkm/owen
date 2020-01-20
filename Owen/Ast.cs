@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Owen
 {
@@ -208,7 +209,18 @@ namespace Owen
 
     internal sealed class Operator
     {
-        public Position Start;
+        public Position Start
+        {
+            get;
+            set;
+        }
+
+        public Position End
+        {
+            get;
+            set;
+        }
+
         public OperatorTag Tag;
     }
 
@@ -235,7 +247,7 @@ namespace Owen
         LessThan,
         GreaterThan,
 
-        Add,
+        Plus,
         Minus,
         BitwiseOr,
         BitwiseXor,
@@ -260,7 +272,7 @@ namespace Owen
 
     internal sealed class ReturnStatement : Statement
     {
-        public Position EndOfKeyword;
+        public Position Start;
         public List<Expression> Expressions;
     }
 
@@ -277,7 +289,18 @@ namespace Owen
     internal abstract class Expression
     {
         public Type Type;
-        public Position Start;
+
+        public Position Start
+        {
+            get;
+            set;
+        }
+
+        public Position End
+        {
+            get;
+            set;
+        }
     }
 
     internal sealed class BinaryExpression : Expression
@@ -372,9 +395,10 @@ namespace Owen
     internal sealed class Source
     {
         public int Index;
-        public string Text;
-        public Position Position;
-        public bool EndOfText => Text.Length == Index;
+        public List<Token> Tokens;
+        public Token Current => EndOfTokens ? null : Tokens[Index];
+        public Position Position => Current?.Start;
+        public bool EndOfTokens => Tokens.Count == Index;
     }
 
     internal sealed class Identifier : Expression
@@ -399,17 +423,109 @@ namespace Owen
         public Expression Position;
     }
 
+    internal sealed class Token
+    {
+        public Position Start;
+        public Position End;
+        public string Value;
+        public TokenTag Tag;
+    }
+
+    internal enum TokenTag
+    {
+        I8,
+        I16,
+        I32,
+        I64,
+        U8,
+        U16,
+        U32,
+        U64,
+        F32,
+        F64,
+        NumberToBeInfered,
+        Identifier,
+        Namespace,
+        Use,
+        Public,
+        External,
+        Function,
+        Input,
+        Output,
+        End,
+        If,
+        Else,
+        For,
+        While,
+        Break,
+        Structure,
+        Proposition,
+        Enumeration,
+        Of,
+        Size,
+        Union,
+        Return,
+        Mixin,
+        Ctfe,
+        True,
+        False,
+        Assert,
+        Null,
+        Generalize,
+        Version,
+        Cast,
+        String,
+        LogicalOr,
+        LogicalAnd,
+        PlusEqual,
+        MinusEqual,
+        MultiplyEqual,
+        DivideEqual,
+        BitwiseAndEqual,
+        BitwiseOrEqual,
+        BitwiseXorEqual,
+        ModuloEqual,
+        LeftShiftEqual,
+        RightShiftEqual,
+        Equal,
+        EqualEqual,
+        NotEqual,
+        LessThanOrEqual,
+        GreaterThanOrEqual,
+        LessThan,
+        GreaterThan,
+        Plus,
+        Minus,
+        BitwiseOr,
+        BitwiseXor,
+        Multiply,
+        Divide,
+        Modulo,
+        BitwiseAnd,
+        LeftShift,
+        RightShift,
+        Not,
+        AddressOf,
+        Dereference,
+        Dot,
+        LeftParentheses,
+        RightParentheses,
+        LeftSquareBracket,
+        RightSquareBracket,
+        Comma,
+        Semicolon,
+        Colon
+    }
+
     internal sealed class Position
     {
         public string Path;
-        public int Index;
         public int Line = 1;
         public int Column = 1;
 
         public Position Copy() => new Position()
         {
             Path = Path,
-            Index = Index,
             Line = Line,
             Column = Column
         };

@@ -5,18 +5,371 @@ namespace Owen
 {
     internal static class Syntax
     {
-        public static File Parse(Source source)
+        private static List<Token> Tokenize(string text, string path)
+        {
+            var position = new Position();
+            position.Path = path;
+
+            var tokens = new List<Token>();
+            var index = 0;
+            var startIndex = 0;
+            var startPostion = default(Position);
+
+            bool Match(string value)
+            {
+                if (index + value.Length <= text.Length)
+                {
+                    for (var i = 0; i < value.Length; i++)
+                    {
+                        if (text[index + i] != value[i])
+                            return false;
+                    }
+
+                    return true;
+                }
+                else
+                    return false;
+            }
+
+            bool Skip(string value)
+            {
+                if (Match(value))
+                {
+                    position.Column += value.Length;
+                    index += value.Length;
+
+                    return true;
+                }
+                else
+                    return false;
+            }
+
+            bool Consume(string value, TokenTag tag)
+            {
+                if (Skip(value))
+                {
+                    tokens.Add(new Token()
+                    {
+                        Start = startPostion,
+                        End = position.Copy(),
+                        Value = value,
+                        Tag = tag
+                    });
+
+                    return true;
+                }
+                else
+                    return false;
+            }
+
+            while (text.Length != index)
+            {
+                startIndex = index;
+                startPostion = position.Copy();
+
+                if (text[index] == ' ' || text[index] == '\r')
+                {
+                    index++;
+                    position.Column++;
+                }
+                else if (text[index] == '\n')
+                {
+                    index++;
+                    position.Line++;
+                    position.Column = 1;
+                }
+                else if (Match("//"))
+                {
+                    while (text.Length != index && text[index] != '\n')
+                    {
+                        index++;
+                        position.Column++;
+                    }
+                }
+                else if (Consume("+=", TokenTag.PlusEqual) ||
+                         Consume("-=", TokenTag.MinusEqual) ||
+                         Consume("*=", TokenTag.MultiplyEqual) ||
+                         Consume("/=", TokenTag.DivideEqual) ||
+                         Consume("&=", TokenTag.BitwiseAndEqual) ||
+                         Consume("|=", TokenTag.BitwiseOrEqual) ||
+                         Consume("^=", TokenTag.BitwiseXorEqual) ||
+                         Consume("%=", TokenTag.ModuloEqual) ||
+                         Consume("<<=", TokenTag.LeftShiftEqual) ||
+                         Consume(">>=", TokenTag.RightShiftEqual) ||
+                         Consume("||", TokenTag.LogicalOr) ||
+                         Consume("&&", TokenTag.LogicalAnd) ||
+                         Consume("==", TokenTag.EqualEqual) ||
+                         Consume("=", TokenTag.Equal) ||
+                         Consume("!=", TokenTag.NotEqual) ||
+                         Consume("<=", TokenTag.LessThanOrEqual) ||
+                         Consume(">=", TokenTag.GreaterThanOrEqual) ||
+                         Consume("+", TokenTag.Plus) ||
+                         Consume("-", TokenTag.Minus) ||
+                         Consume("|", TokenTag.BitwiseOr) ||
+                         Consume("^", TokenTag.BitwiseXor) ||
+                         Consume("*", TokenTag.Multiply) ||
+                         Consume("/", TokenTag.Divide) ||
+                         Consume("%", TokenTag.Modulo) ||
+                         Consume("&", TokenTag.BitwiseAnd) ||
+                         Consume("<<", TokenTag.LeftShift) ||
+                         Consume(">>", TokenTag.RightShift) ||
+                         Consume("<", TokenTag.LessThan) ||
+                         Consume(">", TokenTag.GreaterThan) ||
+                         Consume("!", TokenTag.Not) ||
+                         Consume("#", TokenTag.AddressOf) ||
+                         Consume("@", TokenTag.Dereference) ||
+                         Consume(".", TokenTag.Dot) ||
+                         Consume("(", TokenTag.LeftParentheses) ||
+                         Consume(")", TokenTag.RightParentheses) ||
+                         Consume("[", TokenTag.LeftSquareBracket) ||
+                         Consume("]", TokenTag.RightSquareBracket) ||
+                         Consume(",", TokenTag.Comma) ||
+                         Consume(";", TokenTag.Semicolon) ||
+                         Consume(":", TokenTag.Colon))
+                    ;
+                else if (text[index] >= 'A' && text[index] <= 'Z' || text[index] >= 'a' && text[index] <= 'z')
+                {
+                    while (text.Length != index &&
+                          (text[index] >= 'A' && text[index] <= 'Z' ||
+                           text[index] >= 'a' && text[index] <= 'z' ||
+                           text[index] >= '0' && text[index] <= '9' ||
+                           text[index] == '_'))
+                    {
+                        index++;
+                        position.Column++;
+                    }
+
+                    var tag = TokenTag.Identifier;
+                    var keywordOrIdentifier = text.Substring(startIndex, index - startIndex);
+
+                    switch (keywordOrIdentifier)
+                    {
+                        case "namespace":
+                            tag = TokenTag.Namespace;
+                            break;
+                        case "use":
+                            tag = TokenTag.Use;
+                            break;
+                        case "public":
+                            tag = TokenTag.Public;
+                            break;
+                        case "external":
+                            tag = TokenTag.External;
+                            break;
+                        case "function":
+                            tag = TokenTag.Function;
+                            break;
+                        case "input":
+                            tag = TokenTag.Input;
+                            break;
+                        case "output":
+                            tag = TokenTag.Output;
+                            break;
+                        case "end":
+                            tag = TokenTag.End;
+                            break;
+                        case "if":
+                            tag = TokenTag.If;
+                            break;
+                        case "else":
+                            tag = TokenTag.Else;
+                            break;
+                        case "for":
+                            tag = TokenTag.For;
+                            break;
+                        case "while":
+                            tag = TokenTag.While;
+                            break;
+                        case "break":
+                            tag = TokenTag.Break;
+                            break;
+                        case "structure":
+                            tag = TokenTag.Structure;
+                            break;
+                        case "proposition":
+                            tag = TokenTag.Proposition;
+                            break;
+                        case "enumeration":
+                            tag = TokenTag.Enumeration;
+                            break;
+                        case "of":
+                            tag = TokenTag.Of;
+                            break;
+                        case "size":
+                            tag = TokenTag.Size;
+                            break;
+                        case "union":
+                            tag = TokenTag.Union;
+                            break;
+                        case "return":
+                            tag = TokenTag.Return;
+                            break;
+                        case "mixin":
+                            tag = TokenTag.Mixin;
+                            break;
+                        case "ctfe":
+                            tag = TokenTag.Ctfe;
+                            break;
+                        case "true":
+                            tag = TokenTag.True;
+                            break;
+                        case "false":
+                            tag = TokenTag.False;
+                            break;
+                        case "assert":
+                            tag = TokenTag.Assert;
+                            break;
+                        case "null":
+                            tag = TokenTag.Null;
+                            break;
+                        case "generalize":
+                            tag = TokenTag.Generalize;
+                            break;
+                        case "version":
+                            tag = TokenTag.Version;
+                            break;
+                        case "cast":
+                            tag = TokenTag.Cast;
+                            break;
+                    }
+
+                    tokens.Add(new Token()
+                    {
+                        Start = startPostion,
+                        Value = keywordOrIdentifier,
+                        End = position.Copy(),
+                        Tag = tag
+                    });
+                }
+                else if (text.Length != index && text[index] >= '0' && text[index] <= '9')
+                {
+                    while (text.Length != index && text[index] >= '0' && text[index] <= '9')
+                    {
+                        index++;
+                        position.Column++;
+                    }
+
+                    if (text.Length != index && text[index] == '.')
+                    {
+                        index++;
+                        position.Column++;
+
+                        if (text.Length != index && text[index] >= '0' && text[index] <= '9')
+                        {
+                            while (text.Length != index && text[index] >= '0' && text[index] <= '9')
+                            {
+                                index++;
+                                position.Column++;
+                            }
+
+                            var startOfType = index;
+                            var endOfNumber = position.Copy();
+
+                            var tag = TokenTag.NumberToBeInfered;
+                            if (Skip("f32"))
+                                tag = TokenTag.F32;
+                            else if (Skip("f64"))
+                                tag = TokenTag.F64;
+
+                            tokens.Add(new Token()
+                            {
+                                Start = startPostion,
+                                Value = text.Substring(startIndex, startOfType - startIndex),
+                                Tag = tag,
+                                End = endOfNumber
+                            });
+                        }
+                        else
+                            Report.Error($"{position} Digit expected.");
+                    }
+                    else
+                    {
+                        var startOfType = index;
+                        var endOfNumber = position.Copy();
+
+                        var tag = TokenTag.NumberToBeInfered;
+                        if (Skip("i8"))
+                            tag = TokenTag.I8;
+                        else if (Skip("i16"))
+                            tag = TokenTag.I16;
+                        else if (Skip("i32"))
+                            tag = TokenTag.I32;
+                        else if (Skip("i64"))
+                            tag = TokenTag.I64;
+                        else if (Skip("u8"))
+                            tag = TokenTag.U8;
+                        else if (Skip("u16"))
+                            tag = TokenTag.U16;
+                        else if (Skip("u32"))
+                            tag = TokenTag.U32;
+                        else if (Skip("u64"))
+                            tag = TokenTag.U64;
+
+                        tokens.Add(new Token()
+                        {
+                            Start = startPostion,
+                            Value = text.Substring(startIndex, startOfType - startIndex),
+                            Tag = tag,
+                            End = endOfNumber
+                        });
+                    }
+                }
+                else if (text[index] == '"')
+                {
+                    index++;
+                    position.Column++;
+
+                    while (text.Length != index && text[index] != '"')
+                    {
+                        if (text[index] == '\n')
+                        {
+                            position.Line++;
+                            position.Column = 1;
+                        }
+                        else
+                            position.Column++;
+
+                        index++;
+                    }
+
+                    if (text[index] == '"')
+                    {
+                        index++;
+                        position.Column++;
+                    }
+                    else
+                        Report.Error($"{position} \" expected.");
+
+                    tokens.Add(new Token()
+                    {
+                        Start = startPostion,
+                        End = position.Copy(),
+                        Value = text.Substring(startIndex + 1, index - startIndex - 1),
+                        Tag = TokenTag.String
+                    });
+                }
+                else
+                    Report.Error($"{position} Unexpected character '{text[index]}'.");
+            }
+
+            return tokens;
+        }
+
+        public static File Parse(string text, string path)
         {
             var file = new File();
-            file.Path = source.Position.Path;
+            file.Path = path;
 
-            Whitespace(source);
+            var source = new Source();
+            source.Tokens = Tokenize(text, path);
 
-            Expect(source, "namespace");
-            if ((file.Namespace = Identifier(source)) == null)
+            Expect(source, TokenTag.Namespace, "namespace");
+            
+            file.Namespace = Identifier(source);
+            if (file.Namespace == null)
                 Report.Error($"{source.Position} Identifier expected.");
 
-            while (Consume(source, "use"))
+            while (Consume(source, TokenTag.Use))
             {
                 var use = Identifier(source);
                 if (use == null)
@@ -25,9 +378,9 @@ namespace Owen
                 file.Uses.Add(use);
             }
 
-            while (!source.EndOfText)
+            while (!source.EndOfTokens)
             {
-                var isPublic = Consume(source, "public");
+                var isPublic = Consume(source, TokenTag.Public);
 
                 var function = FunctionDeclaration(source, isPublic);
                 if (function != null)
@@ -49,7 +402,7 @@ namespace Owen
                                 file.Enumerations.Add(enumeration);
                             else
                             {
-                                if (Consume(source, "ctfe"))
+                                if (Consume(source, TokenTag.Ctfe))
                                 {
                                     var expression = Expression(source);
                                     if (expression == null)
@@ -70,30 +423,30 @@ namespace Owen
 
         private static FunctionDeclaration FunctionDeclaration(Source source, bool isPublic)
         {
-            var isExternal = Consume(source, "external");
-            if (Consume(source, "function"))
+            var isExternal = Consume(source, TokenTag.External);
+            if (Consume(source, TokenTag.Function))
             {
                 var name = Identifier(source);
                 if (name == null)
-                    Report.Error("Identifier expected.");
+                    Report.Error($"{source.Position} Identifier expected.");
 
                 var declaration = new FunctionDeclaration();
                 declaration.IsPublic = isPublic;
                 declaration.Name = name;
 
-                if (Consume(source, "generalize"))
+                if (Consume(source, TokenTag.Generalize))
                 {
                     do
                     {
                         var identifier = Identifier(source);
                         if (identifier == null)
-                            Report.Error("Identifier expected.");
+                            Report.Error($"{source.Position} Identifier expected.");
                         else
                             declaration.Generalized.Add(identifier);
-                    } while (Consume(source, ","));
+                    } while (Consume(source, TokenTag.Comma));
                 }
 
-                if (Consume(source, "input"))
+                if (Consume(source, TokenTag.Input))
                 {
                     do
                     {
@@ -107,10 +460,10 @@ namespace Owen
                             Report.Error($"{source.Position} Identifier expected.");
 
                         declaration.Input.Add(argument);
-                    } while (Consume(source, ","));
+                    } while (Consume(source, TokenTag.Comma));
                 }
 
-                if (Consume(source, "output"))
+                if (Consume(source, TokenTag.Output))
                 {
                     var types = new List<Type>();
                     do
@@ -120,7 +473,7 @@ namespace Owen
                             Report.Error("Type expected.");
                         else
                             types.Add(type);
-                    } while (Consume(source, ","));
+                    } while (Consume(source, TokenTag.Comma));
 
                     if (types.Count == 1)
                         declaration.Output = types[0];
@@ -133,14 +486,17 @@ namespace Owen
 
                 if (isExternal)
                 {
-                    declaration.IsExternal = true;
                     declaration.Library = String(source);
+                    if (declaration.Library == null)
+                        Report.Error($"{source.Position} String expected.");
+
+                    declaration.IsExternal = true;
                     declaration.Body = new CompoundStatement();
                 }
                 else
                 {
                     declaration.Body = CompoundStatement(source);
-                    Expect(source, "end");
+                    Expect(source, TokenTag.End, "end");
                 }
 
                 return declaration;
@@ -153,10 +509,10 @@ namespace Owen
 
         private static CompoundStatement PropositionDeclaration(Source source)
         {
-            if (Consume(source, "proposition"))
+            if (Consume(source, TokenTag.Proposition))
             {
                 var body = CompoundStatement(source);
-                Expect(source, "end");
+                Expect(source, TokenTag.End, "end");
 
                 return body;
             }
@@ -167,9 +523,9 @@ namespace Owen
         private static CompoundDeclaration CompoundDeclaration(Source source, bool isPublic)
         {
             CompoundTypeTag tag;
-            if (Consume(source, "structure"))
+            if (Consume(source, TokenTag.Structure))
                 tag = CompoundTypeTag.Structure;
-            else if (Consume(source, "union"))
+            else if (Consume(source, TokenTag.Union))
                 tag = CompoundTypeTag.Union;
             else
                 return null;
@@ -198,14 +554,14 @@ namespace Owen
                 declaration.Fields.Add(field);
             }
 
-            Expect(source, "end");
+            Expect(source, TokenTag.End, "end");
 
             return declaration;
         }
 
         private static EnumerationDeclaration EnumerationDeclaration(Source source, bool isPublic)
         {
-            if (Consume(source, "enumeration"))
+            if (Consume(source, TokenTag.Enumeration))
             {
                 var declaration = new EnumerationDeclaration();
                 declaration.IsPublic = isPublic;
@@ -213,7 +569,7 @@ namespace Owen
                 if (declaration.Name == null)
                     Report.Error($"{source.Position} Identifier expected.");
 
-                Expect(source, "of");
+                Expect(source, TokenTag.Of, "of");
                 
                 declaration.Type = Type(source);
                 if (declaration.Type == null)
@@ -226,14 +582,12 @@ namespace Owen
                         break;
                     else
                     {
-                        var constant = new EnumerationConstant()
-                        {
-                            Name = name
-                        };
+                        var constant = new EnumerationConstant();
+                        constant.Name = name;
 
-                        if (Consume(source, "="))
+                        if (Consume(source, TokenTag.Equal))
                         {
-                            var value = (Number)Number(source);
+                            var value = Number(source);
                             if (value == null || value.Value.Contains("."))
                                 Report.Error($"{source.Position} Integer expected.");
                             else
@@ -244,7 +598,7 @@ namespace Owen
                     }
                 }
 
-                Expect(source, "end");
+                Expect(source, TokenTag.End, "end");
 
                 return declaration;
             }
@@ -282,52 +636,25 @@ namespace Owen
             var left = Expressions(source);
             if (left.Count != 0)
             {
-                var assignment = new AssignmentStatement();
-                assignment.Operator = new Operator();
+                if (source.Current?.Tag >= TokenTag.PlusEqual && source.Current?.Tag <= TokenTag.Equal)
+                {
+                    var assignment = new AssignmentStatement();
+                    assignment.Left = left;
+                    assignment.Operator = Operator(source);
 
-                var operatorStart = source.Index;
-                if (Consume(source, "+="))
-                    assignment.Operator.Tag = OperatorTag.PlusEqual;
-                else if (Consume(source, "-="))
-                    assignment.Operator.Tag = OperatorTag.MinusEqual;
-                else if (Consume(source, "*="))
-                    assignment.Operator.Tag = OperatorTag.MultiplyEqual;
-                else if (Consume(source, "/="))
-                    assignment.Operator.Tag = OperatorTag.DivideEqual;
-                else if (Consume(source, "&="))
-                    assignment.Operator.Tag = OperatorTag.BitwiseAndEqual;
-                else if (Consume(source, "|="))
-                    assignment.Operator.Tag = OperatorTag.BitwiseOrEqual;
-                else if (Consume(source, "^="))
-                    assignment.Operator.Tag = OperatorTag.BitwiseXorEqual;
-                else if (Consume(source, "%="))
-                    assignment.Operator.Tag = OperatorTag.ModuloEqual;
-                else if (Consume(source, "<<="))
-                    assignment.Operator.Tag = OperatorTag.LeftShiftEqual;
-                else if (Consume(source, ">>="))
-                    assignment.Operator.Tag = OperatorTag.RightShiftEqual;
-                else if (Consume(source, "="))
-                    assignment.Operator.Tag = OperatorTag.Equal;
+                    assignment.Right = Expressions(source);
+                    if (assignment.Right.Count == 0)
+                        Report.Error($"{source.Position} One or more expressions expected.");
+
+                    return assignment;
+                }
                 else if (left.Count > 1)
                     Report.Error($"{source.Position} Assignment operator expected.");
                 else
-                {
                     source.Index = start;
-                    return null;
-                }
-
-                UpdatePosition(source, operatorStart);
-                assignment.Left = left;
-                assignment.Operator.Start = source.Position.Copy();
-
-                assignment.Right = Expressions(source);
-                if (assignment.Right.Count == 0)
-                    Report.Error($"{source.Position} One or more expressions expected.");
-
-                return assignment;
             }
-            else
-                return null;
+            
+            return null;
         }
 
         private static Statement ExpressionStatement(Source source)
@@ -344,13 +671,13 @@ namespace Owen
 
         private static Statement IfStatement(Source source)
         {
-            if (Consume(source, "if"))
+            if (Consume(source, TokenTag.If))
             {
                 var block = new ConditionalBlock();
                 
                 block.Assignment = (AssignmentStatement)AssignmentStatement(source);
                 if (block.Assignment != null)
-                    Expect(source, ";");
+                    Expect(source, TokenTag.Semicolon, ";");
 
                 block.Condition = Expression(source);
                 if (block.Condition == null)
@@ -361,14 +688,14 @@ namespace Owen
                 var statement = new IfStatement();
                 statement.Blocks.Add(block);
 
-                while (Consume(source, "else"))
+                while (Consume(source, TokenTag.Else))
                 {
                     block = new ConditionalBlock();
-                    if (Consume(source, "if"))
+                    if (Consume(source, TokenTag.If))
                     {
                         block.Assignment = (AssignmentStatement)AssignmentStatement(source);
                         if (block.Assignment != null)
-                            Expect(source, ";");
+                            Expect(source, TokenTag.Semicolon, ";");
 
                         block.Condition = Expression(source);
                         if (block.Condition == null)
@@ -382,7 +709,7 @@ namespace Owen
                         break;
                 }
 
-                Expect(source, "end");
+                Expect(source, TokenTag.End, "end");
 
                 return statement;
             }
@@ -392,24 +719,24 @@ namespace Owen
 
         private static Statement ForStatement(Source source)
         {
-            if (Consume(source, "for"))
+            if (Consume(source, TokenTag.For))
             {
                 var statement = new ForStatement();
                 statement.Assignment = (AssignmentStatement)AssignmentStatement(source);
                 if (statement.Assignment == null)
                     Report.Error($"{source.Position} Assignment expected.");
 
-                Expect(source, ";");
+                Expect(source, TokenTag.Semicolon, ";");
 
                 statement.Condition = Expression(source);
                 if (statement.Condition == null)
                     Report.Error($"{source.Position} Expression expected.");
 
-                Expect(source, ";");
+                Expect(source, TokenTag.Semicolon, ";");
                 statement.Post = (AssignmentStatement)AssignmentStatement(source);
 
                 statement.Body = CompoundStatement(source);
-                Expect(source, "end");
+                Expect(source, TokenTag.End, "end");
 
                 return statement;
             }
@@ -419,20 +746,20 @@ namespace Owen
 
         private static Statement WhileStatement(Source source)
         {
-            if (Consume(source, "while"))
+            if (Consume(source, TokenTag.While))
             {
                 var statement = new WhileStatement();
                 statement.Assignment = (AssignmentStatement)AssignmentStatement(source);
 
                 if (statement.Assignment != null)
-                    Expect(source, ";");
+                    Expect(source, TokenTag.Semicolon, ";");
 
                 statement.Condition = Expression(source);
                 if (statement.Condition == null)
                     Report.Error($"{source.Position} Expression expected.");
 
                 statement.Body = CompoundStatement(source);
-                Expect(source, "end");
+                Expect(source, TokenTag.End, "end");
 
                 return statement;
             }
@@ -442,12 +769,11 @@ namespace Owen
 
         private static Statement BreakStatement(Source source)
         {
-            var start = source.Position.Copy();
-            if (Consume(source, "break"))
+            if (Consume(source, TokenTag.Break))
             {
                 return new BreakStatement()
                 {
-                    Start = start
+                    Start = source.Tokens[source.Index - 1].Start,
                 };
             }
             else
@@ -456,12 +782,11 @@ namespace Owen
 
         private static Statement ReturnStatement(Source source)
         {
-            if (Consume(source, "return"))
+            if (Consume(source, TokenTag.Return))
             {
-                UpdatePosition(source, source.Index);
                 return new ReturnStatement()
                 {
-                    EndOfKeyword = source.Position.Copy(),
+                    Start = source.Tokens[source.Index - 1].Start,
                     Expressions = Expressions(source)
                 };
             }
@@ -471,7 +796,7 @@ namespace Owen
 
         private static Statement AssertStatement(Source source)
         {
-            if (Consume(source, "assert"))
+            if (Consume(source, TokenTag.Assert))
             {
                 var assertion = Expression(source);
                 if (assertion == null)
@@ -494,7 +819,7 @@ namespace Owen
             if (expression != null)
             {
                 expressions.Add(expression);
-                while (Consume(source, ","))
+                while (Consume(source, TokenTag.Comma))
                 {
                     expression = Expression(source);
                     if (expression == null)
@@ -515,31 +840,27 @@ namespace Owen
         private static Expression LogicalOrExpression(Source source)
         {
             var left = LogicalAndExpression(source);
-            while (true)
+            while (left != null)
             {
-                var start = source.Position.Copy();
-                var tag = OperatorTag.LogicalOr;
-
-                if (!Consume(source, "||"))
-                    break;
-
-                var right = LogicalAndExpression(source);
-                if (right == null)
-                    Report.Error($"{source.Position} Expression expected.");
-                else
+                if (source.Current?.Tag == TokenTag.LogicalOr)
                 {
-                    left = new BinaryExpression()
+                    var op = Operator(source);
+                    var right = LogicalAndExpression(source);
+                    if (right == null)
+                        Report.Error($"{source.Position} Expression expected.");
+                    else
                     {
-                        Start = left.Start,
-                        Left = left,
-                        Operator = new Operator()
+                        left = new BinaryExpression()
                         {
-                            Start = start,
-                            Tag = tag
-                        },
-                        Right = right
-                    };
+                            Start = left.Start,
+                            Left = left,
+                            Operator = op,
+                            Right = right
+                        };
+                    }
                 }
+                else
+                    break;
             }
 
             return left;
@@ -548,31 +869,27 @@ namespace Owen
         private static Expression LogicalAndExpression(Source source)
         {
             var left = RelationalExpression(source);
-            while (true)
+            while (left != null)
             {
-                var start = source.Position.Copy();
-                var tag = OperatorTag.LogicalAnd;
-
-                if (!Consume(source, "&&"))
-                    break;
-
-                var right = RelationalExpression(source);
-                if (right == null)
-                    Report.Error($"{source.Position} Expression expected.");
-                else
+                if (source.Current?.Tag == TokenTag.LogicalAnd)
                 {
-                    left = new BinaryExpression()
+                    var op = Operator(source);
+                    var right = RelationalExpression(source);
+                    if (right == null)
+                        Report.Error($"{source.Position} Expression expected.");
+                    else
                     {
-                        Start = left.Start,
-                        Left = left,
-                        Operator = new Operator()
+                        left = new BinaryExpression()
                         {
-                            Start = start,
-                            Tag = tag
-                        },
-                        Right = right
-                    };
+                            Start = left.Start,
+                            Left = left,
+                            Operator = op,
+                            Right = right
+                        };
+                    }
                 }
+                else
+                    break;
             }
 
             return left;
@@ -581,47 +898,27 @@ namespace Owen
         private static Expression RelationalExpression(Source source)
         {
             var left = AdditiveExpression(source);
-            while (true)
+            while (left != null)
             {
-                var i = source.Index;
-                var start = source.Position.Copy();
-                var tag = default(OperatorTag);
-
-                if (Consume(source, "=="))
-                    tag = OperatorTag.EqualEqual;
-                else if (Consume(source, "!="))
-                    tag = OperatorTag.NotEqual;
-                else if (Consume(source, "<="))
-                    tag = OperatorTag.LessThanOrEqual;
-                else if (Consume(source, ">="))
-                    tag = OperatorTag.GreaterThanOrEqual;
-                else if (Consume(source, "<"))
-                    tag = OperatorTag.LessThan;
-                else if (Consume(source, ">"))
-                    tag = OperatorTag.GreaterThan;
-                else
-                    break;
-
-                var right = AdditiveExpression(source);
-                if (right == null)
+                if (source.Current?.Tag >= TokenTag.EqualEqual && source.Current?.Tag <= TokenTag.GreaterThan)
                 {
-                    source.Index = i;
-                    break;
-                }
-                else
-                {
-                    left = new BinaryExpression()
+                    var op = Operator(source);
+                    var right = AdditiveExpression(source);
+                    if (right == null)
+                        Report.Error($"{source.Position} Expression expected.");
+                    else
                     {
-                        Start = left.Start,
-                        Left = left,
-                        Operator = new Operator()
+                        left = new BinaryExpression()
                         {
-                            Start = start,
-                            Tag = tag
-                        },
-                        Right = right
-                    };
+                            Start = left.Start,
+                            Left = left,
+                            Operator = op,
+                            Right = right
+                        };
+                    }
                 }
+                else
+                    break;
             }
 
             return left;
@@ -630,43 +927,27 @@ namespace Owen
         private static Expression AdditiveExpression(Source source)
         {
             var left = MultiplicativeExpression(source);
-            while (true)
+            while (left != null)
             {
-                var i = source.Index;
-                var start = source.Position.Copy();
-                var tag = default(OperatorTag);
-
-                if (Consume(source, "+"))
-                    tag = OperatorTag.Add;
-                else if (Consume(source, "-"))
-                    tag = OperatorTag.Minus;
-                else if (Consume(source, "|"))
-                    tag = OperatorTag.BitwiseOr;
-                else if (Consume(source, "^"))
-                    tag = OperatorTag.BitwiseXor;
-                else
-                    break;
-
-                var right = MultiplicativeExpression(source);
-                if (right == null)
+                if (source.Current?.Tag >= TokenTag.Plus && source.Current?.Tag <= TokenTag.BitwiseXor)
                 {
-                    source.Index = i;
-                    break;
-                }
-                else
-                {
-                    left = new BinaryExpression()
+                    var op = Operator(source);
+                    var right = MultiplicativeExpression(source);
+                    if (right == null)
+                        Report.Error($"{source.Position} Expression expected.");
+                    else
                     {
-                        Start = left.Start,
-                        Left = left,
-                        Operator = new Operator()
+                        left = new BinaryExpression()
                         {
-                            Start = start,
-                            Tag = tag
-                        },
-                        Right = right
-                    };
+                            Start = left.Start,
+                            Left = left,
+                            Operator = op,
+                            Right = right
+                        };
+                    }
                 }
+                else
+                    break;
             }
 
             return left;
@@ -675,47 +956,27 @@ namespace Owen
         private static Expression MultiplicativeExpression(Source source)
         {
             var left = PrefixExpression(source);
-            while (true)
+            while (left != null)
             {
-                var i = source.Index;
-                var start = source.Position.Copy();
-                var tag = default(OperatorTag);
-
-                if (Consume(source, "*"))
-                    tag = OperatorTag.Multiply;
-                else if (Consume(source, "/"))
-                    tag = OperatorTag.Divide;
-                else if (Consume(source, "%"))
-                    tag = OperatorTag.Modulo;
-                else if (Consume(source, "&"))
-                    tag = OperatorTag.BitwiseAnd;
-                else if (Consume(source, "<<"))
-                    tag = OperatorTag.LeftShift;
-                else if (Consume(source, ">>"))
-                    tag = OperatorTag.RightShift;
-                else
-                    break;
-
-                var right = PrefixExpression(source);
-                if (right == null)
+                if (source.Current?.Tag >= TokenTag.Multiply && source.Current?.Tag <= TokenTag.RightShift)
                 {
-                    source.Index = i;
-                    break;
-                }
-                else
-                {
-                    left = new BinaryExpression()
+                    var op = Operator(source);
+                    var right = PrefixExpression(source);
+                    if (right == null)
+                        Report.Error($"{source.Position} Expression expected.");
+                    else
                     {
-                        Start = left.Start,
-                        Left = left,
-                        Operator = new Operator()
+                        left = new BinaryExpression()
                         {
-                            Start = start,
-                            Tag = tag
-                        },
-                        Right = right
-                    };
+                            Start = left.Start,
+                            Left = left,
+                            Operator = op,
+                            Right = right
+                        };
+                    }
                 }
+                else
+                    break;
             }
 
             return left;
@@ -723,8 +984,8 @@ namespace Owen
 
         private static Expression PrefixExpression(Source source)
         {
-            var start = source.Position.Copy();
-            if (Consume(source, "!"))
+            var start = source.Position;
+            if (Consume(source, TokenTag.Not))
             {
                 var expression = PostfixExpression(source);
                 if (expression == null)
@@ -736,7 +997,7 @@ namespace Owen
                     Expression = expression
                 };
             }
-            else if (Consume(source, "-"))
+            else if (Consume(source, TokenTag.Minus))
             {
                 var expression = PostfixExpression(source);
                 if (expression == null)
@@ -748,9 +1009,9 @@ namespace Owen
                     Expression = expression
                 };
             }
-            else if (Consume(source, "size"))
+            else if (Consume(source, TokenTag.Size))
             {
-                Expect(source, "of");
+                Expect(source, TokenTag.Of, "of");
 
                 var type = Identifier(source);
                 if (type == null)
@@ -765,7 +1026,7 @@ namespace Owen
                     }
                 };
             }
-            else if (Consume(source, "#"))
+            else if (Consume(source, TokenTag.AddressOf))
             {
                 var expression = PostfixExpression(source);
                 if (expression == null)
@@ -777,7 +1038,7 @@ namespace Owen
                     Expression = expression
                 };
             }
-            else if (Consume(source, "@"))
+            else if (Consume(source, TokenTag.Dereference))
             {
                 var expression = PostfixExpression(source);
                 if (expression == null)
@@ -789,14 +1050,14 @@ namespace Owen
                     Expression = expression
                 };
             }
-            else if (Consume(source, "cast"))
+            else if (Consume(source, TokenTag.Cast))
             {
-                Expect(source, "(");
+                Expect(source, TokenTag.LeftParentheses, "(");
                 var type = Type(source);
                 if (type == null)
                     Report.Error($"{source.Position} Type expected.");
 
-                Expect(source, ")");
+                Expect(source, TokenTag.RightParentheses, ")");
                 return new Cast()
                 {
                     Start = start,
@@ -815,7 +1076,7 @@ namespace Owen
             if (expression != null)
             {
                 var start = source.Index;
-                if (Consume(source, "<"))
+                if (Consume(source, TokenTag.LessThan))
                 {
                     var type = Type(source);
                     if (type == null)
@@ -825,7 +1086,7 @@ namespace Owen
                         var generics = new List<Type>();
                         generics.Add(type);
 
-                        while (Consume(source, ","))
+                        while (Consume(source, TokenTag.Comma))
                         {
                             type = Type(source);
                             if (type == null)
@@ -834,12 +1095,12 @@ namespace Owen
                             generics.Add(type);
                         }
 
-                        if (Consume(source, ">"))
+                        if (Consume(source, TokenTag.GreaterThan))
                         {
-                            startOfInput = source.Position.Copy();
-                            Expect(source, "(");
+                            startOfInput = source.Position;
+                            Expect(source, TokenTag.LeftParentheses, "(");
                             var arguments = Expressions(source);
-                            Expect(source, ")");
+                            Expect(source, TokenTag.RightParentheses, ")");
 
                             return new Call()
                             {
@@ -854,11 +1115,11 @@ namespace Owen
                     }
                 }
 
-                startOfInput = source.Position.Copy();
-                if (Consume(source, "("))
+                startOfInput = source.Position;
+                if (Consume(source, TokenTag.LeftParentheses))
                 {
                     var arguments = Expressions(source);
-                    Expect(source, ")");
+                    Expect(source, TokenTag.RightParentheses, ")");
 
                     return new Call()
                     {
@@ -868,7 +1129,7 @@ namespace Owen
                         Arguments = arguments
                     };
                 }
-                else if (Consume(source, "."))
+                else if (Consume(source, TokenTag.Dot))
                 {
                     var field = PostfixExpression(source);
                     if (field == null)
@@ -881,13 +1142,13 @@ namespace Owen
                         Field = field
                     };
                 }
-                else if (Consume(source, "["))
+                else if (Consume(source, TokenTag.LeftSquareBracket))
                 {
                     var position = Expression(source);
                     if (position == null)
                         Report.Error($"{source.Position} Expression expected.");
 
-                    Expect(source, "]");
+                    Expect(source, TokenTag.RightSquareBracket, "]");
 
                     return new Index()
                     {
@@ -907,130 +1168,24 @@ namespace Owen
         {
             return Number(source) ??
                    Boolean(source) ??
+                   String(source) ??
+                   NullLiteral(source) ??
                    CompoundLiteral(source) ??
                    ArrayLiteral(source) ??
-                   Null(source) ??
-                   Identifier(source) ?? 
+                   Identifier(source) ??
                    ParentherizedExpression(source);
-        }
-
-        private static Expression Number(Source source)
-        {
-            var start = source.Index;
-            if (source.Text[source.Index] == '-')
-                source.Index++;
-
-            while (!source.EndOfText && IsDigit(source.Text[source.Index]))
-                source.Index++;
-
-            if (source.Index == start)
-                return null;
-            else if (source.Index - start == 1 && source.Text[start] == '-')
-            {
-                UpdatePosition(source, source.Index);
-                Report.Error($"{source.Position} Digit expected.");
-            }
-            
-            if (source.Text[source.Index] == '.')
-            {
-                var afterDot = ++source.Index;
-                while (!source.EndOfText && IsDigit(source.Text[source.Index]))
-                    source.Index++;
-
-                if (source.Index == afterDot)
-                {
-                    UpdatePosition(source, source.Index);
-                    Report.Error($"{source.Position} Digit expected.");
-                }
-
-                var number = new Number();
-                number.Value = source.Text.Substring(start, source.Index - start);
-
-                UpdatePosition(source, start);
-                number.Start = source.Position.Copy();
-
-                if (Consume(source, "f32"))
-                    number.Tag = NumberTag.F32;
-                else if (Consume(source, "f64"))
-                    number.Tag = NumberTag.F64;
-                else
-                {
-                    number.Tag = NumberTag.ToBeInfered;
-                    Whitespace(source);
-                }
-
-                return number;
-            }
-            else
-            {
-                var number = new Number();
-                number.Value = source.Text.Substring(start, source.Index - start);
-
-                UpdatePosition(source, start);
-                number.Start = source.Position.Copy();
-
-                if (Consume(source, "i8"))
-                    number.Tag = NumberTag.I8;
-                else if (Consume(source, "i16"))
-                    number.Tag = NumberTag.I16;
-                else if (Consume(source, "i32"))
-                    number.Tag = NumberTag.I32;
-                else if (Consume(source, "i64"))
-                    number.Tag = NumberTag.I64;
-                else if (Consume(source, "u8"))
-                    number.Tag = NumberTag.U8;
-                else if (Consume(source, "u16"))
-                    number.Tag = NumberTag.U16;
-                else if (Consume(source, "u32"))
-                    number.Tag = NumberTag.U32;
-                else if (Consume(source, "u64"))
-                    number.Tag = NumberTag.U64;
-                else
-                {
-                    number.Tag = NumberTag.ToBeInfered;
-                    Whitespace(source);
-                }
-
-                return number;
-            }
-        }
-
-        private static Expression Boolean(Source source)
-        {
-            var start = source.Index;
-            if (Consume(source, "true"))
-            {
-                UpdatePosition(source, start);
-                var boolean = new Boolean();
-
-                boolean.Start = source.Position.Copy();
-                boolean.Value = "true";
-
-                return boolean;
-            }
-            else if (Consume(source, "false"))
-            {
-                UpdatePosition(source, start);
-                var boolean = new Boolean();
-
-                boolean.Start = source.Position.Copy();
-                boolean.Value = "false";
-
-                return boolean;
-            }
-            else
-                return null;
         }
 
         private static Expression CompoundLiteral(Source source)
         {
             var start = source.Index;
             var literal = new CompoundLiteral();
-            literal.Start = source.Position.Copy();
             literal.Structure = Identifier(source);
 
             if (literal.Structure == null)
                 return null;
+            else
+                literal.Start = literal.Structure.Start;
 
             var initializer = new FieldInitializer();
             initializer.Name = Identifier(source);
@@ -1039,8 +1194,8 @@ namespace Owen
                 source.Index = start;
                 return null;
             }
-
-            if (Consume(source, "="))
+            
+            if (Consume(source, TokenTag.Equal))
             {
                 initializer.Value = Expression(source);
                 if (initializer.Value == null)
@@ -1048,14 +1203,15 @@ namespace Owen
                 else
                     literal.Initializers.Add(initializer);
 
-                while (Consume(source, ","))
+                while (Consume(source, TokenTag.Comma))
                 {
                     initializer = new FieldInitializer();
                     initializer.Name = Identifier(source);
                     if (initializer.Name == null)
                         break;
-                    else
-                        Expect(source, "=");
+
+                    if (!Consume(source, TokenTag.Equal))
+                        Report.Error($"{source.Position} = expected.");
 
                     initializer.Value = Expression(source);
                     if (initializer.Value == null)
@@ -1064,7 +1220,7 @@ namespace Owen
                         literal.Initializers.Add(initializer);
                 }
 
-                if (!Consume(source, "end"))
+                if (!Consume(source, TokenTag.End))
                 {
                     source.Index = start;
                     return null;
@@ -1081,9 +1237,9 @@ namespace Owen
 
         private static Expression ArrayLiteral(Source source)
         {
-            if (Consume(source, "["))
+            if (Consume(source, TokenTag.LeftSquareBracket))
             {
-                Expect(source, "]");
+                Expect(source, TokenTag.RightSquareBracket, "]");
                 var type = Type(source);
                 if (type == null)
                     Report.Error($"{source.Position} Type expected.");
@@ -1097,95 +1253,17 @@ namespace Owen
                 return null;
         }
 
-        private static Expression Null(Source source)
-        {
-            var start = source.Position.Copy();
-            if (Consume(source, "null"))
-                return new NullLiteral()
-                {
-                    Start = start
-                };
-            else
-                return null;
-        }
-
-        private static Identifier Identifier(Source source)
-        {
-            var start = source.Index;
-            if (!source.EndOfText && IsLetter(source.Text[source.Index]))
-            {
-                while (!source.EndOfText && (IsLetterOrDigit(source.Text[source.Index]) || source.Text[source.Index] == '_'))
-                    source.Index++;
-            }
-
-            if (source.Index == start)
-                return null;
-            else
-            {
-                var identifier = new Identifier();
-                identifier.Value = source.Text.Substring(start, source.Index - start);
-
-                var keywords = new[]
-                { 
-                    "namespace", "use", "public", "function", "input", "output", "end", 
-                    "if", "else", "for", "while", "break", "structure", "proposition", 
-                    "enumeration", "of", "size", "union", "return", "mixin", "ctfe", 
-                    "true", "false", "assert", "null", "generalize", "version", "cast"
-                };
-
-                if (keywords.Contains(identifier.Value))
-                {
-                    source.Index = start;
-                    return null;
-                }
-                else
-                {
-                    UpdatePosition(source, start);
-                    identifier.Start = source.Position.Copy();
-
-                    Whitespace(source);
-
-                    return identifier;
-                }
-            }
-        }
-
         private static Expression ParentherizedExpression(Source source)
         {
-            if (Consume(source, "("))
+            if (Consume(source, TokenTag.LeftParentheses))
             {
                 var expression = Expression(source);
                 if (expression == null)
                     Report.Error($"{source.Position} Expression expected.");
                 else
-                    Expect(source, ")");
+                    Expect(source, TokenTag.RightParentheses, ")");
 
                 return expression;
-            }
-            else
-                return null;
-        }
-
-        private static String String(Source source)
-        {
-            var start = source.Index;
-            if (!source.EndOfText && source.Text[source.Index] == '"')
-            {
-                source.Index++;
-                while (!source.EndOfText && source.Text[source.Index] != '"')
-                    source.Index++;
-
-                var s = new String();
-                s.Value = source.Text.Substring(start + 1, source.Index - start - 1);
-
-                UpdatePosition(source, start);
-                s.Start = source.Position.Copy();
-
-                Expect(source, "\"");
-
-                Whitespace(source);
-
-                return s;
             }
             else
                 return null;
@@ -1198,7 +1276,7 @@ namespace Owen
 
             while (true)
             {
-                if (Consume(source, "#"))
+                if (Consume(source, TokenTag.AddressOf))
                 {
                     if (firstPointerOrArray == null)
                     {
@@ -1216,9 +1294,9 @@ namespace Owen
                         lastPointerOrArray = array.Of;
                     }
                 }
-                else if (Consume(source, "["))
+                else if (Consume(source, TokenTag.LeftSquareBracket))
                 {
-                    Expect(source, "]");
+                    Expect(source, TokenTag.RightSquareBracket, "]");
                     if (firstPointerOrArray == null)
                     {
                         firstPointerOrArray = new Array();
@@ -1239,13 +1317,11 @@ namespace Owen
                     break;
             }
 
-            if (Consume(source, "function"))
+            if (Consume(source, TokenTag.Function))
                 Report.Error($"{source.Position} Function types not supported.");
 
-            var unresolved = new UnresolvedType()
-            {
-                Identifier = Identifier(source)
-            };
+            var unresolved = new UnresolvedType();
+            unresolved.Identifier = Identifier(source);
 
             if (unresolved.Identifier == null)
             {
@@ -1270,94 +1346,117 @@ namespace Owen
             }
         }
 
-        private static bool IsLetterOrDigit(char c)
+        private static bool Consume(Source source, TokenTag tag)
         {
-            return IsLetter(c) || IsDigit(c);
-        }
-
-        private static bool IsLetter(char c)
-        {
-            return c >= 'A' && c <= 'Z' ||
-                   c >= 'a' && c <= 'z';
-        }
-
-        private static bool IsDigit(char c)
-        {
-            return c >= '0' && c <= '9';
-        }
-
-        private static void Whitespace(Source source)
-        {
-            while (!source.EndOfText)
+            if (source.Current?.Tag == tag)
             {
-                switch (source.Text[source.Index])
-                {
-                    case '\n':
-                    case '\r':
-                    case ' ':
-                        source.Index++;
-                        break;
-                    case '/':
-                        if (source.Index + 1 <= source.Text.Length && source.Text[source.Index + 1] == '/')
-                        {
-                            while (!source.EndOfText && source.Text[source.Index] != '\n')
-                                source.Index++;
-
-                            break;
-                        }
-                        else
-                            return;
-                    default:
-                        return;
-                }
-            }
-        }
-
-        private static bool Consume(Source source, string value)
-        {
-            if (source.Index + value.Length <= source.Text.Length)
-            {
-                for (var i = 0; i < value.Length; i++)
-                {
-                    if (source.Text[source.Index + i] != value[i])
-                        return false;
-                }
-
-                source.Index += value.Length;
-                Whitespace(source);
-
+                source.Index++;
                 return true;
             }
             else
                 return false;
         }
 
-        private static void Expect(Source source, string value)
+        private static Identifier Identifier(Source source)
         {
-            if (!Consume(source, value))
+            if (source.Current.Tag == TokenTag.Identifier)
             {
-                UpdatePosition(source, source.Index);
-                Report.Error($"{source.Position} {value} expected.");
+                var token = source.Tokens[source.Index++];
+                return new Identifier()
+                {
+                    Start = token.Start,
+                    End = token.End,
+                    Value = token.Value
+                };
             }
+            else
+                return null;
         }
 
-        private static void UpdatePosition(Source source, int index)
+        private static Boolean Boolean(Source source)
         {
-            for (var i = source.Position.Index; i < index; i++)
+            if (source.Current.Tag == TokenTag.True || source.Current.Tag == TokenTag.False)
             {
-                switch (source.Text[i])
+                var token = source.Tokens[source.Index++];
+                return new Boolean()
                 {
-                    case '\n':
-                        source.Position.Line++;
-                        source.Position.Column = 1;
-                        break;
-                    default:
-                        source.Position.Column++;
-                        break;
-                }
+                    Start = token.Start,
+                    End = token.End,
+                    Value = token.Value
+                };
             }
+            else
+                return null;
+        }
 
-            source.Position.Index = index;
+        private static NullLiteral NullLiteral(Source source)
+        {
+            if (source.Current.Tag == TokenTag.Null)
+            {
+                var token = source.Tokens[source.Index++];
+                return new NullLiteral()
+                {
+                    Start = token.Start,
+                    End = token.End
+                };
+            }
+            else
+                return null;
+        }
+
+        private static String String(Source source)
+        {
+            if (source.Current.Tag == TokenTag.String)
+            {
+                var token = source.Tokens[source.Index++];
+                return new String()
+                {
+                    Start = token.Start,
+                    End = token.End,
+                    Value = token.Value
+                };
+            }
+            else
+                return null;
+        }
+
+        private static Operator Operator(Source source)
+        {
+            if (source.Current.Tag >= TokenTag.LogicalOr && source.Current.Tag <= TokenTag.RightShift)
+            {
+                var token = source.Tokens[source.Index++];
+                return new Operator()
+                {
+                    Start = token.Start,
+                    End = token.End,
+                    Tag = (OperatorTag)(token.Tag - TokenTag.LogicalOr)
+                };
+            }
+            else
+                return null;
+        }
+
+        private static Number Number(Source source)
+        {
+            if (source.Current.Tag >= TokenTag.I8 && source.Current.Tag <= TokenTag.NumberToBeInfered)
+            {
+                var token = source.Tokens[source.Index++];
+                return new Number()
+                {
+                    Start = token.Start,
+                    End = token.End,
+                    Tag = (NumberTag)token.Tag,
+                    Value = token.Value
+                };
+            }
+            else
+                return null;
+        }
+
+        private static void Expect(Source source, TokenTag tag, string missing)
+        {
+            if (!Consume(source, tag))
+                Report.Error($"{source.Position} {missing} expected.");
         }
     }
 }

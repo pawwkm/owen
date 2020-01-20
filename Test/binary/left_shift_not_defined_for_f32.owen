@@ -1,4 +1,4 @@
-﻿// expect binary\left_shift_not_defined_for_f32.owen:8:9: This operator is only defined for number operands.
+﻿// expect binary\left_shift_not_defined_for_f32.owen:8:16: This operator is only defined for number operands.
 
 namespace Left_Shift
 

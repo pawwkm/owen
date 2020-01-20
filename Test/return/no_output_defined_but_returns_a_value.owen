@@ -1,4 +1,4 @@
-﻿// expect return\no_output_defined_but_returns_a_value.owen:9:1: The amount of return values doesn't match the output.
+﻿// expect return\no_output_defined_but_returns_a_value.owen:8:5: The amount of return values doesn't match the output.
 
 namespace Test
 
