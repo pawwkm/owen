@@ -292,12 +292,6 @@ namespace Owen
                 void Mismatch(int left, int right) =>
                     Report.Error($"{assignment.Operator.Start} Assignment mismatch of {left} variable{(left > 1 ? "s" : "")} and {right} output{(right > 1 ? "s" : "")}.");
 
-                // this method needs to be split up into two methods.
-                // the first one figures out whether or not to declare 
-                // symbols. 
-                // the second method only deals with figuring out whether 
-                // or not the type on the right hand side can be assigned to 
-                // left hand side
                 Expression DeclareVariableIfUndefined(Expression left, Type rightType, Position right)
                 {
                     if (left is Identifier reference)
