@@ -48,7 +48,7 @@ function main
 
     assert one_d[0] == 1
 
-    free(one_d.data) 
+    free(one_d.data)
 
     return 0
 end

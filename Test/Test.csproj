@@ -50,25 +50,13 @@
     <None Include="assignment\arrays.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="assignment\right_shift_equal_not_defined_for_null.owen">
+    <None Include="assignment\compound_literal_is_not_addressable.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="assignment\left_shift_equal_not_defined_for_null.owen">
+    <None Include="assignment\number_is_not_addressable.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="assignment\divide_equal_not_defined_for_null.owen">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="assignment\bitwise_xor_equal_not_defined_for_null.owen">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="assignment\bitwise_or_equal_not_defined_for_null.owen">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="assignment\equal_not_defined_for_null.owen">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="assignment\bitwise_and_equal_not_defined_for_null.owen">
+    <None Include="assignment\null_is_not_addressable.owen">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="assignment\left_shift_equal_not_defined_for_compounds.owen">

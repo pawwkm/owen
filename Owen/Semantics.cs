@@ -296,10 +296,10 @@ namespace Owen
                 {
                     if (left is Identifier reference)
                     {
-                        var leftType = NullableLookup(reference, parent);
-                        if (leftType == null)
+                        reference.Type = NullableLookup(reference, parent);
+                        if (reference.Type == null)
                         {
-                            if (leftType == null && rightType == null)
+                            if (reference.Type == null && rightType == null)
                                 Report.Error($"{right} Cannot infer type of expression.");
 
                             if (assignment.Operator.Tag != OperatorTag.Equal)
@@ -309,7 +309,9 @@ namespace Owen
                                 left = new VariableDeclaration()
                                 {
                                     Type = rightType,
-                                    Variable = reference
+                                    Variable = reference,
+                                    Start = reference.Start,
+                                    End = reference.End
                                 };
 
                                 parent.Symbols.Add(new LocalSymbol()
@@ -321,44 +323,46 @@ namespace Owen
                             }
                         }
                     }
+                    else if (left.Type == null)
+                        Analyze(left, rightType, parent);
 
                     return left;
                 }
 
-                void Assign(Expression left, Type right, Position positionOfTheRightHandExpression)
+                void CheckForIntegerOnlyOperators(Type type)
                 {
-                    if (left is Identifier reference)
-                    {
-                        var leftType = NullableLookup(reference, parent);
-                        if (leftType is Pointer pointer)
-                        {
-                            if (right is Null)
-                            {
-                                //Report.Error($"{positionOfTheRightHandExpression} How to .");
-                            }
-                            else if (right != null && !Compare(pointer, right) && !Compare(pointer.To, right) && right != U64)
-                                Report.Error($"{positionOfTheRightHandExpression} Expected {leftType} but found {right}.");
-                        }
-                        else if (!Compare(leftType, right))
-                            Report.Error($"{positionOfTheRightHandExpression} Expected {leftType} but found {right}.");
-                    }
-                    else if (left is Dereference dereference)
-                        Assign(dereference.Expression, right, positionOfTheRightHandExpression);
-                    else if (left.Type is Null)
-                        Report.Error($"{assignment.Operator.Start} Null can't be assigned to.");
-                    else if (!Compare(left.Type, right) && (left.Type is Pointer pointer1 && !Compare(pointer1, right) && !Compare(pointer1.To, right) && right != U64))
-                        Report.Error($"{left.Start} The expression is not addressable.");
-
                     var operatorUsedOnNonInteger = (assignment.Operator.Tag == OperatorTag.BitwiseAndEqual ||
                                                     assignment.Operator.Tag == OperatorTag.BitwiseOrEqual ||
                                                     assignment.Operator.Tag == OperatorTag.BitwiseXorEqual ||
                                                     assignment.Operator.Tag == OperatorTag.LeftShiftEqual ||
                                                     assignment.Operator.Tag == OperatorTag.RightShiftEqual) &&
-                                                  (!(right is PrimitiveType) ||
-                                                  ((PrimitiveType)right).Tag > PrimitiveTypeTag.U64);
+                                                  (!(type is PrimitiveType) ||
+                                                  ((PrimitiveType)type).Tag > PrimitiveTypeTag.U64);
 
-                    if (operatorUsedOnNonInteger || !(right is PrimitiveType) && assignment.Operator.Tag != OperatorTag.Equal)
+                    if (operatorUsedOnNonInteger || !(type is PrimitiveType) && assignment.Operator.Tag != OperatorTag.Equal)
                         Report.Error($"{assignment.Operator.Start} This operator is only defined for integer types.");
+                }
+
+                void IsAddressable(Expression left)
+                {
+                    if (left is DotExpression dot && (dot.Structure.Type is CompoundDeclaration || dot.Structure.Type is Pointer))
+                        IsAddressable(dot.Field);
+                    else if (left is Dereference dereference)
+                        IsAddressable(dereference.Expression);
+                    else if (left is BinaryExpression binary &&
+                            (binary.Operator.Tag == OperatorTag.Plus || binary.Operator.Tag == OperatorTag.Minus) &&
+                            (binary.Left.Type is Pointer && binary.Right.Type is PrimitiveType primitive && primitive.Tag == PrimitiveTypeTag.U64))
+                        ;
+                    else if (!(left is Identifier || left is VariableDeclaration || left is Index))
+                        Report.Error($"{left.Start} The expression is not addressable.");
+                }
+
+                void IsCompatible(Expression left, Type right, Position positionOfTheRightHandExpression)
+                {
+                    if (!Compare(left.Type, right) && 
+                        !(left.Type is Pointer && right is Null) && 
+                        !(left.Type is Pointer && right is PrimitiveType primitive && primitive.Tag == PrimitiveTypeTag.U64))
+                        Report.Error($"{positionOfTheRightHandExpression} Expected {left.Type} but found {right}.");
                 }
 
                 for (var r = 0; r < assignment.Right.Count; r++)
@@ -378,7 +382,9 @@ namespace Owen
                                 for (var l = 0; l < assignment.Left.Count; l++)
                                 {
                                     assignment.Left[l] = DeclareVariableIfUndefined(assignment.Left[l], tuple.Types[l], call.Start);
-                                    Assign(assignment.Left[l], tuple.Types[l], call.Start);
+                                    IsAddressable(assignment.Left[l]);
+                                    IsCompatible(assignment.Left[l], tuple.Types[l], call.Start);
+                                    CheckForIntegerOnlyOperators(rightType);
                                 }
                             }
 
@@ -393,7 +399,9 @@ namespace Owen
                         rightType = Analyze(assignment.Right[r], Analyze(assignment.Left[r], null, parent), parent);
 
                     assignment.Left[r] = DeclareVariableIfUndefined(assignment.Left[r], rightType, assignment.Right[r].Start);
-                    Assign(assignment.Left[r], rightType, assignment.Right[r].Start);
+                    IsAddressable(assignment.Left[r]);
+                    IsCompatible(assignment.Left[r], rightType, assignment.Right[r].Start);
+                    CheckForIntegerOnlyOperators(rightType);
                 }
             }
             else if (statement is ExpressionStatement e)
@@ -758,6 +766,8 @@ namespace Owen
 
                     return dot.Type;
                 }
+                else if (typeOfStructure is PrimitiveType)
+                    return dot.Type;
                 else
                     Report.Error($"{expression.Start} Cannot analyze {expression.GetType().Name}.");
             }
@@ -814,7 +824,9 @@ namespace Owen
             else if (expression is Cast cast)
             {
                 Analyze(cast.Expression, null, scope);
-                return cast.To = Analyze(cast.To, scope);
+                cast.To = Analyze(cast.To, scope);
+
+                return cast.Type = cast.To;
             }
             else if (expression is Index index)
             {
