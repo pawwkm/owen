@@ -292,7 +292,7 @@ namespace Owen
                 void Mismatch(int left, int right) =>
                     Report.Error($"{assignment.Operator.Start} Assignment mismatch of {left} variable{(left > 1 ? "s" : "")} and {right} output{(right > 1 ? "s" : "")}.");
 
-                Expression DeclareVariableIfUndefined(Expression left, Type rightType, Position right)
+                Expression DeclareVariableOrAnalyze(Expression left, Type rightType, Position right)
                 {
                     if (left is Identifier reference)
                     {
@@ -381,7 +381,7 @@ namespace Owen
                             {
                                 for (var l = 0; l < assignment.Left.Count; l++)
                                 {
-                                    assignment.Left[l] = DeclareVariableIfUndefined(assignment.Left[l], tuple.Types[l], call.Start);
+                                    assignment.Left[l] = DeclareVariableOrAnalyze(assignment.Left[l], tuple.Types[l], call.Start);
                                     IsAddressable(assignment.Left[l]);
                                     IsCompatible(assignment.Left[l], tuple.Types[l], call.Start);
                                     CheckForIntegerOnlyOperators(rightType);
@@ -398,7 +398,7 @@ namespace Owen
                     else
                         rightType = Analyze(assignment.Right[r], Analyze(assignment.Left[r], null, parent), parent);
 
-                    assignment.Left[r] = DeclareVariableIfUndefined(assignment.Left[r], rightType, assignment.Right[r].Start);
+                    assignment.Left[r] = DeclareVariableOrAnalyze(assignment.Left[r], rightType, assignment.Right[r].Start);
                     IsAddressable(assignment.Left[r]);
                     IsCompatible(assignment.Left[r], rightType, assignment.Right[r].Start);
                     CheckForIntegerOnlyOperators(rightType);
