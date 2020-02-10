@@ -1,4 +1,3 @@
-  
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -96,7 +95,12 @@ namespace Owen
                 //Interpreter.Run(program);
 
                 if (!checkOnly)
-                    D.Generate(program, includePropositions, output);
+                {
+                    if (release)
+                        D.Generate(program, includePropositions, output);
+                    else
+                        X64.Generate(program, includePropositions, output);
+                }
             }
         }
     }
