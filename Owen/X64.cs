@@ -9,6 +9,11 @@ namespace Owen
         public static void Generate(Program program, bool includePropositions, string output)
         {
             var text = Generate(program, includePropositions);
+            var sectionAllignment = (uint)0x1000;
+            var fileAllignment = (uint)0x200;
+            var sizeOfCode = Allign((uint)text.Count, fileAllignment);
+            var sizeOfImage = Allign(0x200, sectionAllignment) +
+                              Allign(sizeOfCode, sectionAllignment);
 
             // https://docs.microsoft.com/en-us/windows/win32/debug/pe-format#optional-header-image-only
             var executable = new List<byte>(new byte[]
@@ -47,23 +52,17 @@ namespace Owen
             // Optional Header - https://docs.microsoft.com/en-us/windows/win32/debug/pe-format#optional-header-image-only
             executable.Add(0x0B, 0x02);                        // PE32+
             executable.Add(0x01);                              // Major linker version
-            executable.Add(0x00);                              // Minor linker version
-
-            // Pad size of code to file allignment.
-            var sizeOfCode = (uint)0;
-            while (sizeOfCode < text.Count)
-                sizeOfCode += 0x200;
-            
+            executable.Add(0x00);                              // Minor linker version      
             executable.Add(BitConverter.GetBytes(sizeOfCode)); // Size of the code segments
-            executable.Add(0x00, 0x00, 0x00, 0x00);            // Size of initialized data
+            executable.Add(0x00, 0x02, 0x00, 0x00);            // Size of initialized data
             executable.Add(0x00, 0x00, 0x00, 0x00);            // Size of uninitialized data
             executable.Add(0x00, 0x10, 0x00, 0x00);            // Address of entry point
             executable.Add(0x00, 0x10, 0x00, 0x00);            // Base of code
 
             // Windows Specific Optional Header fields - https://docs.microsoft.com/en-us/windows/win32/debug/pe-format#optional-header-windows-specific-fields-image-only
             executable.Add(0x00, 0x00, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00); // ImageBase
-            executable.Add(0x00, 0x10, 0x00, 0x00);                         // Section allignment
-            executable.Add(0x00, 0x02, 0x00, 0x00);                         // File allignment
+            executable.Add(BitConverter.GetBytes(sectionAllignment));       // Section allignment
+            executable.Add(BitConverter.GetBytes(fileAllignment));          // File allignment
             executable.Add(0x06, 0x00);                                     // Major OS version
             executable.Add(0x00, 0x00);                                     // Minor OS version
             executable.Add(0x00, 0x00);                                     // Major image version
@@ -71,7 +70,7 @@ namespace Owen
             executable.Add(0x06, 0x00);                                     // Major subsystem version
             executable.Add(0x00, 0x00);                                     // Minor subsystem version
             executable.Add(0x00, 0x00, 0x00, 0x00);                         // Win32 Version Value (must be zero)
-            executable.Add(0x00, 0x20, 0x00, 0x00);                         // Size of image
+            executable.Add(BitConverter.GetBytes(sizeOfImage));             // Size of image
             executable.Add(0x00, 0x02, 0x00, 0x00);                         // Size of headers
             executable.Add(0x00, 0x00, 0x00, 0x00);                         // Checksum
             executable.Add(0x03, 0x00);                                     // Subsystem (console)
@@ -109,16 +108,16 @@ namespace Owen
             for (var i = text.Count; i < sizeOfCode; i++)
                 text.Add(0);
 
-            executable.Add(BitConverter.GetBytes((uint)text.Count));        // Size of raw data
-            executable.Add(0x00, 0x02, 0x00, 0x00);                         // Pointer to raw data
-            executable.Add(0x00, 0x00, 0x00, 0x00);                         // Pointer to relocations
-            executable.Add(0x00, 0x00, 0x00, 0x00);                         // Pointer to line numbers
-            executable.Add(0x00, 0x00);                                     // Number of relocations
-            executable.Add(0x00, 0x00);                                     // Number of line numbers
-            executable.Add(0x20, 0x00, 0x00, 0x60);                         // Characteristics (IMAGE_SCN_CNT_CODE | IMAGE_SCN_MEM_EXECUTE | IMAGE_SCN_MEM_READ)
+            executable.Add(BitConverter.GetBytes((uint)text.Count)); // Size of raw data
+            executable.Add(0x00, 0x02, 0x00, 0x00);                  // Pointer to raw data
+            executable.Add(0x00, 0x00, 0x00, 0x00);                  // Pointer to relocations
+            executable.Add(0x00, 0x00, 0x00, 0x00);                  // Pointer to line numbers
+            executable.Add(0x00, 0x00);                              // Number of relocations
+            executable.Add(0x00, 0x00);                              // Number of line numbers
+            executable.Add(0x20, 0x00, 0x00, 0x60);                  // Characteristics (IMAGE_SCN_CNT_CODE | IMAGE_SCN_MEM_EXECUTE | IMAGE_SCN_MEM_READ)
 
             // .text section
-            // Pad .text to Pointer to raw data.
+            // Pad file to Pointer to raw data.
             while (executable.Count != 0x200)
                 executable.Add(0);
 
@@ -129,16 +128,22 @@ namespace Owen
 
         private static List<byte> Generate(Program program, bool includePropositions)
         {
-            return new List<byte>
-            {
-                // xor eax, eax
-                0x31, 0xC0,
+            var code = new List<byte>();
+            for (var i = 0; i < 100; i++)
+                code.Add(0x31, 0xC0, 0xC3);
 
-                // ret
-                0xC3
-            };
+            return code;
         }
 
         private static void Add(this List<byte> list, params byte[] data) => list.AddRange(data);
+
+        private static uint Allign(uint number, uint allignment)
+        {
+            var remainder = number % allignment;
+            if (remainder == 0)
+                return number;
+            else
+                return number + allignment - remainder;
+        }
     }
 }
