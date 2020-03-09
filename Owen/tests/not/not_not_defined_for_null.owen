@@ -1,0 +1,11 @@
+﻿// error not\not_not_defined_for_null.owen:8:10: Bool expression expected.
+
+namespace Not
+
+function main
+    output I32
+    
+    a = !null
+
+    return 0
+end

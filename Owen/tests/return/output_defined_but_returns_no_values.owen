@@ -1,0 +1,13 @@
+﻿// error return\output_defined_but_returns_no_values.owen:12:5: The amount of return values doesn't match the output.
+
+namespace Test
+
+function main 
+    output I32
+    
+    return 1
+end
+
+function returns_value_but_no_output_defined
+    return 1
+end

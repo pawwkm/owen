@@ -1,0 +1,17 @@
+﻿namespace Multiply
+
+function main
+    output I32
+
+    assert 2i8 * 2 == 4
+    assert 2i16 * 2 == 4
+    assert 2i64 * 2 == 4
+    assert 2u8 * 2 == 4
+    assert 2u16 * 2 == 4
+    assert 2u32 * 2 == 4
+    assert 2u64 * 2 == 4
+    assert 2.0f32 * 2.0 == 4.0
+    assert 2.0f64 * 2.0 == 4.0
+
+    return 0
+end

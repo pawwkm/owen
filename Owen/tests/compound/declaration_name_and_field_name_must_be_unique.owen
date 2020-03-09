@@ -1,0 +1,13 @@
+﻿// error compound\declaration_name_and_field_name_must_be_unique.owen:6:9: Fields cannot have the same name as the compound.
+
+namespace Compounds
+
+structure Structure
+    I32 Structure
+end
+
+function main
+    output I32
+
+    return 0
+end

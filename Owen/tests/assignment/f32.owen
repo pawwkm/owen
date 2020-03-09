@@ -1,0 +1,30 @@
+﻿namespace Assignments
+
+ctfe main()
+
+function main
+    output I32
+
+    a = 0.0f32
+    assert a == 0.0
+
+    a += 2.0
+    assert a == 2.0
+
+    a -= 1.0
+    assert a == 1.0
+
+    a *= 5.0
+    assert a == 5.0
+
+    a /= 2.5
+    assert a == 2.0
+
+    a %= 3.0
+    assert a == 2
+
+    a = 42.0
+    assert a == 42.0
+
+    return 0
+end

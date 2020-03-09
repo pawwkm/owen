@@ -1,0 +1,43 @@
+﻿namespace Assignments
+
+ctfe main()
+
+structure Point
+    I32 x
+    I32 y
+end
+
+external function malloc
+    generalize T
+    input U64 amount
+    output #T
+    "ucrtbase.dll"
+
+function main
+    output I32
+
+    a = malloc<I32>(8)
+    @a = 0i32
+    
+    assert @a == 0
+
+    b = a
+    @b = 1i32
+    
+    assert @a == 1
+    
+    b = null
+    b = a + 1
+
+    c = a
+    c += 1
+
+    assert b == c
+
+    b = b - 1
+    c -= 1
+
+    assert b == c
+
+    return 0
+end

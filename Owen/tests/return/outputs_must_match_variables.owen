@@ -1,0 +1,19 @@
+﻿// error return\outputs_must_match_variables.owen:8:13: Assignment mismatch of 3 variables and 2 outputs.
+
+namespace Return_Statements
+
+function main
+    output I32
+
+    a, b, c = return_statement_with_multiple_ouputs()
+    
+    return 0
+end
+
+function return_statement_with_multiple_ouputs
+    output I32,
+           I32
+
+    return 0, 
+           1
+end

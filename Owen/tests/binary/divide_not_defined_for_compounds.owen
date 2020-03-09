@@ -1,0 +1,24 @@
+﻿// error binary\divide_not_defined_for_compounds.owen:18:11: This operator is only defined for number operands.
+
+namespace Divide
+
+structure Point
+    I32 x
+    I32 y
+end
+
+function main
+    output I32
+    
+    a = Point
+        x = 2,
+        y = 2
+    end
+
+    b = a / Point
+        x = 2,
+        y = 2
+    end
+
+    return 0
+end

@@ -1,0 +1,13 @@
+﻿// error if\declarations_cannot_be_referenced_in_earlier_branches.owen:8:8: Undefined reference to a.
+
+namespace Test
+
+function main
+    output I32
+
+    if a == 3
+    else if a = 3i32; a == 2
+    end
+
+    return 0
+end

@@ -1,0 +1,18 @@
+namespace Polymorphic_Functions
+
+function do_work
+    generalize T
+    input T a,
+          T b
+    output T
+
+    return b
+end
+
+function main
+    output I32
+
+    do_work(0i32, 1) // This makes sure that the generic function is only generated once.
+
+    return do_work(0i32, 1)
+end

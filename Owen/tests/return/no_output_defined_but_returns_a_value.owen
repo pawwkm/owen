@@ -1,0 +1,9 @@
+﻿// error return\no_output_defined_but_returns_a_value.owen:8:5: The amount of return values doesn't match the output.
+
+namespace Test
+
+function main
+    output I32
+
+    return
+end

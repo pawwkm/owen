@@ -1,0 +1,24 @@
+﻿namespace Test
+
+structure Empty
+end
+
+structure Point
+    I32 x
+    I32 y
+end
+
+union SomeUnion
+    I32 x
+    I8 y
+end
+
+function main
+    output I32
+
+    assert size of Empty == 1     // https://stackoverflow.com/a/27851610/2390947
+    assert size of Point == 8
+    assert size of SomeUnion == 4
+
+    return 0
+end

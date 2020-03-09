@@ -1,0 +1,19 @@
+﻿// error compound\indirectly_recursive.owen:7:11: The structure is indirectly recursive:
+// compound\indirectly_recursive.owen:8:7: b
+// compound\indirectly_recursive.owen:12:7: a
+
+namespace Compounds
+
+structure A
+    B b
+end
+
+structure B
+    A a
+end
+
+function main
+    output I32
+
+    return 0
+end

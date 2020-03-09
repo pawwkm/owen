@@ -1,0 +1,16 @@
+namespace Polymorphic_Functions
+
+function do_work
+    generalize T
+    output T
+
+    return 4
+end
+
+function main
+    output I32
+
+    assert do_work<I32>() == 4
+
+    return 0
+end

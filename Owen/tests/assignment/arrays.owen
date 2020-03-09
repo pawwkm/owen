@@ -1,0 +1,21 @@
+namespace Arrays
+
+ctfe main()
+
+external function malloc
+    generalize T
+    input U64 amount
+    output #T
+    "ucrtbase.dll"
+
+function main
+    output I32
+
+    one_d = []I32
+    one_d.data = malloc<I32>(8)
+    @one_d.data = 1
+
+    assert @one_d[0] == 1
+
+    return 0
+end

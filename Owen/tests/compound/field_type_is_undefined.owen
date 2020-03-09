@@ -1,0 +1,13 @@
+﻿// error compound\field_type_is_undefined.owen:6:5: Undefined reference to B.
+
+namespace Compounds
+
+structure A
+    B b
+end
+
+function main
+    output I32
+
+    return 0
+end

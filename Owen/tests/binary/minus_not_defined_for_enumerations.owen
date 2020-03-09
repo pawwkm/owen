@@ -1,0 +1,18 @@
+﻿// error binary\minus_not_defined_for_enumerations.owen:15:25: This operator is only defined for number and pointer operands.
+
+namespace Minus
+
+enumeration Direction of U8
+    North
+    South
+    East
+    West
+end
+
+function main
+    output I32
+
+    a = Direction.North - Direction.South
+
+    return 0
+end

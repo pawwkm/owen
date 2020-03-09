@@ -1,0 +1,6 @@
+﻿// error function\main\must_return_i32.owen:5:10: main must output a single I32.
+
+namespace Test
+
+function main
+end

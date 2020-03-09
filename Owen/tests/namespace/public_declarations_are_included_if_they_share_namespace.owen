@@ -1,0 +1,11 @@
+﻿// file namespace\public_declarations_are_included_if_they_share_namespace.include.owen
+
+namespace Common_Namespace
+
+function main
+    output I32
+
+    other_function()
+    
+    return 0
+end

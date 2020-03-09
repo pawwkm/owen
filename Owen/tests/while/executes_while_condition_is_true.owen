@@ -1,0 +1,14 @@
+﻿namespace Test
+
+function main
+    output I32
+
+    a = 0i32
+    while a != 2 
+        a += 1
+    end
+
+    assert a == 2
+
+    return 0
+end

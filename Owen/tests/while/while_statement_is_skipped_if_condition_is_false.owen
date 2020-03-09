@@ -1,0 +1,11 @@
+﻿namespace Test
+
+function main
+    output I32
+
+    while false
+        assert false
+    end
+
+    return 0
+end

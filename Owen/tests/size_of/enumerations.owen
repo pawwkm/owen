@@ -1,0 +1,16 @@
+﻿namespace Test
+
+enumeration Direction of U8
+    North
+    South
+    East
+    West
+end
+
+function main
+    output I32
+
+    assert size of Direction == 1
+
+    return 0
+end

@@ -1,0 +1,13 @@
+﻿// error enumeration\declaration_name_and_constant_name_must_be_unique.owen:6:5: Constants cannot have the same name as the enumeration.
+
+namespace Enumerations
+
+enumeration Enum of U8
+    Enum
+end
+
+function main
+    output I32
+
+    return 0
+end

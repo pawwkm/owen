@@ -1,0 +1,11 @@
+﻿// error binary\divide_not_defined_for_bool.owen:8:14: This operator is only defined for number operands.
+
+namespace Divide
+
+function main
+    output I32
+
+    a = true / true
+
+    return 0
+end

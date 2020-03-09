@@ -1,0 +1,24 @@
+﻿// error binary\logical_and_not_defined_for_compounds.owen:18:14: This operator is only defined for Bool operands.
+
+namespace Logical_And_Expressions
+
+structure Point
+    I32 x
+    I32 y
+end
+
+function main
+    output I32
+    
+    a = Point
+        x = 2,
+        y = 2
+    end
+
+    assert a && Point
+        x = 2,
+        y = 2
+    end
+
+    return 0
+end

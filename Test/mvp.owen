@@ -1,9 +1,0 @@
-﻿// expect 0
-
-namespace Minimal_Viable_Program
-
-function main
-    output I32
-
-    return 0
-end

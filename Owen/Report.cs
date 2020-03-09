@@ -1,23 +1,23 @@
 ﻿using System;
+using System.IO;
+using System.Runtime.CompilerServices;
 
-namespace Owen
+internal static class Report
 {
-    internal static class Report
+    public static void Error(params string[] message)
     {
-        public static void Error(params string[] message)
-        {
-            foreach (var line in message)
-                Console.Error.WriteLine(line);
+        throw new CompilationException(string.Join(Environment.NewLine, message));
+    }
 
-            Environment.Exit(1);
-        }
+    public static void InternalError(string message, [CallerFilePath] string file = "", [CallerLineNumber] int line = 0)
+    {
+        throw new CompilationException($"INTERNAL COMPILER ERROR at {Path.GetFileName(file)}:{line}: {message}");
+    }
+}
 
-        public static void Information(params string[] message)
-        {
-            foreach (var line in message)
-                Console.WriteLine(line);
-
-            Environment.Exit(0);
-        }
+internal sealed class CompilationException : Exception
+{
+    public CompilationException(string message) : base(message)
+    {
     }
 }
