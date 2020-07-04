@@ -648,10 +648,10 @@ internal static class IL
                     instructions.Emit(OpCodes.Ldc_I4_7);
                 else if (value == 8)
                     instructions.Emit(OpCodes.Ldc_I4_8);
-                else if (value <= sbyte.MaxValue || value >= sbyte.MinValue)
+                else if (value <= sbyte.MaxValue && value >= sbyte.MinValue)
                     instructions.Emit(OpCodes.Ldc_I4_S, (sbyte)value);
-                else if (value <= int.MaxValue || value >= int.MinValue)
-                    instructions.Emit(OpCodes.Ldc_I4_S, (int)value);
+                else if (value <= int.MaxValue && value >= int.MinValue)
+                    instructions.Emit(OpCodes.Ldc_I4, (int)value);
                 else
                     instructions.Emit(OpCodes.Ldc_I8, value);
 
