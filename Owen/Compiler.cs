@@ -226,7 +226,7 @@ internal static class Compiler
 
             Semantics.Analyze(program);
             if (output == null)
-                output = Path.ChangeExtension(program.Files.First(a => a.Functions.Any(b => b.Name.Value == "main")).Path, "exe");
+                output = Path.GetFullPath(Path.ChangeExtension(program.Files.First(a => a.Functions.Any(b => b.Name.Value == "main")).Path, "exe"));
 
             return IL.Generate(program, includePropositions, output, PEFileKinds.ConsoleApplication);
         }
