@@ -722,6 +722,10 @@ internal static class Semantics
                                     return false;
                                 else if (t is ArrayType arrayType)
                                     return ContainsGenericParameter(arrayType.Of);
+                                else if (t is EnumerationDeclaration)
+                                    return false;
+                                else if (t is CompoundDeclaration compoundDeclaration)
+                                    return false;
                                 else
                                     Report.InternalError($"Cannot figure out if {t} contains a generic parameter.");
 
