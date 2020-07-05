@@ -238,8 +238,14 @@ internal static class Syntax
                     Tag = tag
                 });
             }
-            else if (text.Length != index && text[index] >= '0' && text[index] <= '9')
+            else if (text.Length >= index + 1 && text[index] == '-' && text[index + 1] >= '0' && text[index + 1] <= '9' || text.Length != index && text[index] >= '0' && text[index] <= '9')
             {
+                if (text[index] == '-')
+                {
+                    index++;
+                    position.Column++;
+                }
+
                 while (text.Length != index && text[index] >= '0' && text[index] <= '9')
                 {
                     index++;
