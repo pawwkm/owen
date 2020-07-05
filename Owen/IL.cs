@@ -305,7 +305,7 @@ internal static class IL
                         instructions.Emit(OpCodes.Stind_I1);
                     else if (typeBeingPointedTo == Semantics.I16 || typeBeingPointedTo == Semantics.U16)
                         instructions.Emit(OpCodes.Stind_I2);
-                    else if (typeBeingPointedTo == Semantics.I32 || typeBeingPointedTo == Semantics.I32)
+                    else if (typeBeingPointedTo == Semantics.I32 || typeBeingPointedTo == Semantics.U32)
                         instructions.Emit(OpCodes.Stind_I4);
                     else if (typeBeingPointedTo == Semantics.I64 || typeBeingPointedTo == Semantics.U64)
                         instructions.Emit(OpCodes.Stind_I8);
