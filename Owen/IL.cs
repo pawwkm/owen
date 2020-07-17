@@ -916,6 +916,8 @@ internal static class IL
             var attributes = TypeAttributes.Public | TypeAttributes.Sealed;
             if (compoundDeclaration.Tag == CompoundTypeTag.Union)
                 attributes |= TypeAttributes.ExplicitLayout;
+            else
+                attributes |= TypeAttributes.SequentialLayout;
 
             var newType = module.DefineType(compoundDeclaration.Name.Value, attributes, typeof(ValueType));
             foreach (var field in compoundDeclaration.Fields)
