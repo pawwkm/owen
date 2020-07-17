@@ -6,4 +6,4 @@ This is a compiler for the [Owen](http://owen-lang.org/) programming language.
 * Click Build->Build Solution
 
 # Running The Test Suite
-In the build directory run `test.exe` to run the test suite. Note that **dumpbin.exe** is required to be in the PATH variable. You can get it by installing *C++ profiling tools* through Visual Studio Installer.
+In the build directory run `owen -test` to run the test suite.
