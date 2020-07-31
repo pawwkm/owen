@@ -752,7 +752,7 @@ internal static class Semantics
                 {
                     if (matches[0].Generalized.Count != 0)
                     {
-                        var resolved = Resolve(matches[0], call.Generics, call.Arguments, call.Start, matches[0].Resolved);
+                        var resolved = Monomorphize(matches[0], call.Generics, call.Arguments, call.Start, matches[0].Resolved);
                         if (!matches[0].IsExternal)
                             matches[0] = resolved;
 
@@ -958,7 +958,7 @@ internal static class Semantics
         return types[0];
     }
 
-    private static FunctionDeclaration Resolve(FunctionDeclaration generic, List<Type> explicits, List<Expression> input, Position callSite, List<FunctionDeclaration> cache)
+    private static FunctionDeclaration Monomorphize(FunctionDeclaration generic, List<Type> explicits, List<Expression> input, Position callSite, List<FunctionDeclaration> cache)
     {
         var resolved = new FunctionDeclaration();
         resolved.Name = generic.Name;
@@ -1025,14 +1025,14 @@ internal static class Semantics
         if (!generic.Generalized.All(g => genericToType.ContainsKey(g.Value)))
             Report.Error($"{callSite} Specify all generics since not all can be inferred.");
 
-        Type Resolve(Type t)
+        Type Monomorphize(Type t)
         {
             if (t is UnresolvedType u)
                 return genericToType[u.Identifier.Value];
             else if (t is PointerType pointer)
                 return new PointerType()
                 {
-                    To = Resolve(pointer.To)
+                    To = Monomorphize(pointer.To)
                 };
             else
                 return t;
@@ -1082,7 +1082,7 @@ internal static class Semantics
             resolved.Output = output;
         }
         else
-            resolved.Output = Resolve(generic.Output);
+            resolved.Output = Monomorphize(generic.Output);
 
         AnalyzeSignature(resolved.Body.Scope.Parent, resolved);
         foreach (var function in cache)
@@ -1101,14 +1101,14 @@ internal static class Semantics
                 return function;
         }
 
-        resolved.Body = (CompoundStatement)ResolveStatement(generic.Body, generic.Body.Scope.Parent);
+        resolved.Body = (CompoundStatement)Semantics.Monomorphize(generic.Body, generic.Body.Scope.Parent);
         AnalyzeBody(resolved);
         cache.Add(resolved);
 
         return resolved;
     }
 
-    private static Statement ResolveStatement(Statement statement, Scope parent)
+    private static Statement Monomorphize(Statement statement, Scope parent)
     {
         if (statement is CompoundStatement compound)
         {
@@ -1116,7 +1116,7 @@ internal static class Semantics
             resolved.Scope.Parent = parent;
 
             foreach (var s in compound.Statements)
-                resolved.Statements.Add(ResolveStatement(s, resolved.Scope));
+                resolved.Statements.Add(Monomorphize(s, resolved.Scope));
 
             return resolved;
         }
@@ -1124,7 +1124,7 @@ internal static class Semantics
             return new ReturnStatement()
             {
                 Start = returnStatement.Start,
-                Expressions = returnStatement.Expressions.Select(e => ResolveExpression(e)).ToList()
+                Expressions = returnStatement.Expressions.Select(e => Monomorphize(e)).ToList()
             };
         else
             Report.InternalError($"Cannot resolve {statement.GetType().Name}.");
@@ -1132,7 +1132,7 @@ internal static class Semantics
         return null;
     }
 
-    private static Expression ResolveExpression(Expression expression)
+    private static Expression Monomorphize(Expression expression)
     {
         if (expression is Number number)
             return new Number
