@@ -136,7 +136,7 @@ internal static class Semantics
 
                 foreach (var field in compound.Fields)
                 {
-                    var positionOfType = ((UnresolvedType)field.Type).Identifier.Start;
+                    var positionOfType = ((UnresolvedType)field.Type).Name.Start;
 
                     field.Type = Resolve(field.Type, file.Scope);
                     if (field.Type == null)
@@ -223,7 +223,7 @@ internal static class Semantics
         bool IsGenericType(Type t)
         {
             if (t is UnresolvedType unresolved)
-                return !function.Generalized.Any(g => unresolved.Identifier.Value == g.Value);
+                return !function.Generalized.Any(g => unresolved.Name.Value == g.Value);
             else if (t is PointerType pointer)
                 return IsGenericType(pointer.To);
             else if (t is PrimitiveType)
@@ -715,7 +715,7 @@ internal static class Semantics
                             bool ContainsGenericParameter(Type t)
                             {
                                 if (t is UnresolvedType unresolved)
-                                    return function.Generalized.Any(g => g.Value == unresolved.Identifier.Value);
+                                    return function.Generalized.Any(g => g.Value == unresolved.Name.Value);
                                 else if (t is PointerType pointer)
                                     return ContainsGenericParameter(pointer.To);
                                 else if (t is PrimitiveType)
@@ -834,7 +834,7 @@ internal static class Semantics
         }
         else if (expression is SizeOf sizeOf)
         {
-            sizeOf.TypeBeingSizedUp = Lookup(((UnresolvedType)sizeOf.TypeBeingSizedUp).Identifier, scope);
+            sizeOf.TypeBeingSizedUp = Lookup(((UnresolvedType)sizeOf.TypeBeingSizedUp).Name, scope);
             sizeOf.Type = I32;
 
             return sizeOf.Type;
@@ -902,12 +902,21 @@ internal static class Semantics
             return array;
         }
         else if (type is UnresolvedType unresolved)
-            return Lookup(unresolved.Identifier, scope);
+            return Lookup(unresolved.Name, scope);
         else
             return type;
     }
 
     private static Type Lookup(Identifier name, Scope scope)
+    {
+        var type = NullableLookup(name.Value, scope, name.Start);
+        if (type == null)
+            Report.Error($"{name.Start} Undefined reference to {name.Value}.");
+
+        return type;
+    }
+
+    private static Type Lookup(Name name, Scope scope)
     {
         var type = NullableLookup(name.Value, scope, name.Start);
         if (type == null)
@@ -991,18 +1000,18 @@ internal static class Semantics
                 {
                     if (genericType is UnresolvedType unresolved)
                     {
-                        if (generic.Generalized.Any(g => g.Value == unresolved.Identifier.Value))
+                        if (generic.Generalized.Any(g => g.Value == unresolved.Name.Value))
                         {
-                            if (!genericToType.ContainsKey(unresolved.Identifier.Value))
+                            if (!genericToType.ContainsKey(unresolved.Name.Value))
                             {
                                 if (input[i].Type == null)
                                     Report.Error($"{callSite} Specify all generics since not all can be inferred.");
 
-                                genericToType.Add(unresolved.Identifier.Value, inputType);
+                                genericToType.Add(unresolved.Name.Value, inputType);
                                 return inputType;
                             }
                             else if (inputType == null)
-                                return genericToType[unresolved.Identifier.Value];
+                                return genericToType[unresolved.Name.Value];
                             else
                                 return inputType;
                         }
@@ -1028,7 +1037,7 @@ internal static class Semantics
         Type Monomorphize(Type t)
         {
             if (t is UnresolvedType u)
-                return genericToType[u.Identifier.Value];
+                return genericToType[u.Name.Value];
             else if (t is PointerType pointer)
                 return new PointerType()
                 {
@@ -1073,8 +1082,8 @@ internal static class Semantics
 
             for (var i = 0; i < tuple.Types.Count; i++)
             {
-                if (tuple.Types[i] is UnresolvedType unresolved && genericToType.ContainsKey(unresolved.Identifier.Value))
-                    output.Types.Add(genericToType[unresolved.Identifier.Value]);
+                if (tuple.Types[i] is UnresolvedType unresolved && genericToType.ContainsKey(unresolved.Name.Value))
+                    output.Types.Add(genericToType[unresolved.Name.Value]);
                 else
                     output.Types.Add(tuple.Types[i]);
             }

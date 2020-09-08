@@ -98,7 +98,7 @@ internal sealed class PrimitiveType : Type
 
 internal sealed class UnresolvedType : Type
 {
-    public Identifier Identifier;
+    public Name Name;
 }
 
 internal enum PrimitiveTypeTag

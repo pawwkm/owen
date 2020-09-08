@@ -1116,9 +1116,9 @@ internal static class Syntax
             Report.InternalError($"{source.Position} Function types yet not supported.");
 
         var unresolved = new UnresolvedType();
-        unresolved.Identifier = Identifier(source);
+        unresolved.Name = Name(source);
 
-        if (unresolved.Identifier == null)
+        if (unresolved.Name == null)
         {
             if (firstPointerOrArray != null)
                 Report.Error($"{source.Position} Identifier expected.");
