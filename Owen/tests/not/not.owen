@@ -1,9 +1,0 @@
-﻿namespace Not
-
-function main
-    output I32
-
-    assert !false
-    
-    return 0
-end
