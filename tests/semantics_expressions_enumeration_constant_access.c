@@ -14,6 +14,10 @@ static void access_constant_of_enumeration(void)
                           "\n"
                           "function do_stuff() : A\n"
                           "    return A.a\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     SET_COMMAND_LINE("semantics/expressions/enumeration_constant_access/access_constant_of_enumeration.owen "
@@ -36,7 +40,14 @@ static void access_constant_of_enumeration(void)
                        "        return_statement" NEW_LINE
                        "            enumeration_constant_access" NEW_LINE
                        "                type: A" NEW_LINE
-                       "                value: a" NEW_LINE);
+                       "                value: a" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static bool access_constant_of_non_enumeration_type(void)
@@ -107,6 +118,10 @@ static void monomorphic_access_in_polymorphic_function(void)
                           "\n"
                           "function c() : A\n"
                           "    return a[I32]()\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     SET_COMMAND_LINE("semantics/expressions/enumeration_constant_access/monomorphic_access_in_polymorphic_function.owen "
@@ -147,7 +162,14 @@ static void monomorphic_access_in_polymorphic_function(void)
                        "                reference_expression" NEW_LINE
                        "                    type: Function() : A" NEW_LINE
                        "                    name: a" NEW_LINE
-                       "                    actual_type_parameter: I32" NEW_LINE);
+                       "                    actual_type_parameter: I32" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void polymorphic_access_in_polymorphic_function(void)
@@ -168,6 +190,10 @@ static void polymorphic_access_in_polymorphic_function(void)
                           "\n"
                           "function c() : A\n"
                           "    return a[A]()\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     SET_COMMAND_LINE("semantics/expressions/enumeration_constant_access/polymorphic_access_in_polymorphic_function.owen "
@@ -208,7 +234,14 @@ static void polymorphic_access_in_polymorphic_function(void)
                        "                reference_expression" NEW_LINE
                        "                    type: Function() : A" NEW_LINE
                        "                    name: a" NEW_LINE
-                       "                    actual_type_parameter: A" NEW_LINE);
+                       "                    actual_type_parameter: A" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 bool semantics_expressions_enumeration_constant_access(void)

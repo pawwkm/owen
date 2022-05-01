@@ -86,6 +86,10 @@ static bool assign_x_pointer_tuple_compatible_variables(void)
                                   "    %s e, %s f = d, d\n"
                                   "    e, f = a(d)\n"
                                   "    return e, f\n"
+                                  "end\n"
+                                  "\n"
+                                  "function main() : I32\n"
+                                  "    return 0\n"
                                   "end",
                                   types[tuple_type_index].name, types[tuple_type_index].name, types[tuple_type_index].name,
                                   types[tuple_type_index].name, types[variable_type_index].name, types[variable_type_index].name,
@@ -152,7 +156,14 @@ static bool assign_x_pointer_tuple_compatible_variables(void)
                                "                name: e" NEW_LINE
                                "            reference_expression" NEW_LINE
                                "                type: %s" NEW_LINE
-                               "                name: f" NEW_LINE,
+                               "                name: f" NEW_LINE
+                               "    function" NEW_LINE
+                               "        name: main" NEW_LINE
+                               "        return_type: I32" NEW_LINE
+                               "        return_statement" NEW_LINE
+                               "            integer_literal" NEW_LINE
+                               "                type: I32" NEW_LINE
+                               "                value: 0" NEW_LINE,
                                test.source_paths[0],
                                types[tuple_type_index].name, 
                                types[tuple_type_index].name, 
@@ -237,6 +248,10 @@ static bool assign_x_non_pointer_tuple_compatible_variables(void)
                                   "    %s e, %s f = d, d\n"
                                   "    e, f %s a(d)\n"
                                   "    return e, f\n"
+                                  "end\n"
+                                  "\n"
+                                  "function main() : I32\n"
+                                  "    return 0\n"
                                   "end",
                                   types[type_index].name, types[type_index].name, types[type_index].name,
                                   types[type_index].name, types[type_index].name, types[type_index].name,
@@ -346,7 +361,14 @@ static bool assign_x_non_pointer_tuple_compatible_variables(void)
                                    "                name: e" NEW_LINE
                                    "            reference_expression" NEW_LINE
                                    "                type: Structure[I32]" NEW_LINE
-                                   "                name: f" NEW_LINE,
+                                   "                name: f" NEW_LINE
+                                   "    function" NEW_LINE
+                                   "        name: main" NEW_LINE
+                                   "        return_type: I32" NEW_LINE
+                                   "        return_statement" NEW_LINE
+                                   "            integer_literal" NEW_LINE
+                                   "                type: I32" NEW_LINE
+                                   "                value: 0" NEW_LINE,
                                    test.source_paths[0],
                                    assignment_operators[operator_tag].token);
             }
@@ -452,7 +474,14 @@ static bool assign_x_non_pointer_tuple_compatible_variables(void)
                                    "                name: e" NEW_LINE
                                    "            reference_expression" NEW_LINE
                                    "                type: Union[I32]" NEW_LINE
-                                   "                name: f" NEW_LINE,
+                                   "                name: f" NEW_LINE
+                                   "    function" NEW_LINE
+                                   "        name: main" NEW_LINE
+                                   "        return_type: I32" NEW_LINE
+                                   "        return_statement" NEW_LINE
+                                   "            integer_literal" NEW_LINE
+                                   "                type: I32" NEW_LINE
+                                   "                value: 0" NEW_LINE,
                                    test.source_paths[0],
                                    assignment_operators[operator_tag].token);
             }
@@ -551,7 +580,14 @@ static bool assign_x_non_pointer_tuple_compatible_variables(void)
                                    "                name: e" NEW_LINE
                                    "            reference_expression" NEW_LINE
                                    "                type: %s" NEW_LINE
-                                   "                name: f" NEW_LINE,
+                                   "                name: f" NEW_LINE
+                                   "    function" NEW_LINE
+                                   "        name: main" NEW_LINE
+                                   "        return_type: I32" NEW_LINE
+                                   "        return_statement" NEW_LINE
+                                   "            integer_literal" NEW_LINE
+                                   "                type: I32" NEW_LINE
+                                   "                value: 0" NEW_LINE,
                                    test.source_paths[0],
                                    types[type_index].name, 
                                    types[type_index].name,
@@ -923,6 +959,10 @@ static bool dynamic_array_length_operator_expression(void)
                           "\n"
                           "function a([]I32 b, U32 c)\n"
                           "    b.length %s c\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end",
                           assignment_operators[operator_tag].token);
 
@@ -949,7 +989,14 @@ static bool dynamic_array_length_operator_expression(void)
                        "                field: length" NEW_LINE
                        "            reference_expression" NEW_LINE
                        "                type: U32" NEW_LINE
-                       "                name: c" NEW_LINE,
+                       "                name: c" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE,
                        test.source_paths[0],
                        assignment_operators[operator_tag].token);
 
@@ -971,6 +1018,10 @@ static bool dynamic_array_capacity_operator_expression(void)
                           "\n"
                           "function a([]I32 b, U32 c)\n"
                           "    b.capacity %s c\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end",
                           assignment_operators[operator_tag].token);
 
@@ -997,7 +1048,14 @@ static bool dynamic_array_capacity_operator_expression(void)
                        "                field: capacity" NEW_LINE
                        "            reference_expression" NEW_LINE
                        "                type: U32" NEW_LINE
-                       "                name: c" NEW_LINE,
+                       "                name: c" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE,
                        test.source_paths[0],
                        assignment_operators[operator_tag].token);
     
@@ -1015,6 +1073,10 @@ static void dynamic_array_elements_equal_compatible_pointer(void)
                           "\n"
                           "function a([]I32 b, U32 c)\n"
                           "    b.length = c\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     format_command_line_options("%s -print-semantics", test.source_paths[0]);
@@ -1040,7 +1102,14 @@ static void dynamic_array_elements_equal_compatible_pointer(void)
                        "                field: length" NEW_LINE
                        "            reference_expression" NEW_LINE
                        "                type: U32" NEW_LINE
-                       "                name: c" NEW_LINE,
+                       "                name: c" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE,
                        test.source_paths[0]);
 }
 
@@ -1089,6 +1158,10 @@ static bool dereferenced_expression_operator_expression(void)
                                   "\n"
                                   "function a(%s b)\n"
                                   "    @b = 1\n"
+                                  "end\n"
+                                  "\n"
+                                  "function main() : I32\n"
+                                  "    return 0\n"
                                   "end",
                                   types[type_index].name);
 
@@ -1113,7 +1186,14 @@ static bool dereferenced_expression_operator_expression(void)
                                    "                    name: b" NEW_LINE
                                    "            integer_literal" NEW_LINE
                                    "                type: I32" NEW_LINE
-                                   "                value: 1" NEW_LINE,
+                                   "                value: 1" NEW_LINE
+                                   "    function" NEW_LINE
+                                   "        name: main" NEW_LINE
+                                   "        return_type: I32" NEW_LINE
+                                   "        return_statement" NEW_LINE
+                                   "            integer_literal" NEW_LINE
+                                   "                type: I32" NEW_LINE
+                                   "                value: 0" NEW_LINE,
                                    test.source_paths[0],
                                    types[type_index].name,
                                    types[type_index].name);
@@ -1152,6 +1232,10 @@ static bool expression_operator_dereferenced_expression(void)
                                   "\n"
                                   "function a(%s b, I32 c)\n"
                                   "    c = @b\n"
+                                  "end\n"
+                                  "\n"
+                                  "function main() : I32\n"
+                                  "    return 0\n"
                                   "end",
                                   types[type_index].name);
 
@@ -1179,7 +1263,14 @@ static bool expression_operator_dereferenced_expression(void)
                                    "                type: I32" NEW_LINE
                                    "                reference_expression" NEW_LINE
                                    "                    type: %s" NEW_LINE
-                                   "                    name: b" NEW_LINE,
+                                   "                    name: b" NEW_LINE
+                                   "    function" NEW_LINE
+                                   "        name: main" NEW_LINE
+                                   "        return_type: I32" NEW_LINE
+                                   "        return_statement" NEW_LINE
+                                   "            integer_literal" NEW_LINE
+                                   "                type: I32" NEW_LINE
+                                   "                value: 0" NEW_LINE,
                                    test.source_paths[0],
                                    types[type_index].name,
                                    types[type_index].name);
@@ -1217,6 +1308,10 @@ static bool pointer_typed_field_access(void)
                                   "\n"
                                   "function a(#?A b, I32 c)\n"
                                   "    c = b.a\n"
+                                  "end\n"
+                                  "\n"
+                                  "function main() : I32\n"
+                                  "    return 0\n"
                                   "end");
 
             format_command_line_options("%s -print-semantics", test.source_paths[0]);
@@ -1248,7 +1343,14 @@ static bool pointer_typed_field_access(void)
                                "                reference_expression" NEW_LINE
                                "                    type: #?A" NEW_LINE
                                "                    name: b" NEW_LINE
-                               "                field: a" NEW_LINE,
+                               "                field: a" NEW_LINE
+                               "    function" NEW_LINE
+                               "        name: main" NEW_LINE
+                               "        return_type: I32" NEW_LINE
+                               "        return_statement" NEW_LINE
+                               "            integer_literal" NEW_LINE
+                               "                type: I32" NEW_LINE
+                               "                value: 0" NEW_LINE,
                                test.source_paths[0]);
 
             return true;
@@ -1288,6 +1390,10 @@ static bool pointer_typed_field_access(void)
                                   "\n"
                                   "function a(#$A b, I32 c)\n"
                                   "    b.a = c\n"
+                                  "end\n"
+                                  "\n"
+                                  "function main() : I32\n"
+                                  "    return 0\n"
                                   "end");
 
             format_command_line_options("%s -print-semantics", test.source_paths[0]);
@@ -1319,8 +1425,15 @@ static bool pointer_typed_field_access(void)
                                "                field: a" NEW_LINE
                                "            reference_expression" NEW_LINE
                                "                type: I32" NEW_LINE
-                               "                name: c" NEW_LINE,
-                               test.source_paths[0]);
+                               "                name: c" NEW_LINE
+                               "    function" NEW_LINE
+                               "        name: main" NEW_LINE
+                               "        return_type: I32" NEW_LINE
+                               "        return_statement" NEW_LINE
+                               "            integer_literal" NEW_LINE
+                               "                type: I32" NEW_LINE
+                               "                value: 0" NEW_LINE,
+                test.source_paths[0]);
 
             return true;
 
@@ -1365,6 +1478,10 @@ static bool pointer_typed_array_access(void)
                                   "\n"
                                   "function a(#?[]I32 b, I32 c)\n"
                                   "    c = b[0]\n"
+                                  "end\n"
+                                  "\n"
+                                  "function main() : I32\n"
+                                  "    return 0\n"
                                   "end");
 
             format_command_line_options("%s -print-semantics", test.source_paths[0]);
@@ -1392,7 +1509,14 @@ static bool pointer_typed_array_access(void)
                                "                    name: b" NEW_LINE
                                "                integer_literal" NEW_LINE
                                "                    type: U32" NEW_LINE
-                               "                    value: 0" NEW_LINE,
+                               "                    value: 0" NEW_LINE
+                               "    function" NEW_LINE
+                               "        name: main" NEW_LINE
+                               "        return_type: I32" NEW_LINE
+                               "        return_statement" NEW_LINE
+                               "            integer_literal" NEW_LINE
+                               "                type: I32" NEW_LINE
+                               "                value: 0" NEW_LINE,
                                test.source_paths[0]);
 
             return true;
@@ -1424,6 +1548,10 @@ static bool pointer_typed_array_access(void)
                                   "\n"
                                   "function a(#$[]I32 b, I32 c)\n"
                                   "    b[0] = c\n"
+                                  "end\n"
+                                  "\n"
+                                  "function main() : I32\n"
+                                  "    return 0\n"
                                   "end");
 
             format_command_line_options("%s -print-semantics", test.source_paths[0]);
@@ -1451,7 +1579,14 @@ static bool pointer_typed_array_access(void)
                                "                    value: 0" NEW_LINE
                                "            reference_expression" NEW_LINE
                                "                type: I32" NEW_LINE
-                               "                name: c" NEW_LINE,
+                               "                name: c" NEW_LINE
+                               "    function" NEW_LINE
+                               "        name: main" NEW_LINE
+                               "        return_type: I32" NEW_LINE
+                               "        return_statement" NEW_LINE
+                               "            integer_literal" NEW_LINE
+                               "                type: I32" NEW_LINE
+                               "                value: 0" NEW_LINE,
                                test.source_paths[0]);
 
             return true;
@@ -1546,6 +1681,10 @@ static void polymorphic_and_monomorphic_variables(void)
                           "\n"
                           "function d(I32 e)\n"
                           "    a(e, e)\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     SET_COMMAND_LINE("semantics/statements/assignment/polymorphic_and_monomorphic_variables.owen "
@@ -1612,7 +1751,14 @@ static void polymorphic_and_monomorphic_variables(void)
                        "                name: e" NEW_LINE
                        "            reference_expression" NEW_LINE
                        "                type: I32" NEW_LINE
-                       "                name: e" NEW_LINE);
+                       "                name: e" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static bool x_typed_variable_x_type_compatible_operator_infer_compatible_literal(void)
@@ -1658,6 +1804,10 @@ static bool x_typed_variable_x_type_compatible_operator_infer_compatible_literal
                                   "\n"
                                   "function a(%s b)\n"
                                   "    b %s %s\n"
+                                  "end\n"
+                                  "\n"
+                                  "function main() : I32\n"
+                                  "    return 0\n"
                                   "end", 
                                   types[type_index].name,
                                   assignment_operators[operator_tag].token, types[type_index].default_value);
@@ -1719,7 +1869,14 @@ static bool x_typed_variable_x_type_compatible_operator_infer_compatible_literal
                                    "                    name: a" NEW_LINE
                                    "                    integer_literal" NEW_LINE
                                    "                        type: I32" NEW_LINE
-                                   "                        value: 0" NEW_LINE,
+                                   "                        value: 0" NEW_LINE
+                                   "    function" NEW_LINE
+                                   "        name: main" NEW_LINE
+                                   "        return_type: I32" NEW_LINE
+                                   "        return_statement" NEW_LINE
+                                   "            integer_literal" NEW_LINE
+                                   "                type: I32" NEW_LINE
+                                   "                value: 0" NEW_LINE,
                                    test.source_paths[0],
                                    assignment_operators[operator_tag].token);
             }
@@ -1786,7 +1943,14 @@ static bool x_typed_variable_x_type_compatible_operator_infer_compatible_literal
                                    "                    name: a" NEW_LINE
                                    "                    integer_literal" NEW_LINE
                                    "                        type: I32" NEW_LINE
-                                   "                        value: 0" NEW_LINE,
+                                   "                        value: 0" NEW_LINE
+                                   "    function" NEW_LINE
+                                   "        name: main" NEW_LINE
+                                   "        return_type: I32" NEW_LINE
+                                   "        return_statement" NEW_LINE
+                                   "            integer_literal" NEW_LINE
+                                   "                type: I32" NEW_LINE
+                                   "                value: 0" NEW_LINE,
                                    test.source_paths[0],
                                    assignment_operators[operator_tag].token);
             }
@@ -1846,7 +2010,14 @@ static bool x_typed_variable_x_type_compatible_operator_infer_compatible_literal
                                    "                    name: a" NEW_LINE
                                    "                    integer_literal" NEW_LINE
                                    "                        type: I32" NEW_LINE
-                                   "                        value: 0" NEW_LINE,
+                                   "                        value: 0" NEW_LINE
+                                   "    function" NEW_LINE
+                                   "        name: main" NEW_LINE
+                                   "        return_type: I32" NEW_LINE
+                                   "        return_statement" NEW_LINE
+                                   "            integer_literal" NEW_LINE
+                                   "                type: I32" NEW_LINE
+                                   "                value: 0" NEW_LINE,
                                    test.source_paths[0],
                                    assignment_operators[operator_tag].token);
             }
@@ -1905,7 +2076,14 @@ static bool x_typed_variable_x_type_compatible_operator_infer_compatible_literal
                                    "                    index: 0" NEW_LINE
                                    "                    integer_literal" NEW_LINE
                                    "                        type: I32" NEW_LINE
-                                   "                        value: 0" NEW_LINE,
+                                   "                        value: 0" NEW_LINE
+                                   "    function" NEW_LINE
+                                   "        name: main" NEW_LINE
+                                   "        return_type: I32" NEW_LINE
+                                   "        return_statement" NEW_LINE
+                                   "            integer_literal" NEW_LINE
+                                   "                type: I32" NEW_LINE
+                                   "                value: 0" NEW_LINE,
                                    test.source_paths[0],
                                    assignment_operators[operator_tag].token);
             }
@@ -1972,7 +2150,14 @@ static bool x_typed_variable_x_type_compatible_operator_infer_compatible_literal
                                    "                    name: a" NEW_LINE
                                    "                    integer_literal" NEW_LINE
                                    "                        type: I32" NEW_LINE
-                                   "                        value: 0" NEW_LINE,
+                                   "                        value: 0" NEW_LINE
+                                   "    function" NEW_LINE
+                                   "        name: main" NEW_LINE
+                                   "        return_type: I32" NEW_LINE
+                                   "        return_statement" NEW_LINE
+                                   "            integer_literal" NEW_LINE
+                                   "                type: I32" NEW_LINE
+                                   "                value: 0" NEW_LINE,
                                    test.source_paths[0],
                                    assignment_operators[operator_tag].token);
             }
@@ -2027,7 +2212,14 @@ static bool x_typed_variable_x_type_compatible_operator_infer_compatible_literal
                                    "                name: b" NEW_LINE
                                    "            %s_literal" NEW_LINE
                                    "                type: %s" NEW_LINE
-                                   "                value: %s" NEW_LINE,
+                                   "                value: %s" NEW_LINE
+                                   "    function" NEW_LINE
+                                   "        name: main" NEW_LINE
+                                   "        return_type: I32" NEW_LINE
+                                   "        return_statement" NEW_LINE
+                                   "            integer_literal" NEW_LINE
+                                   "                type: I32" NEW_LINE
+                                   "                value: 0" NEW_LINE,
                                    test.source_paths[0],
                                    types[type_index].name,
                                    assignment_operators[operator_tag].token,
@@ -2172,6 +2364,10 @@ static bool x_typed_reference_expression_x_type_compatible_operator_x_typed_expr
                                   "\n"
                                   "function a(%s b)\n"
                                   "    b %s b\n"
+                                  "end\n"
+                                  "\n"
+                                  "function main() : I32\n"
+                                  "    return 0\n"
                                   "end",
                                   types[type_index].name,
                                   assignment_operators[operator_tag].token);
@@ -2235,7 +2431,14 @@ static bool x_typed_reference_expression_x_type_compatible_operator_x_typed_expr
                                    "                name: b" NEW_LINE
                                    "            reference_expression" NEW_LINE
                                    "                type: Union[I32]" NEW_LINE
-                                   "                name: b" NEW_LINE,
+                                   "                name: b" NEW_LINE
+                                   "    function" NEW_LINE
+                                   "        name: main" NEW_LINE
+                                   "        return_type: I32" NEW_LINE
+                                   "        return_statement" NEW_LINE
+                                   "            integer_literal" NEW_LINE
+                                   "                type: I32" NEW_LINE
+                                   "                value: 0" NEW_LINE,
                                    test.source_paths[0],
                                    assignment_operators[operator_tag].token);
             }
@@ -2297,7 +2500,14 @@ static bool x_typed_reference_expression_x_type_compatible_operator_x_typed_expr
                                    "                name: b" NEW_LINE
                                    "            reference_expression" NEW_LINE
                                    "                type: Structure[I32]" NEW_LINE
-                                   "                name: b" NEW_LINE,
+                                   "                name: b" NEW_LINE
+                                   "    function" NEW_LINE
+                                   "        name: main" NEW_LINE
+                                   "        return_type: I32" NEW_LINE
+                                   "        return_statement" NEW_LINE
+                                   "            integer_literal" NEW_LINE
+                                   "                type: I32" NEW_LINE
+                                   "                value: 0" NEW_LINE,
                                    test.source_paths[0],
                                    assignment_operators[operator_tag].token);
             }
@@ -2352,7 +2562,14 @@ static bool x_typed_reference_expression_x_type_compatible_operator_x_typed_expr
                                    "                name: b" NEW_LINE
                                    "            reference_expression" NEW_LINE
                                    "                type: %s" NEW_LINE
-                                   "                name: b" NEW_LINE,
+                                   "                name: b" NEW_LINE
+                                   "    function" NEW_LINE
+                                   "        name: main" NEW_LINE
+                                   "        return_type: I32" NEW_LINE
+                                   "        return_statement" NEW_LINE
+                                   "            integer_literal" NEW_LINE
+                                   "                type: I32" NEW_LINE
+                                   "                value: 0" NEW_LINE,
                                    test.source_paths[0],
                                    types[type_index].name,
                                    assignment_operators[operator_tag].token,
@@ -2658,6 +2875,10 @@ static bool x_typed_field_access_expression_x_type_compatible_operator_x_typed_e
                                   "\n"
                                   "function a(A b, %s c)\n"
                                   "    b.a %s c\n"
+                                  "end\n"
+                                  "\n"
+                                  "function main() : I32\n"
+                                  "    return 0\n"
                                   "end",
                                   types[type_index].name,
                                   types[type_index].name,
@@ -2734,7 +2955,14 @@ static bool x_typed_field_access_expression_x_type_compatible_operator_x_typed_e
                                    "                field: a" NEW_LINE
                                    "            reference_expression" NEW_LINE
                                    "                type: Union[I32]" NEW_LINE
-                                   "                name: c" NEW_LINE,
+                                   "                name: c" NEW_LINE
+                                   "    function" NEW_LINE
+                                   "        name: main" NEW_LINE
+                                   "        return_type: I32" NEW_LINE
+                                   "        return_statement" NEW_LINE
+                                   "            integer_literal" NEW_LINE
+                                   "                type: I32" NEW_LINE
+                                   "                value: 0" NEW_LINE,
                                    test.source_paths[0],
                                    assignment_operators[operator_tag].token);
             }
@@ -2808,7 +3036,14 @@ static bool x_typed_field_access_expression_x_type_compatible_operator_x_typed_e
                                    "                field: a" NEW_LINE
                                    "            reference_expression" NEW_LINE
                                    "                type: Structure[I32]" NEW_LINE
-                                   "                name: c" NEW_LINE,
+                                   "                name: c" NEW_LINE
+                                   "    function" NEW_LINE
+                                   "        name: main" NEW_LINE
+                                   "        return_type: I32" NEW_LINE
+                                   "        return_statement" NEW_LINE
+                                   "            integer_literal" NEW_LINE
+                                   "                type: I32" NEW_LINE
+                                   "                value: 0" NEW_LINE,
                                    test.source_paths[0],
                                    assignment_operators[operator_tag].token);
             }
@@ -2875,7 +3110,14 @@ static bool x_typed_field_access_expression_x_type_compatible_operator_x_typed_e
                                    "                field: a" NEW_LINE
                                    "            reference_expression" NEW_LINE
                                    "                type: %s" NEW_LINE
-                                   "                name: c" NEW_LINE,
+                                   "                name: c" NEW_LINE
+                                   "    function" NEW_LINE
+                                   "        name: main" NEW_LINE
+                                   "        return_type: I32" NEW_LINE
+                                   "        return_statement" NEW_LINE
+                                   "            integer_literal" NEW_LINE
+                                   "                type: I32" NEW_LINE
+                                   "                value: 0" NEW_LINE,
                                    test.source_paths[0],
                                    types[type_index].name,
                                    types[type_index].name,
@@ -3194,6 +3436,10 @@ static bool x_typed_array_access_expression_x_type_compatible_operator_x_typed_e
                                   "\n"
                                   "function a([]%s b, %s c)\n"
                                   "    b[0] %s c\n"
+                                  "end\n"
+                                  "\n"
+                                  "function main() : I32\n"
+                                  "    return 0\n"
                                   "end",
                                   types[type_index].name, types[type_index].name,
                                   assignment_operators[operator_tag].token);
@@ -3265,7 +3511,14 @@ static bool x_typed_array_access_expression_x_type_compatible_operator_x_typed_e
                                    "                    value: 0" NEW_LINE
                                    "            reference_expression" NEW_LINE
                                    "                type: Union[I32]" NEW_LINE
-                                   "                name: c" NEW_LINE,
+                                   "                name: c" NEW_LINE
+                                   "    function" NEW_LINE
+                                   "        name: main" NEW_LINE
+                                   "        return_type: I32" NEW_LINE
+                                   "        return_statement" NEW_LINE
+                                   "            integer_literal" NEW_LINE
+                                   "                type: I32" NEW_LINE
+                                   "                value: 0" NEW_LINE,
                                    test.source_paths[0],
                                    assignment_operators[operator_tag].token);
             }
@@ -3335,7 +3588,14 @@ static bool x_typed_array_access_expression_x_type_compatible_operator_x_typed_e
                                    "                    value: 0" NEW_LINE
                                    "            reference_expression" NEW_LINE
                                    "                type: Structure[I32]" NEW_LINE
-                                   "                name: c" NEW_LINE,
+                                   "                name: c" NEW_LINE
+                                   "    function" NEW_LINE
+                                   "        name: main" NEW_LINE
+                                   "        return_type: I32" NEW_LINE
+                                   "        return_statement" NEW_LINE
+                                   "            integer_literal" NEW_LINE
+                                   "                type: I32" NEW_LINE
+                                   "                value: 0" NEW_LINE,
                                    test.source_paths[0],
                                    assignment_operators[operator_tag].token);
             }
@@ -3398,7 +3658,14 @@ static bool x_typed_array_access_expression_x_type_compatible_operator_x_typed_e
                                    "                    value: 0" NEW_LINE
                                    "            reference_expression" NEW_LINE
                                    "                type: [4]I32" NEW_LINE
-                                   "                name: c" NEW_LINE,
+                                   "                name: c" NEW_LINE
+                                   "    function" NEW_LINE
+                                   "        name: main" NEW_LINE
+                                   "        return_type: I32" NEW_LINE
+                                   "        return_statement" NEW_LINE
+                                   "            integer_literal" NEW_LINE
+                                   "                type: I32" NEW_LINE
+                                   "                value: 0" NEW_LINE,
                                    test.source_paths[0],
                                    assignment_operators[operator_tag].token);
             }
@@ -3461,7 +3728,14 @@ static bool x_typed_array_access_expression_x_type_compatible_operator_x_typed_e
                                    "                    value: 0" NEW_LINE
                                    "            reference_expression" NEW_LINE
                                    "                type: %s" NEW_LINE
-                                   "                name: c" NEW_LINE,
+                                   "                name: c" NEW_LINE
+                                   "    function" NEW_LINE
+                                   "        name: main" NEW_LINE
+                                   "        return_type: I32" NEW_LINE
+                                   "        return_statement" NEW_LINE
+                                   "            integer_literal" NEW_LINE
+                                   "                type: I32" NEW_LINE
+                                   "                value: 0" NEW_LINE,
                                    test.source_paths[0],
                                    types[type_index].name,
                                    types[type_index].name,
@@ -3761,6 +4035,10 @@ static bool pointer_typed_parameter_operator_unsigned_integer_typed_expression(v
                            "\n"
                            "function a(%s b, %s c)\n"
                            "    b %s c\n"
+                           "end\n"
+                           "\n"
+                           "function main() : I32\n"
+                           "    return 0\n"
                            "end",
                            types[lhs_type_index].name, 
                            types[rhs_type_index].name,
@@ -3821,7 +4099,14 @@ static bool pointer_typed_parameter_operator_unsigned_integer_typed_expression(v
                            "                name: b" NEW_LINE
                            "            reference_expression" NEW_LINE
                            "                type: %s" NEW_LINE
-                           "                name: c" NEW_LINE,
+                           "                name: c" NEW_LINE
+                           "    function" NEW_LINE
+                           "        name: main" NEW_LINE
+                           "        return_type: I32" NEW_LINE
+                           "        return_statement" NEW_LINE
+                           "            integer_literal" NEW_LINE
+                           "                type: I32" NEW_LINE
+                           "                value: 0" NEW_LINE,
                            test.source_paths[0],
                            types[lhs_type_index].name,
                            types[rhs_type_index].name,
@@ -3925,6 +4210,10 @@ static void blank_identifier_on_lhs_in_tuple_assignment(void)
                           "\n"
                           "function b()\n"
                           "    _, _ = a()\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     SET_COMMAND_LINE("semantics/statements/assignment/blank_identifier_on_lhs_in_tuple_assignment.owen "
@@ -3957,7 +4246,14 @@ static void blank_identifier_on_lhs_in_tuple_assignment(void)
                        "                type: I32, I32" NEW_LINE
                        "                reference_expression" NEW_LINE
                        "                    type: Function() : I32, I32" NEW_LINE
-                       "                    name: a" NEW_LINE,
+                       "                    name: a" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE,
                        test.source_paths[0]);
 }
 
@@ -3978,6 +4274,10 @@ bool blanks_operator_tuple(void)
                           "\n"
                           "function b()\n"
                           "    _, _ %s a()\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end",
                           assignment_operators[operator_tag].token);
 
@@ -4011,7 +4311,14 @@ bool blanks_operator_tuple(void)
                            "                type: I32, I32" NEW_LINE
                            "                reference_expression" NEW_LINE
                            "                    type: Function() : I32, I32" NEW_LINE
-                           "                    name: a" NEW_LINE,
+                           "                    name: a" NEW_LINE
+                           "    function" NEW_LINE
+                           "        name: main" NEW_LINE
+                           "        return_type: I32" NEW_LINE
+                           "        return_statement" NEW_LINE
+                           "            integer_literal" NEW_LINE
+                           "                type: I32" NEW_LINE
+                           "                value: 0" NEW_LINE,
                            test.source_paths[0]);
     }
     else

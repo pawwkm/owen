@@ -1091,6 +1091,7 @@ static bool parse_function_declaration(bool is_public)
     function->name = lexer.token.interned;
     function->name_span = lexer.token.span;
     function->template = invalid_function_handle;
+    function->ir = invalid_ir_function_handle;
 
     if (is_public)
         function->attributes = Function_Attribute_is_public;

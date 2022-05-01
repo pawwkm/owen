@@ -94,7 +94,11 @@ static void non_retained_parameter_as_actual_parameter_with_implicit_actual_type
                           "\n"
                           "function c(I32 d) : I32\n"
                           "    return a(#d)\n"
-                          "end\n");
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
+                          "end");
 
     SET_COMMAND_LINE("semantics/expressions/address_of/non_retained_parameter_as_actual_parameter_with_implicit_actual_type_parameters.owen -print-semantics");
 
@@ -130,7 +134,14 @@ static void non_retained_parameter_as_actual_parameter_with_implicit_actual_type
                        "                    type: #`!?$I32" NEW_LINE
                        "                    reference_expression" NEW_LINE
                        "                        type: I32" NEW_LINE
-                       "                        name: d" NEW_LINE, 
+                       "                        name: d" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE, 
                        test.source_paths[0]);
 }
 
@@ -148,7 +159,11 @@ static void non_retained_parameter_as_actual_paramerter_with_explicit_type_param
                           "\n"
                           "function c(I32 d) : I32\n"
                           "    return a[I32](#d)\n"
-                          "end\n");
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
+                          "end");
 
     SET_COMMAND_LINE("semantics/expressions/address_of/non_retained_parameter_as_actual_paramerter_with_explicit_type_parameters.owen -print-semantics");
 
@@ -197,7 +212,14 @@ static void non_retained_parameter_as_actual_paramerter_with_explicit_type_param
                        "                    type: #`!?$I32" NEW_LINE
                        "                    reference_expression" NEW_LINE
                        "                        type: I32" NEW_LINE
-                       "                        name: d" NEW_LINE, 
+                       "                        name: d" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE,
                        test.source_paths[0]);
 }
 
@@ -300,7 +322,11 @@ static void non_retained_variable_as_actual_parameter_with_implicit_actual_type_
                           "function c() : I32\n"
                           "    I32 d\n"
                           "    return a(#d)\n"
-                          "end\n");
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
+                          "end");
 
     SET_COMMAND_LINE("semantics/expressions/address_of/non_retained_variable_as_actual_parameter_with_implicit_actual_type_parameters.owen -print-semantics");
 
@@ -337,7 +363,14 @@ static void non_retained_variable_as_actual_parameter_with_implicit_actual_type_
                        "                    type: #`!?$I32" NEW_LINE
                        "                    reference_expression" NEW_LINE
                        "                        type: I32" NEW_LINE
-                       "                        name: d" NEW_LINE, 
+                       "                        name: d" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE, 
                        test.source_paths[0]);
 }
 
@@ -356,7 +389,11 @@ static void non_retained_variable_as_actual_paramerter_with_explicit_type_parame
                           "function c() : I32\n"
                           "    I32 d\n"
                           "    return a[I32](#d)\n"
-                          "end\n");
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
+                          "end");
 
     SET_COMMAND_LINE("semantics/expressions/address_of/non_retained_variable_as_actual_paramerter_with_explicit_type_parameters.owen -print-semantics");
 
@@ -406,7 +443,14 @@ static void non_retained_variable_as_actual_paramerter_with_explicit_type_parame
                        "                    type: #`!?$I32" NEW_LINE
                        "                    reference_expression" NEW_LINE
                        "                        type: I32" NEW_LINE
-                       "                        name: d" NEW_LINE, 
+                       "                        name: d" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE, 
                        test.source_paths[0]);
 }
 

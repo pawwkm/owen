@@ -55,6 +55,10 @@ static void call_to_function_returning_no_values(void)
                            "\n"
                            "function a()\n"
                            "    a()\n"
+                           "end\n"
+                           "\n"
+                           "function main() : I32\n"
+                           "    return 0\n"
                            "end");
 
     SET_COMMAND_LINE("semantics/statements/expression/call_to_function_returning_no_values.owen "
@@ -70,7 +74,14 @@ static void call_to_function_returning_no_values(void)
                        "            type: none" NEW_LINE
                        "            reference_expression" NEW_LINE
                        "                type: Function()" NEW_LINE
-                       "                name: a" NEW_LINE);
+                       "                name: a" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void monomorphic_call_in_polymorphic_function(void)
@@ -90,6 +101,10 @@ static void monomorphic_call_in_polymorphic_function(void)
                           "\n"
                           "function c()\n"
                           "    b[I32]()\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     SET_COMMAND_LINE("semantics/statements/expression/monomorphic_call_in_polymorphic_function.owen "
@@ -122,7 +137,14 @@ static void monomorphic_call_in_polymorphic_function(void)
                        "            reference_expression" NEW_LINE
                        "                type: Function()" NEW_LINE
                        "                name: b" NEW_LINE
-                       "                actual_type_parameter: I32" NEW_LINE);
+                       "                actual_type_parameter: I32" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void non_call_expression(void)
@@ -160,6 +182,10 @@ static void polymorphic_call_in_polymorphic_function(void)
                           "\n"
                           "function c()\n"
                           "    b[I32]()\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     SET_COMMAND_LINE("semantics/statements/expression/polymorphic_call_in_polymorphic_function.owen "
@@ -198,7 +224,14 @@ static void polymorphic_call_in_polymorphic_function(void)
                        "            reference_expression" NEW_LINE
                        "                type: Function()" NEW_LINE
                        "                name: b" NEW_LINE
-                       "                actual_type_parameter: I32" NEW_LINE);
+                       "                actual_type_parameter: I32" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 bool semantics_statements_expression(void)

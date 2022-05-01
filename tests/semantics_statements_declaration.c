@@ -78,6 +78,10 @@ static bool pointer_variables_equal_compatible_tuple(void)
                                   "function c(%s d) : %s, %s\n"
                                   "    %s e, %s f = a(d)\n"
                                   "    return e, f\n"
+                                  "end\n"
+                                  "\n"
+                                  "function main() : I32\n"
+                                  "    return 0\n"
                                   "end",
                                   types[tuple_type_index].name, types[tuple_type_index].name, types[tuple_type_index].name,
                                   types[tuple_type_index].name, types[variable_type_index].name, types[variable_type_index].name,
@@ -130,7 +134,14 @@ static bool pointer_variables_equal_compatible_tuple(void)
                                "                name: e" NEW_LINE
                                "            reference_expression" NEW_LINE
                                "                type: %s" NEW_LINE
-                               "                name: f" NEW_LINE,
+                               "                name: f" NEW_LINE
+                               "    function" NEW_LINE
+                               "        name: main" NEW_LINE
+                               "        return_type: I32" NEW_LINE
+                               "        return_statement" NEW_LINE
+                               "            integer_literal" NEW_LINE
+                               "                type: I32" NEW_LINE
+                               "                value: 0" NEW_LINE,
                                test.source_paths[0],
                                types[tuple_type_index].name,
                                types[tuple_type_index].name,
@@ -203,6 +214,10 @@ static bool non_pointer_variables_equal_compatible_tuple(void)
                            "function c(%s d) : %s, %s\n"
                            "    %s e, %s f = a(d)\n"
                            "    return e, f\n"
+                           "end\n"
+                           "\n"
+                           "function main() : I32\n"
+                           "    return 0\n"
                            "end",
                            types[type_index].name, types[type_index].name, types[type_index].name,
                            types[type_index].name, types[type_index].name, types[type_index].name,
@@ -297,7 +312,14 @@ static bool non_pointer_variables_equal_compatible_tuple(void)
                            "                name: e" NEW_LINE
                            "            reference_expression" NEW_LINE
                            "                type: Structure[I32]" NEW_LINE
-                           "                name: f" NEW_LINE,
+                           "                name: f" NEW_LINE
+                           "    function" NEW_LINE
+                           "        name: main" NEW_LINE
+                           "        return_type: I32" NEW_LINE
+                           "        return_statement" NEW_LINE
+                           "            integer_literal" NEW_LINE
+                           "                type: I32" NEW_LINE
+                           "                value: 0" NEW_LINE,
                            test.source_paths[0]);
     }
     else if (!strcmp("Union[I32]", types[type_index].name))
@@ -388,7 +410,14 @@ static bool non_pointer_variables_equal_compatible_tuple(void)
                            "                name: e" NEW_LINE
                            "            reference_expression" NEW_LINE
                            "                type: Union[I32]" NEW_LINE
-                           "                name: f" NEW_LINE,
+                           "                name: f" NEW_LINE
+                           "    function" NEW_LINE
+                           "        name: main" NEW_LINE
+                           "        return_type: I32" NEW_LINE
+                           "        return_statement" NEW_LINE
+                           "            integer_literal" NEW_LINE
+                           "                type: I32" NEW_LINE
+                           "                value: 0" NEW_LINE,
                            test.source_paths[0]);
     }
     else
@@ -472,7 +501,14 @@ static bool non_pointer_variables_equal_compatible_tuple(void)
                            "                name: e" NEW_LINE
                            "            reference_expression" NEW_LINE
                            "                type: %s" NEW_LINE
-                           "                name: f" NEW_LINE,
+                           "                name: f" NEW_LINE
+                           "    function" NEW_LINE
+                           "        name: main" NEW_LINE
+                           "        return_type: I32" NEW_LINE
+                           "        return_statement" NEW_LINE
+                           "            integer_literal" NEW_LINE
+                           "                type: I32" NEW_LINE
+                           "                value: 0" NEW_LINE,
                            test.source_paths[0],
                            types[type_index].name,
                            types[type_index].name,
@@ -727,6 +763,10 @@ static bool x_typed_variable_equal_x_typed_expression(void)
                           "function a(%s c) : %s\n"
                           "    %s b = c\n"
                           "    return b\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end",
                           types[type_index].name, types[type_index].name,
                           types[type_index].name);
@@ -794,7 +834,14 @@ static bool x_typed_variable_equal_x_typed_expression(void)
                            "        return_statement" NEW_LINE
                            "            reference_expression" NEW_LINE
                            "                type: Union[I32]" NEW_LINE
-                           "                name: b" NEW_LINE,
+                           "                name: b" NEW_LINE
+                           "    function" NEW_LINE
+                           "        name: main" NEW_LINE
+                           "        return_type: I32" NEW_LINE
+                           "        return_statement" NEW_LINE
+                           "            integer_literal" NEW_LINE
+                           "                type: I32" NEW_LINE
+                           "                value: 0" NEW_LINE,
                            test.source_paths[0]);
     }
     else if (!strcmp("Structure[I32]", types[type_index].name))
@@ -859,7 +906,14 @@ static bool x_typed_variable_equal_x_typed_expression(void)
                            "        return_statement" NEW_LINE
                            "            reference_expression" NEW_LINE
                            "                type: Structure[I32]" NEW_LINE
-                           "                name: b" NEW_LINE,
+                           "                name: b" NEW_LINE
+                           "    function" NEW_LINE
+                           "        name: main" NEW_LINE
+                           "        return_type: I32" NEW_LINE
+                           "        return_statement" NEW_LINE
+                           "            integer_literal" NEW_LINE
+                           "                type: I32" NEW_LINE
+                           "                value: 0" NEW_LINE,
                            test.source_paths[0]);
     }
     else
@@ -917,7 +971,14 @@ static bool x_typed_variable_equal_x_typed_expression(void)
                            "        return_statement" NEW_LINE
                            "            reference_expression" NEW_LINE
                            "                type: %s" NEW_LINE
-                           "                name: b" NEW_LINE,
+                           "                name: b" NEW_LINE
+                           "    function" NEW_LINE
+                           "        name: main" NEW_LINE
+                           "        return_type: I32" NEW_LINE
+                           "        return_statement" NEW_LINE
+                           "            integer_literal" NEW_LINE
+                           "                type: I32" NEW_LINE
+                           "                value: 0" NEW_LINE,
                            test.source_paths[0],
                            types[type_index].name,
                            types[type_index].name,
@@ -1054,6 +1115,10 @@ static void actual_type_parameter_as_variable_type(void)
                           "\n"
                           "function c() : I32\n"
                           "    return a[I32]()\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     SET_COMMAND_LINE("semantics/statements/declaration/actual_type_parameter_as_variable_type.owen " 
@@ -1100,7 +1165,14 @@ static void actual_type_parameter_as_variable_type(void)
                        "                reference_expression" NEW_LINE
                        "                    type: Function() : I32" NEW_LINE
                        "                    name: a" NEW_LINE
-                       "                    actual_type_parameter: I32" NEW_LINE);
+                       "                    actual_type_parameter: I32" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static bool x_typed_variable_equal_compatible_literal(void)
@@ -1139,6 +1211,10 @@ static bool x_typed_variable_equal_compatible_literal(void)
                                   "function a() : %s\n"
                                   "    %s b = %s\n"
                                   "    return b\n"
+                                  "end\n"
+                                  "\n"
+                                  "function main() : I32\n"
+                                  "    return 0\n"
                                   "end", 
                                   types[index].name,
                                   types[index].name, types[index].default_value);
@@ -1201,7 +1277,14 @@ static bool x_typed_variable_equal_compatible_literal(void)
                                    "        return_statement" NEW_LINE
                                    "            reference_expression" NEW_LINE
                                    "                type: Structure[I32]" NEW_LINE
-                                   "                name: b" NEW_LINE,
+                                   "                name: b" NEW_LINE
+                                   "    function" NEW_LINE
+                                   "        name: main" NEW_LINE
+                                   "        return_type: I32" NEW_LINE
+                                   "        return_statement" NEW_LINE
+                                   "            integer_literal" NEW_LINE
+                                   "                type: I32" NEW_LINE
+                                   "                value: 0" NEW_LINE,
                                    test.source_paths[0]);
             }
             else if (!strcmp("Union[I32]", types[index].name))
@@ -1261,7 +1344,14 @@ static bool x_typed_variable_equal_compatible_literal(void)
                                    "        return_statement" NEW_LINE
                                    "            reference_expression" NEW_LINE
                                    "                type: Union[I32]" NEW_LINE
-                                   "                name: b" NEW_LINE,
+                                   "                name: b" NEW_LINE
+                                   "    function" NEW_LINE
+                                   "        name: main" NEW_LINE
+                                   "        return_type: I32" NEW_LINE
+                                   "        return_statement" NEW_LINE
+                                   "            integer_literal" NEW_LINE
+                                   "                type: I32" NEW_LINE
+                                   "                value: 0" NEW_LINE,
                                    test.source_paths[0]);
             }
             else if (types[index].default_value_name && !strcmp("Compound", types[index].default_value_name))
@@ -1314,7 +1404,14 @@ static bool x_typed_variable_equal_compatible_literal(void)
                                    "        return_statement" NEW_LINE
                                    "            reference_expression" NEW_LINE
                                    "                type: %s" NEW_LINE
-                                   "                name: b" NEW_LINE,
+                                   "                name: b" NEW_LINE
+                                   "    function" NEW_LINE
+                                   "        name: main" NEW_LINE
+                                   "        return_type: I32" NEW_LINE
+                                   "        return_statement" NEW_LINE
+                                   "            integer_literal" NEW_LINE
+                                   "                type: I32" NEW_LINE
+                                   "                value: 0" NEW_LINE,
                                    test.source_paths[0],
                                    types[index].name,
                                    types[index].name,
@@ -1366,7 +1463,14 @@ static bool x_typed_variable_equal_compatible_literal(void)
                                    "        return_statement" NEW_LINE
                                    "            reference_expression" NEW_LINE
                                    "                type: %s" NEW_LINE
-                                   "                name: b" NEW_LINE,
+                                   "                name: b" NEW_LINE
+                                   "    function" NEW_LINE
+                                   "        name: main" NEW_LINE
+                                   "        return_type: I32" NEW_LINE
+                                   "        return_statement" NEW_LINE
+                                   "            integer_literal" NEW_LINE
+                                   "                type: I32" NEW_LINE
+                                   "                value: 0" NEW_LINE,
                                    test.source_paths[0],
                                    types[index].name,
                                    types[index].name,
@@ -1473,6 +1577,10 @@ static void polymorphic_and_monomorphic_variables(void)
                            "    I32 e, I32 f = a[I32]()\n"
                            "    \n"
                            "    return e, f\n"
+                           "end\n"
+                           "\n"
+                           "function main() : I32\n"
+                           "    return 0\n"
                            "end");
 
     SET_COMMAND_LINE("semantics/statements/declaration/polymorphic_and_monomorphic_variables.owen "
@@ -1551,7 +1659,14 @@ static void polymorphic_and_monomorphic_variables(void)
                        "                name: e" NEW_LINE
                        "            reference_expression" NEW_LINE
                        "                type: I32" NEW_LINE
-                       "                name: f" NEW_LINE);
+                       "                name: f" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static bool x_typed_variable_without_expression(void)
@@ -1589,6 +1704,10 @@ static bool x_typed_variable_without_expression(void)
                            "function a() : %s\n"
                            "    %s b\n"
                            "    return b\n"
+                           "end\n"
+                           "\n"
+                           "function main() : I32\n"
+                           "    return 0\n"
                            "end",
                            types[index].name,
                            types[index].name);
@@ -1650,7 +1769,14 @@ static bool x_typed_variable_without_expression(void)
                            "        return_statement" NEW_LINE
                            "            reference_expression" NEW_LINE
                            "                type: Structure[I32]" NEW_LINE
-                           "                name: b" NEW_LINE,
+                           "                name: b" NEW_LINE
+                           "    function" NEW_LINE
+                           "        name: main" NEW_LINE
+                           "        return_type: I32" NEW_LINE
+                           "        return_statement" NEW_LINE
+                           "            integer_literal" NEW_LINE
+                           "                type: I32" NEW_LINE
+                           "                value: 0" NEW_LINE,
                            test.source_paths[0]);
     }
     else if (!strcmp("Union[I32]", types[index].name))
@@ -1709,7 +1835,14 @@ static bool x_typed_variable_without_expression(void)
                            "        return_statement" NEW_LINE
                            "            reference_expression" NEW_LINE
                            "                type: Union[I32]" NEW_LINE
-                           "                name: b" NEW_LINE,
+                           "                name: b" NEW_LINE
+                           "    function" NEW_LINE
+                           "        name: main" NEW_LINE
+                           "        return_type: I32" NEW_LINE
+                           "        return_statement" NEW_LINE
+                           "            integer_literal" NEW_LINE
+                           "                type: I32" NEW_LINE
+                           "                value: 0" NEW_LINE,
                            test.source_paths[0]);
     }
     else
@@ -1761,7 +1894,14 @@ static bool x_typed_variable_without_expression(void)
                            "        return_statement" NEW_LINE
                            "            reference_expression" NEW_LINE
                            "                type: %s" NEW_LINE
-                           "                name: b" NEW_LINE,
+                           "                name: b" NEW_LINE
+                           "    function" NEW_LINE
+                           "        name: main" NEW_LINE
+                           "        return_type: I32" NEW_LINE
+                           "        return_statement" NEW_LINE
+                           "            integer_literal" NEW_LINE
+                           "                type: I32" NEW_LINE
+                           "                value: 0" NEW_LINE,
                            test.source_paths[0],
                            types[index].name,
                            types[index].name, 
@@ -1927,6 +2067,10 @@ static bool x_typed_uninitialized_literal(void)
                           "function a() : %s\n"
                           "    %s b = ---\n"
                           "    return b\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end", 
                           types[index].name,
                           types[index].name);
@@ -1991,7 +2135,14 @@ static bool x_typed_uninitialized_literal(void)
                            "        return_statement" NEW_LINE
                            "            reference_expression" NEW_LINE
                            "                type: Union[I32]" NEW_LINE
-                           "                name: b" NEW_LINE,
+                           "                name: b" NEW_LINE
+                           "    function" NEW_LINE
+                           "        name: main" NEW_LINE
+                           "        return_type: I32" NEW_LINE
+                           "        return_statement" NEW_LINE
+                           "            integer_literal" NEW_LINE
+                           "                type: I32" NEW_LINE
+                           "                value: 0" NEW_LINE,
                            test.source_paths[0]);
     }
     else if (!strcmp("Structure[I32]", types[index].name))
@@ -2052,7 +2203,14 @@ static bool x_typed_uninitialized_literal(void)
                            "        return_statement" NEW_LINE
                            "            reference_expression" NEW_LINE
                            "                type: Structure[I32]" NEW_LINE
-                           "                name: b" NEW_LINE,
+                           "                name: b" NEW_LINE
+                           "    function" NEW_LINE
+                           "        name: main" NEW_LINE
+                           "        return_type: I32" NEW_LINE
+                           "        return_statement" NEW_LINE
+                           "            integer_literal" NEW_LINE
+                           "                type: I32" NEW_LINE
+                           "                value: 0" NEW_LINE,
                            test.source_paths[0]);
     }
     else
@@ -2106,7 +2264,14 @@ static bool x_typed_uninitialized_literal(void)
                            "        return_statement" NEW_LINE
                            "            reference_expression" NEW_LINE
                            "                type: %s" NEW_LINE
-                           "                name: b" NEW_LINE,
+                           "                name: b" NEW_LINE
+                           "    function" NEW_LINE
+                           "        name: main" NEW_LINE
+                           "        return_type: I32" NEW_LINE
+                           "        return_statement" NEW_LINE
+                           "            integer_literal" NEW_LINE
+                           "                type: I32" NEW_LINE
+                           "                value: 0" NEW_LINE,
                            test.source_paths[0],
                            types[index].name,
                            types[index].name,
@@ -2169,6 +2334,10 @@ static void blank_identifier_on_lhs_in_tuple_assignment(void)
                           "\n"
                           "function b()\n"
                           "    I32 _, I32 _ = a()\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     SET_COMMAND_LINE("semantics/statements/declaration/blank_identifier_on_lhs_in_tuple_assignment.owen "
@@ -2202,7 +2371,14 @@ static void blank_identifier_on_lhs_in_tuple_assignment(void)
                        "                type: I32, I32" NEW_LINE
                        "                reference_expression" NEW_LINE
                        "                    type: Function() : I32, I32" NEW_LINE
-                       "                    name: a" NEW_LINE,
+                       "                    name: a" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE,
                        test.source_paths[0]);
 }
 
@@ -2244,6 +2420,10 @@ static bool variable_equal_dereferenced_expression(void)
                                   "function a(%s b) : I32\n"
                                   "    I32 c = @b\n"
                                   "    return c\n"
+                                  "end\n"
+                                  "\n"
+                                  "function main() : I32\n"
+                                  "    return 0\n"
                                   "end",
                                   types[type_index].name);
 
@@ -2272,7 +2452,14 @@ static bool variable_equal_dereferenced_expression(void)
                                    "        return_statement" NEW_LINE
                                    "            reference_expression" NEW_LINE
                                    "                type: I32" NEW_LINE
-                                   "                name: c" NEW_LINE,
+                                   "                name: c" NEW_LINE
+                                   "    function" NEW_LINE
+                                   "        name: main" NEW_LINE
+                                   "        return_type: I32" NEW_LINE
+                                   "        return_statement" NEW_LINE
+                                   "            integer_literal" NEW_LINE
+                                   "                type: I32" NEW_LINE
+                                   "                value: 0" NEW_LINE,
                                    test.source_paths[0],
                                    types[type_index].name,
                                    types[type_index].name);
@@ -2311,6 +2498,10 @@ static bool pointer_typed_field_access(void)
                                   "function a(#?A b) : I32\n"
                                   "     I32 c = b.a\n"
                                   "     return c\n"
+                                  "end\n"
+                                  "\n"
+                                  "function main() : I32\n"
+                                  "    return 0\n"
                                   "end");
 
             format_command_line_options("%s -print-semantics", test.source_paths[0]);
@@ -2343,7 +2534,14 @@ static bool pointer_typed_field_access(void)
                                "        return_statement" NEW_LINE
                                "            reference_expression" NEW_LINE
                                "                type: I32" NEW_LINE
-                               "                name: c" NEW_LINE,
+                               "                name: c" NEW_LINE
+                               "    function" NEW_LINE
+                               "        name: main" NEW_LINE
+                               "        return_type: I32" NEW_LINE
+                               "        return_statement" NEW_LINE
+                               "            integer_literal" NEW_LINE
+                               "                type: I32" NEW_LINE
+                               "                value: 0" NEW_LINE,
                                test.source_paths[0]);
 
             return true;
@@ -2390,6 +2588,10 @@ static bool pointer_typed_array_access(void)
                                   "function a(#?[]I32 b) : I32\n"
                                   "    I32 c = b[0]\n"
                                   "    return c\n"
+                                  "end\n"
+                                  "\n"
+                                  "function main() : I32\n"
+                                  "    return 0\n"
                                   "end");
 
             format_command_line_options("%s -print-semantics", test.source_paths[0]);
@@ -2417,7 +2619,14 @@ static bool pointer_typed_array_access(void)
                                "                    name: b" NEW_LINE
                                "                integer_literal" NEW_LINE
                                "                    type: U32" NEW_LINE
-                               "                    value: 0" NEW_LINE,
+                               "                    value: 0" NEW_LINE
+                               "    function" NEW_LINE
+                               "        name: main" NEW_LINE
+                               "        return_type: I32" NEW_LINE
+                               "        return_statement" NEW_LINE
+                               "            integer_literal" NEW_LINE
+                               "                type: I32" NEW_LINE
+                               "                value: 0" NEW_LINE,
                                test.source_paths[0]);
 
             return true;

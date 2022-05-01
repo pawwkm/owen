@@ -359,6 +359,7 @@ void analyze_program(void)
             type_check_signature(file, lookup_function(file->function_declarations.handles[b]));
     }
 
+    Interned_String_Handle main_name = add_interned_string((String) { .text = "main", .length = 4 });
     for (uint8_t a = 0; a < files_length; a++)
     {
         File* file = &files[a];
@@ -366,11 +367,23 @@ void analyze_program(void)
         check_that_functions_in_scope_are_not_matching(file);
         for (uint16_t b = 0; b < file->function_declarations.handles_length; b++)
         {
-            Function* function = lookup_function(file->function_declarations.handles[b]);
+            Function_Handle function_handle = file->function_declarations.handles[b];
+            Function* function = lookup_function(function_handle);
+            if (compare_interned_strings(function->name, main_name))
+            {
+                if (!is_invalid_function_handle(main_function))
+                    print_span_error(file, function->name_span, "main function redeclared.");
+
+                main_function = function_handle;
+            }
+
             if ((function->attributes & Function_Attribute_is_polymorphic) == 0)
                 type_check_function_body(file, function);
         }
     }
+
+    if (is_invalid_function_handle(main_function))
+        print_error("No declared main function.");
 }
 
 Type_Handle lookup_signature(const File* file, const Function* function)

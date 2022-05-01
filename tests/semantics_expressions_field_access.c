@@ -64,6 +64,10 @@ static void access_field_of_monomorphic_structure(void)
                           "\n"
                           "function do_stuff(A a) : I32\n"
                           "    return a.b\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     SET_COMMAND_LINE("semantics/expressions/field_access/access_field_of_monomorphic_structure.owen "
@@ -91,7 +95,14 @@ static void access_field_of_monomorphic_structure(void)
                        "                reference_expression" NEW_LINE
                        "                    type: A" NEW_LINE
                        "                    name: a" NEW_LINE
-                       "                field: b" NEW_LINE);
+                       "                field: b" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void access_field_of_polymorphic_structure(void)
@@ -108,6 +119,10 @@ static void access_field_of_polymorphic_structure(void)
                           "\n"
                           "function do_stuff(A[I32] a) : I32\n"
                           "    return a.b\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     SET_COMMAND_LINE("semantics/expressions/field_access/access_field_of_polymorphic_structure.owen "
@@ -143,7 +158,14 @@ static void access_field_of_polymorphic_structure(void)
                        "                reference_expression" NEW_LINE
                        "                    type: A[I32]" NEW_LINE
                        "                    name: a" NEW_LINE
-                       "                field: b" NEW_LINE);
+                       "                field: b" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void access_field_of_monomorphic_union(void)
@@ -160,6 +182,10 @@ static void access_field_of_monomorphic_union(void)
                           "\n"
                           "function do_stuff(A a) : I32\n"
                           "    return a.b\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     SET_COMMAND_LINE("semantics/expressions/field_access/access_field_of_monomorphic_union.owen "
@@ -187,7 +213,14 @@ static void access_field_of_monomorphic_union(void)
                        "                reference_expression" NEW_LINE
                        "                    type: A" NEW_LINE
                        "                    name: a" NEW_LINE
-                       "                field: b" NEW_LINE);
+                       "                field: b" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void access_field_of_polymorphic_union(void)
@@ -204,6 +237,10 @@ static void access_field_of_polymorphic_union(void)
                           "\n"
                           "function do_stuff(A[I32] a) : I32\n"
                           "    return a.b\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     SET_COMMAND_LINE("semantics/expressions/field_access/access_field_of_polymorphic_union.owen "
@@ -239,7 +276,14 @@ static void access_field_of_polymorphic_union(void)
                        "                reference_expression" NEW_LINE
                        "                    type: A[I32]" NEW_LINE
                        "                    name: a" NEW_LINE
-                       "                field: b" NEW_LINE);
+                       "                field: b" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void access_length_field_of_array_types(void)
@@ -252,6 +296,10 @@ static void access_length_field_of_array_types(void)
                           "\n"
                           "function a([]I32 b, [2]I32 c) : U32, U32\n"
                           "    return b.length, c.length\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     SET_COMMAND_LINE("semantics/expressions/field_access/access_length_field_of_array_types.owen "
@@ -283,7 +331,14 @@ static void access_length_field_of_array_types(void)
                        "                reference_expression" NEW_LINE
                        "                    type: [2]I32" NEW_LINE
                        "                    name: c" NEW_LINE
-                       "                field: length" NEW_LINE);
+                       "                field: length" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void access_capacity_field_of_dynamic_array_type(void)
@@ -296,6 +351,10 @@ static void access_capacity_field_of_dynamic_array_type(void)
                           "\n"
                           "function a([]I32 b) : U32\n"
                           "    return b.capacity\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     SET_COMMAND_LINE("semantics/expressions/field_access/access_capacity_field_of_dynamic_array_type.owen "
@@ -317,7 +376,14 @@ static void access_capacity_field_of_dynamic_array_type(void)
                        "                reference_expression" NEW_LINE
                        "                    type: []I32" NEW_LINE
                        "                    name: b" NEW_LINE
-                       "                field: capacity" NEW_LINE);
+                       "                field: capacity" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void access_elements_field_of_dynamic_array_type(void)
@@ -330,6 +396,10 @@ static void access_elements_field_of_dynamic_array_type(void)
                           "\n"
                           "function a([]I32 b) : #I32\n"
                           "    return b.elements\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     SET_COMMAND_LINE("semantics/expressions/field_access/access_elements_field_of_dynamic_array_type.owen "
@@ -351,7 +421,14 @@ static void access_elements_field_of_dynamic_array_type(void)
                        "                reference_expression" NEW_LINE
                        "                    type: []I32" NEW_LINE
                        "                    name: b" NEW_LINE
-                       "                field: elements" NEW_LINE);
+                       "                field: elements" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void access_undefined_field_of_dynamic_array_type(void)
@@ -406,6 +483,10 @@ static bool access_field_of_pointer_to_compound(void)
                                   "\n"
                                   "function a(#?A b) : I32\n"
                                   "    return b.a\n"
+                                  "end\n"
+                                  "\n"
+                                  "function main() : I32\n"
+                                  "    return 0\n"
                                   "end");
 
             format_command_line_options("%s -print-semantics", test.source_paths[0]);
@@ -431,7 +512,14 @@ static bool access_field_of_pointer_to_compound(void)
                                "                reference_expression" NEW_LINE
                                "                    type: #?A" NEW_LINE
                                "                    name: b" NEW_LINE
-                               "                field: a" NEW_LINE,
+                               "                field: a" NEW_LINE
+                               "    function" NEW_LINE
+                               "        name: main" NEW_LINE
+                               "        return_type: I32" NEW_LINE
+                               "        return_statement" NEW_LINE
+                               "            integer_literal" NEW_LINE
+                               "                type: I32" NEW_LINE
+                               "                value: 0" NEW_LINE,
                                test.source_paths[0]);
 
             return true;

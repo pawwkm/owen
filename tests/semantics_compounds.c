@@ -275,6 +275,10 @@ static void indirectly_recursive_monomorphic_compound_through_pointer(void)
                           "\n"
                           "structure C\n"
                           "    A a\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     SET_COMMAND_LINE("semantics/compounds/indirectly_recursive_monomorphic_compound_through_pointer.owen "
@@ -301,7 +305,14 @@ static void indirectly_recursive_monomorphic_compound_through_pointer(void)
                        "        is_public: false" NEW_LINE
                        "        field" NEW_LINE
                        "            type: A" NEW_LINE
-                       "            name: a" NEW_LINE);
+                       "            name: a" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void indirectly_recursive_polymorphic_compound_through_polymorphic_compound(void)
@@ -387,6 +398,10 @@ static void monomorphic_compounds_with_the_same_name_in_different_namespaces(voi
                           "\n"
                           "structure A\n"
                           "    I32 a\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     format_source_path(1, "semantics/compounds/monomorphic_compounds_with_the_same_name_in_different_namespaces-2.owen");
@@ -411,6 +426,13 @@ static void monomorphic_compounds_with_the_same_name_in_different_namespaces(voi
                        "        field" NEW_LINE
                        "            type: I32" NEW_LINE
                        "            name: a" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE
                        "file" NEW_LINE
                        "    path: semantics/compounds/monomorphic_compounds_with_the_same_name_in_different_namespaces-2.owen" NEW_LINE
                        "    namespace: Def" NEW_LINE
@@ -456,6 +478,10 @@ static void monomorphic_compounds_with_the_same_name_in_the_same_namespaces_but_
                           "\n"
                           "structure A\n"
                           "    I32 a\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     format_source_path(1, "semantics/compounds/monomorphic_compounds_with_the_same_name_in_the_same_namespaces_but_both_are_non_public-2.owen");
@@ -480,6 +506,13 @@ static void monomorphic_compounds_with_the_same_name_in_the_same_namespaces_but_
                        "        field" NEW_LINE
                        "            type: I32" NEW_LINE
                        "            name: a" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE
                        "file" NEW_LINE
                        "    path: semantics/compounds/monomorphic_compounds_with_the_same_name_in_the_same_namespaces_but_both_are_non_public-2.owen" NEW_LINE
                        "    namespace: Abc" NEW_LINE
@@ -540,6 +573,10 @@ static void nested_non_recursive_polymorphic_compounds(void)
                           "\n"
                           "function do_stuff(A[I32] a) : A[I32]\n"
                           "    return a\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     SET_COMMAND_LINE("semantics/compounds/nested_non_recursive_polymorphic_compounds.owen "
@@ -586,7 +623,14 @@ static void nested_non_recursive_polymorphic_compounds(void)
                        "        return_statement" NEW_LINE
                        "            reference_expression" NEW_LINE
                        "                type: A[I32]" NEW_LINE
-                       "                name: a" NEW_LINE);
+                       "                name: a" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void non_recursive_monomorphic_compound_field(void)
@@ -603,6 +647,10 @@ static void non_recursive_monomorphic_compound_field(void)
                           "\n"
                           "structure B\n"
                           "    I32 x\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     SET_COMMAND_LINE("semantics/compounds/non_recursive_monomorphic_compound_field.owen "
@@ -623,7 +671,14 @@ static void non_recursive_monomorphic_compound_field(void)
                        "        is_public: false" NEW_LINE
                        "        field" NEW_LINE
                        "            type: I32" NEW_LINE
-                       "            name: x" NEW_LINE);
+                       "            name: x" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void polymorphic_compound_defines_multiple_fields_with_the_same_name(void)
@@ -665,6 +720,10 @@ static void polymorphic_compound_with_formal_type_parameter_with_the_same_name(v
                           "\n"
                           "function do_stuff(A[I32] a) : A[I32]\n"
                           "    return a\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     SET_COMMAND_LINE("semantics/compounds/polymorphic_compound_with_formal_type_parameter_with_the_same_name.owen "
@@ -697,7 +756,14 @@ static void polymorphic_compound_with_formal_type_parameter_with_the_same_name(v
                        "        return_statement" NEW_LINE
                        "            reference_expression" NEW_LINE
                        "                type: A[I32]" NEW_LINE
-                       "                name: a" NEW_LINE);
+                       "                name: a" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void polymorphic_compounds_with_the_same_name_but_different_amount_of_formal_type_parameters(void)
@@ -721,6 +787,10 @@ static void polymorphic_compounds_with_the_same_name_but_different_amount_of_for
                           "structure A[T1, T2]\n"
                           "    T1 x\n"
                           "    T2 y\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     SET_COMMAND_LINE("semantics/compounds/polymorphic_compounds_with_the_same_name_but_different_amount_of_formal_type_parameters.owen "
@@ -759,7 +829,14 @@ static void polymorphic_compounds_with_the_same_name_but_different_amount_of_for
                        "            name: x" NEW_LINE
                        "        field" NEW_LINE
                        "            type_reference: T2" NEW_LINE
-                       "            name: y" NEW_LINE);
+                       "            name: y" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void public_compound_with_field_of_non_public_compound(void)
@@ -817,6 +894,10 @@ static void public_compound_with_field_of_public_compound(void)
                           "\n"
                           "public structure B\n"
                           "    I32 x\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     SET_COMMAND_LINE("semantics/compounds/public_compound_with_field_of_public_compound.owen "
@@ -837,7 +918,14 @@ static void public_compound_with_field_of_public_compound(void)
                        "        is_public: true" NEW_LINE
                        "        field" NEW_LINE
                        "            type: I32" NEW_LINE
-                       "            name: x" NEW_LINE);
+                       "            name: x" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void public_compound_with_field_of_public_enumeration(void)
@@ -853,6 +941,10 @@ static void public_compound_with_field_of_public_enumeration(void)
                           "end\n"
                           "\n"
                           "public enumeration B : I32\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0"
                           "end");
 
     SET_COMMAND_LINE("semantics/compounds/public_compound_with_field_of_public_enumeration.owen "
@@ -871,7 +963,14 @@ static void public_compound_with_field_of_public_enumeration(void)
                        "    enumeration" NEW_LINE
                        "        name: B" NEW_LINE
                        "        underlying_type: I32" NEW_LINE
-                       "        is_public: true" NEW_LINE);
+                       "        is_public: true" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void missing_actual_type_parameter_in_polymorphic_field_type(void)
@@ -932,6 +1031,10 @@ static void polymorphic_type_using_formal_type_parameter(void)
                           "\n"
                           "structure C\n"
                           "    A[I32] x\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     SET_COMMAND_LINE("semantics/compounds/polymorphic_type_using_formal_type_parameter.owen "
@@ -974,7 +1077,14 @@ static void polymorphic_type_using_formal_type_parameter(void)
                        "        is_public: false" NEW_LINE
                        "        field" NEW_LINE
                        "            type: A[I32]" NEW_LINE
-                       "            name: x" NEW_LINE);
+                       "            name: x" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void pointer_to_formal_type_parameter(void)
@@ -991,6 +1101,10 @@ static void pointer_to_formal_type_parameter(void)
                           "\n"
                           "structure B\n"
                           "    A[I32] x\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     SET_COMMAND_LINE("semantics/compounds/pointer_to_formal_type_parameter.owen "
@@ -1019,7 +1133,14 @@ static void pointer_to_formal_type_parameter(void)
                        "        is_public: false" NEW_LINE
                        "        field" NEW_LINE
                        "            type: A[I32]" NEW_LINE
-                       "            name: x" NEW_LINE);
+                       "            name: x" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void dynamic_array_of_formal_type_parameter(void)
@@ -1036,6 +1157,10 @@ static void dynamic_array_of_formal_type_parameter(void)
                           "\n"
                           "structure B\n"
                           "    A[I32] x\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     SET_COMMAND_LINE("semantics/compounds/dynamic_array_of_formal_type_parameter.owen "
@@ -1064,7 +1189,14 @@ static void dynamic_array_of_formal_type_parameter(void)
                        "        is_public: false" NEW_LINE
                        "        field" NEW_LINE
                        "            type: A[I32]" NEW_LINE
-                       "            name: x" NEW_LINE);
+                       "            name: x" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void fixed_array_of_formal_type_parameter(void)
@@ -1081,7 +1213,11 @@ static void fixed_array_of_formal_type_parameter(void)
                           "\n"
                           "structure B\n"
                           "    A[I32] x\n"
-                          "end");
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
+                          "end\n");
 
     SET_COMMAND_LINE("semantics/compounds/fixed_array_of_formal_type_parameter.owen "
                      "-print-semantics");
@@ -1109,7 +1245,14 @@ static void fixed_array_of_formal_type_parameter(void)
                        "        is_public: false" NEW_LINE
                        "        field" NEW_LINE
                        "            type: A[I32]" NEW_LINE
-                       "            name: x" NEW_LINE);
+                       "            name: x" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void nested_formal_type_parameter(void)

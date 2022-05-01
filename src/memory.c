@@ -3,12 +3,23 @@
 
 #include <stdio.h>
 
+Function_Handle main_function = { .index = UINT16_MAX };
+
 char characters[CHARACTER_CAPACITY];
 uint32_t characters_length;
 
 Interned_String interned_strings[INTERNED_STRING_CAPACITY];
 uint16_t interned_strings_length;
 const Interned_String_Handle invalid_interned_string_handle = { .index = UINT16_MAX };
+
+Ir_Function ir_functions[IR_FUNCTION_CAPACITY];
+uint16_t ir_functions_length; 
+const Ir_Function_Handle invalid_ir_function_handle = { .index = UINT16_MAX };
+Ir_Function_Handle ir_function_handles[]; 
+uint16_t ir_function_handles_length;
+
+uint8_t  text_section[TEXT_SECTION_CAPACITY];
+uint32_t text_section_length;
 
 #define DEFAULT_ADD_IMPLEMENTATION(TYPE, LOWER_CASE_TYPE, LOWER_CASE_TYPE_PLURAL, UPPER_CASE_TYPE) \
 TYPE##_Handle add_##LOWER_CASE_TYPE(void)                                                          \
@@ -113,6 +124,14 @@ DEFINE_ARENA(Field_Initializer,   field_initializer,   field_initializers,   FIE
 DEFINE_ARENA(Constant,            constant,            constants,            CONSTANT,            uint16_t, UINT16_MAX)
 DEFINE_ARENA(Element_Initializer, element_initializer, element_initializers, ELEMENT_INITIALIZER, uint16_t, UINT16_MAX)
 DEFINE_ARENA(Variable,            variable,            variables,            VARIABLE,            uint16_t, UINT16_MAX)
+
+DEFINE_ARENA(Ir_Basic_Block,      ir_basic_block,      ir_basic_blocks,      IR_BASIC_BLOCK,      uint16_t, UINT16_MAX)
+DEFINE_ARENA(Ir_Instruction,      ir_instruction,      ir_instructions,      IR_INSTRUCTION,      uint32_t, UINT32_MAX)
+DEFINE_ARENA(Ir_Operand,          ir_operand,          ir_operands,          IR_OPERAND,          uint16_t, UINT16_MAX)
+
+DEFAULT_ADD_IMPLEMENTATION(Ir_Function,   ir_function, ir_functions, IR_FUNCTION)
+DEFAULT_COMPARE_IMPLEMENTION(Ir_Function, ir_function, ir_functions             )
+DEFAULT_LOOKUP_IMPLEMENTION(Ir_Function,  ir_function, ir_functions, IR_FUNCTION)
 
 DEFAULT_COMPARE_IMPLEMENTION(Interned_String, interned_string, interned_strings);
 
@@ -348,40 +367,49 @@ void print_memory(void)
         uint32_t size_of_t;
     } rows[] =
     {
-        { "Strings", "characters",                  CHARACTER_CAPACITY,                  characters_length,                  sizeof(characters),                  sizeof(characters[0])                  },
-        { "Strings", "interned_strings",            INTERNED_STRING_CAPACITY,            interned_strings_length,            sizeof(interned_strings),            sizeof(interned_strings[0])            },
+        { "Strings",  "characters",                  CHARACTER_CAPACITY,                  characters_length,                  sizeof(characters),                  sizeof(characters[0])                  },
+        { "Strings",  "interned_strings",            INTERNED_STRING_CAPACITY,            interned_strings_length,            sizeof(interned_strings),            sizeof(interned_strings[0])            },
 
-        { "Arenas",  "files",                       FILE_CAPACITY,                       files_length,                       sizeof(files),                       sizeof(files[0])                       },
-        { "Arenas",  "types",                       TYPE_CAPACITY,                       types_length,                       sizeof(types),                       sizeof(types[0])                       },
-        { "Arenas",  "type_references",             TYPE_REFERENCE_CAPACITY,             type_references_length,             sizeof(type_references),             sizeof(type_references[0])             },
-        { "Arenas",  "namespaces",                  NAMESPACE_CAPACITY,                  namespaces_length,                  sizeof(namespaces),                  sizeof(namespaces[0])                  },
-        { "Arenas",  "functions",                   FUNCTION_CAPACITY,                   functions_length,                   sizeof(functions),                   sizeof(functions[0])                   },
-        { "Arenas",  "formal_parameters",           FORMAL_PARAMETER_CAPACITY,           formal_parameters_length,           sizeof(formal_parameters),           sizeof(formal_parameters[0])           },
-        { "Arenas",  "statements",                  STATEMENT_CAPACITY,                  statements_length,                  sizeof(statements),                  sizeof(statements[0])                  },
-        { "Arenas",  "branches",                    BRANCH_CAPACITY,                     branches_length,                    sizeof(branches),                    sizeof(branches[0])                    },
-        { "Arenas",  "expressions",                 EXPRESSION_CAPACITY,                 expressions_length,                 sizeof(expressions),                 sizeof(expressions[0])                 },
-        { "Arenas",  "fields",                      FIELD_CAPACITY,                      fields_length,                      sizeof(fields),                      sizeof(fields[0])                      },
-        { "Arenas",  "field_initializers",          FIELD_INITIALIZER_CAPACITY,          field_initializers_length,          sizeof(field_initializers),          sizeof(field_initializers[0])          },
-        { "Arenas",  "constants",                   CONSTANT_CAPACITY,                   constants_length,                   sizeof(constants),                   sizeof(constants[0])                   },
-        { "Arenas",  "element_initializers",        ELEMENT_INITIALIZER_CAPACITY,        element_initializers_length,        sizeof(element_initializers),        sizeof(element_initializers[0])        },
-        { "Arenas",  "variables",                   VARIABLE_CAPACITY,                   variables_length,                   sizeof(variables),                   sizeof(variables[0])                   },
+        { "Arenas",   "files",                       FILE_CAPACITY,                       files_length,                       sizeof(files),                       sizeof(files[0])                       },
+        { "Arenas",   "types",                       TYPE_CAPACITY,                       types_length,                       sizeof(types),                       sizeof(types[0])                       },
+        { "Arenas",   "type_references",             TYPE_REFERENCE_CAPACITY,             type_references_length,             sizeof(type_references),             sizeof(type_references[0])             },
+        { "Arenas",   "namespaces",                  NAMESPACE_CAPACITY,                  namespaces_length,                  sizeof(namespaces),                  sizeof(namespaces[0])                  },
+        { "Arenas",   "functions",                   FUNCTION_CAPACITY,                   functions_length,                   sizeof(functions),                   sizeof(functions[0])                   },
+        { "Arenas",   "formal_parameters",           FORMAL_PARAMETER_CAPACITY,           formal_parameters_length,           sizeof(formal_parameters),           sizeof(formal_parameters[0])           },
+        { "Arenas",   "statements",                  STATEMENT_CAPACITY,                  statements_length,                  sizeof(statements),                  sizeof(statements[0])                  },
+        { "Arenas",   "branches",                    BRANCH_CAPACITY,                     branches_length,                    sizeof(branches),                    sizeof(branches[0])                    },
+        { "Arenas",   "expressions",                 EXPRESSION_CAPACITY,                 expressions_length,                 sizeof(expressions),                 sizeof(expressions[0])                 },
+        { "Arenas",   "fields",                      FIELD_CAPACITY,                      fields_length,                      sizeof(fields),                      sizeof(fields[0])                      },
+        { "Arenas",   "field_initializers",          FIELD_INITIALIZER_CAPACITY,          field_initializers_length,          sizeof(field_initializers),          sizeof(field_initializers[0])          },
+        { "Arenas",   "constants",                   CONSTANT_CAPACITY,                   constants_length,                   sizeof(constants),                   sizeof(constants[0])                   },
+        { "Arenas",   "element_initializers",        ELEMENT_INITIALIZER_CAPACITY,        element_initializers_length,        sizeof(element_initializers),        sizeof(element_initializers[0])        },
+        { "Arenas",   "variables",                   VARIABLE_CAPACITY,                   variables_length,                   sizeof(variables),                   sizeof(variables[0])                   },
+        { "Arenas",   "ir_functions",                IR_FUNCTION_CAPACITY,                ir_functions_length,                sizeof(ir_functions),                sizeof(ir_functions[0])                },
+        { "Arenas",   "ir_basic_blocks",             IR_BASIC_BLOCK_CAPACITY,             ir_basic_blocks_length,             sizeof(ir_basic_blocks),             sizeof(ir_basic_blocks[0])             },
+        { "Arenas",   "ir_instructions",             IR_INSTRUCTION_CAPACITY,             ir_instructions_length,             sizeof(ir_instructions),             sizeof(ir_instructions[0])             },
+        { "Arenas",   "ir_operands",                 IR_OPERAND_CAPACITY,                 ir_operands_length,                 sizeof(ir_operands),                 sizeof(ir_operands[0])                 },
 
-        { "Handles", "type_handles",                TYPE_HANDLE_CAPACITY,                type_handles_length,                sizeof(type_handles),                sizeof(type_handles[0])                },
-        { "Handles", "type_reference_handles",      TYPE_REFERENCE_HANDLE_CAPACITY,      type_reference_handles_length,      sizeof(type_reference_handles),      sizeof(type_reference_handles[0])      },
-        { "Handles", "namespace_handles",           NAMESPACE_HANDLE_CAPACITY,           namespace_handles_length,           sizeof(namespace_handles),           sizeof(namespace_handles[0])           },
-        { "Handles", "function_handles",            FUNCTION_HANDLE_CAPACITY,            function_handles_length,            sizeof(function_handles),            sizeof(function_handles[0])            },
-        { "Handles", "formal_parameter_handles",    FORMAL_PARAMETER_HANDLE_CAPACITY,    formal_parameter_handles_length,    sizeof(formal_parameter_handles),    sizeof(formal_parameter_handles[0])    },
-        { "Handles", "statement_handles",           STATEMENT_HANDLE_CAPACITY,           statement_handles_length,           sizeof(statement_handles),           sizeof(statement_handles[0])           },
-        { "Handles", "branch_handles",              BRANCH_HANDLE_CAPACITY,              branch_handles_length,              sizeof(branch_handles),              sizeof(branch_handles[0])              },
-        { "Handles", "expression_handles",          EXPRESSION_HANDLE_CAPACITY,          expression_handles_length,          sizeof(expression_handles),          sizeof(expression_handles[0])          },
-        { "Handles", "field_handles",               FIELD_HANDLE_CAPACITY,               field_handles_length,               sizeof(field_handles),               sizeof(field_handles[0])               },
-        { "Handles", "field_initializer_handles",   FIELD_INITIALIZER_HANDLE_CAPACITY,   field_initializer_handles_length,   sizeof(field_initializer_handles),   sizeof(field_initializer_handles[0])   },
-        { "Handles", "constant_handles",            CONSTANT_HANDLE_CAPACITY,            constant_handles_length,            sizeof(constant_handles),            sizeof(constant_handles[0])            },
-        { "Handles", "element_initializer_handles", ELEMENT_INITIALIZER_HANDLE_CAPACITY, element_initializer_handles_length, sizeof(element_initializer_handles), sizeof(element_initializer_handles[0]) },
-        { "Handles", "variable_handles",            VARIABLE_HANDLE_CAPACITY,            variable_handles_length,            sizeof(variable_handles),            sizeof(variable_handles[0])            },
+        { "Handles",  "type_handles",                TYPE_HANDLE_CAPACITY,                type_handles_length,                sizeof(type_handles),                sizeof(type_handles[0])                },
+        { "Handles",  "type_reference_handles",      TYPE_REFERENCE_HANDLE_CAPACITY,      type_reference_handles_length,      sizeof(type_reference_handles),      sizeof(type_reference_handles[0])      },
+        { "Handles",  "namespace_handles",           NAMESPACE_HANDLE_CAPACITY,           namespace_handles_length,           sizeof(namespace_handles),           sizeof(namespace_handles[0])           },
+        { "Handles",  "function_handles",            FUNCTION_HANDLE_CAPACITY,            function_handles_length,            sizeof(function_handles),            sizeof(function_handles[0])            },
+        { "Handles",  "formal_parameter_handles",    FORMAL_PARAMETER_HANDLE_CAPACITY,    formal_parameter_handles_length,    sizeof(formal_parameter_handles),    sizeof(formal_parameter_handles[0])    },
+        { "Handles",  "statement_handles",           STATEMENT_HANDLE_CAPACITY,           statement_handles_length,           sizeof(statement_handles),           sizeof(statement_handles[0])           },
+        { "Handles",  "branch_handles",              BRANCH_HANDLE_CAPACITY,              branch_handles_length,              sizeof(branch_handles),              sizeof(branch_handles[0])              },
+        { "Handles",  "expression_handles",          EXPRESSION_HANDLE_CAPACITY,          expression_handles_length,          sizeof(expression_handles),          sizeof(expression_handles[0])          },
+        { "Handles",  "field_handles",               FIELD_HANDLE_CAPACITY,               field_handles_length,               sizeof(field_handles),               sizeof(field_handles[0])               },
+        { "Handles",  "field_initializer_handles",   FIELD_INITIALIZER_HANDLE_CAPACITY,   field_initializer_handles_length,   sizeof(field_initializer_handles),   sizeof(field_initializer_handles[0])   },
+        { "Handles",  "constant_handles",            CONSTANT_HANDLE_CAPACITY,            constant_handles_length,            sizeof(constant_handles),            sizeof(constant_handles[0])            },
+        { "Handles",  "element_initializer_handles", ELEMENT_INITIALIZER_HANDLE_CAPACITY, element_initializer_handles_length, sizeof(element_initializer_handles), sizeof(element_initializer_handles[0]) },
+        { "Handles",  "variable_handles",            VARIABLE_HANDLE_CAPACITY,            variable_handles_length,            sizeof(variable_handles),            sizeof(variable_handles[0])            },
+        { "Handles",  "ir_basic_block_handles",      IR_BASIC_BLOCK_HANDLE_CAPACITY,      ir_basic_block_handles_length,      sizeof(ir_basic_block_handles),      sizeof(ir_basic_block_handles[0])      },
+        { "Handles",  "ir_instruction_handles",      IR_INSTRUCTION_HANDLE_CAPACITY,      ir_instruction_handles_length,      sizeof(ir_instruction_handles),      sizeof(ir_instruction_handles[0])      },
+        { "Handles",  "ir_operand_handles",          IR_OPERAND_HANDLE_CAPACITY,          ir_operand_handles_length,          sizeof(ir_operand_handles),          sizeof(ir_operand_handles[0])          },
 
-        { "Stacks",  "symbol_tables",               SYMBOL_TABLE_POOL_CAPACITY,          deepest_symbol_table,               sizeof(symbol_tables),               sizeof(symbol_tables[0])               },
-        { "Stacks",  "polymorphic_type_mappings",   POLYMORPHIC_STACK_CAPACITY,          deepest_polymorphic_type_mapping,   sizeof(polymorphic_type_mappings),   sizeof(polymorphic_type_mappings[0])   }
+        { "Stacks",   "symbol_tables",               SYMBOL_TABLE_POOL_CAPACITY,          deepest_symbol_table,               sizeof(symbol_tables),               sizeof(symbol_tables[0])               },
+        { "Stacks",   "polymorphic_type_mappings",   POLYMORPHIC_STACK_CAPACITY,          deepest_polymorphic_type_mapping,   sizeof(polymorphic_type_mappings),   sizeof(polymorphic_type_mappings[0])   },
+
+        { "Sections", "text_section",                TEXT_SECTION_CAPACITY,               text_section_length,                sizeof(text_section),                sizeof(text_section[0])                }
     };
 
     uint8_t longest_name_length      = 0;

@@ -37,6 +37,10 @@ static bool initialize_non_pointer_x_typed_element_as_non_pointer_x_typed_expres
                           "\n"
                           "function a(%s b) : [2]%s\n"
                           "    return { b }\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end", 
                           types[index].name,
                           types[index].name);
@@ -101,7 +105,14 @@ static bool initialize_non_pointer_x_typed_element_as_non_pointer_x_typed_expres
                            "                    index: 0" NEW_LINE
                            "                    reference_expression" NEW_LINE
                            "                        type: Structure[I32]" NEW_LINE
-                           "                        name: b" NEW_LINE);
+                           "                        name: b" NEW_LINE
+                           "    function" NEW_LINE
+                           "        name: main" NEW_LINE
+                           "        return_type: I32" NEW_LINE
+                           "        return_statement" NEW_LINE
+                           "            integer_literal" NEW_LINE
+                           "                type: I32" NEW_LINE
+                           "                value: 0" NEW_LINE);
     }
     else if (!strcmp("Union[I32]", types[index].name))
     {
@@ -162,7 +173,14 @@ static bool initialize_non_pointer_x_typed_element_as_non_pointer_x_typed_expres
                            "                    index: 0" NEW_LINE
                            "                    reference_expression" NEW_LINE
                            "                        type: Union[I32]" NEW_LINE
-                           "                        name: b" NEW_LINE);
+                           "                        name: b" NEW_LINE
+                           "    function" NEW_LINE
+                           "        name: main" NEW_LINE
+                           "        return_type: I32" NEW_LINE
+                           "        return_statement" NEW_LINE
+                           "            integer_literal" NEW_LINE
+                           "                type: I32" NEW_LINE
+                           "                value: 0" NEW_LINE );
     }
     else
     {
@@ -216,7 +234,14 @@ static bool initialize_non_pointer_x_typed_element_as_non_pointer_x_typed_expres
                            "                    index: 0" NEW_LINE
                            "                    reference_expression" NEW_LINE
                            "                        type: %s" NEW_LINE
-                           "                        name: b" NEW_LINE,
+                           "                        name: b" NEW_LINE
+                           "    function" NEW_LINE
+                           "        name: main" NEW_LINE
+                           "        return_type: I32" NEW_LINE
+                           "        return_statement" NEW_LINE
+                           "            integer_literal" NEW_LINE
+                           "                type: I32" NEW_LINE
+                           "                value: 0" NEW_LINE ,
                            test.source_paths[0],
                            types[index].name,
                            types[index].name,
@@ -250,6 +275,10 @@ static bool initialize_pointer_x_typed_element_as_x_type_compatible_expression(v
                                   "function a(%s b)\n"
                                   "    [2]%s c = { b }\n"
                                   "    c = c\n"
+                                  "end"
+                                  "\n"
+                                  "function main() : I32\n"
+                                  "    return 0\n"
                                   "end", 
                                   types[expression_type_index].name,
                                   types[element_type_index].name);
@@ -282,7 +311,14 @@ static bool initialize_pointer_x_typed_element_as_x_type_compatible_expression(v
                                "                name: c" NEW_LINE
                                "            reference_expression" NEW_LINE
                                "                type: [2]%s" NEW_LINE
-                               "                name: c" NEW_LINE,
+                               "                name: c" NEW_LINE
+                               "    function" NEW_LINE
+                               "        name: main" NEW_LINE
+                               "        return_type: I32" NEW_LINE
+                               "        return_statement" NEW_LINE
+                               "            integer_literal" NEW_LINE
+                               "                type: I32" NEW_LINE
+                               "                value: 0" NEW_LINE,
                                test.source_paths[0],
                                types[expression_type_index].name,
                                types[element_type_index].name,
@@ -564,9 +600,10 @@ static bool initialize_x_typed_element_as_x_type_compatible_literal(void)
                                   "    T a\n"
                                   "end\n"
                                   "\n"
-                                  "function a()\n"
+                                  "function main() : I32\n"
                                   "    [2]%s b = { %s }\n"
                                   "    b = b\n"
+                                  "    return 0\n"
                                   "end", 
                                   types[index].name,
                                   types[index].default_value);
@@ -612,7 +649,8 @@ static bool initialize_x_typed_element_as_x_type_compatible_literal(void)
                                    "            type_reference: T" NEW_LINE
                                    "            name: a" NEW_LINE
                                    "    function" NEW_LINE
-                                   "        name: a" NEW_LINE
+                                   "        name: main" NEW_LINE
+                                   "        return_type: I32" NEW_LINE
                                    "        declaration_statement" NEW_LINE
                                    "            variable" NEW_LINE
                                    "                type: [2]Structure[I32]" NEW_LINE
@@ -636,7 +674,11 @@ static bool initialize_x_typed_element_as_x_type_compatible_literal(void)
                                    "                name: b" NEW_LINE
                                    "            reference_expression" NEW_LINE
                                    "                type: [2]Structure[I32]" NEW_LINE
-                                   "                name: b" NEW_LINE);
+                                   "                name: b" NEW_LINE
+                                   "        return_statement" NEW_LINE
+                                   "            integer_literal" NEW_LINE
+                                   "                type: I32" NEW_LINE
+                                   "                value: 0" NEW_LINE);
             }
             else if (!strcmp("Union[I32]", types[index].name))
             {
@@ -678,7 +720,8 @@ static bool initialize_x_typed_element_as_x_type_compatible_literal(void)
                                    "            type: I32" NEW_LINE
                                    "            name: a" NEW_LINE
                                    "    function" NEW_LINE
-                                   "        name: a" NEW_LINE
+                                   "        name: main" NEW_LINE
+                                   "        return_type: I32" NEW_LINE
                                    "        declaration_statement" NEW_LINE
                                    "            variable" NEW_LINE
                                    "                type: [2]Union[I32]" NEW_LINE
@@ -702,7 +745,11 @@ static bool initialize_x_typed_element_as_x_type_compatible_literal(void)
                                    "                name: b" NEW_LINE
                                    "            reference_expression" NEW_LINE
                                    "                type: [2]Union[I32]" NEW_LINE
-                                   "                name: b" NEW_LINE);
+                                   "                name: b" NEW_LINE
+                                   "        return_statement" NEW_LINE
+                                   "            integer_literal" NEW_LINE
+                                   "                type: I32" NEW_LINE
+                                   "                value: 0" NEW_LINE);
             }
             else if (types[index].default_value_name && !strcmp("Compound", types[index].default_value_name))
             {
@@ -737,7 +784,8 @@ static bool initialize_x_typed_element_as_x_type_compatible_literal(void)
                                    "            type_reference: T" NEW_LINE
                                    "            name: a" NEW_LINE
                                    "    function" NEW_LINE
-                                   "        name: a" NEW_LINE
+                                   "        name: main" NEW_LINE
+                                   "        return_type: I32" NEW_LINE
                                    "        declaration_statement" NEW_LINE
                                    "            variable" NEW_LINE
                                    "                type: [2]%s" NEW_LINE
@@ -761,7 +809,11 @@ static bool initialize_x_typed_element_as_x_type_compatible_literal(void)
                                    "                name: b" NEW_LINE
                                    "            reference_expression" NEW_LINE
                                    "                type: [2]%s" NEW_LINE
-                                   "                name: b" NEW_LINE,
+                                   "                name: b" NEW_LINE
+                                   "        return_statement" NEW_LINE
+                                   "            integer_literal" NEW_LINE
+                                   "                type: I32" NEW_LINE
+                                   "                value: 0" NEW_LINE,
                                    test.source_paths[0],
                                    types[index].name,
                                    types[index].name,
@@ -802,7 +854,8 @@ static bool initialize_x_typed_element_as_x_type_compatible_literal(void)
                                    "            type_reference: T" NEW_LINE
                                    "            name: a" NEW_LINE
                                    "    function" NEW_LINE
-                                   "        name: a" NEW_LINE
+                                   "        name: main" NEW_LINE
+                                   "        return_type: I32" NEW_LINE
                                    "        declaration_statement" NEW_LINE
                                    "            variable" NEW_LINE
                                    "                type: [2]%s" NEW_LINE
@@ -821,7 +874,11 @@ static bool initialize_x_typed_element_as_x_type_compatible_literal(void)
                                    "                name: b" NEW_LINE
                                    "            reference_expression" NEW_LINE
                                    "                type: [2]%s" NEW_LINE
-                                   "                name: b" NEW_LINE,
+                                   "                name: b" NEW_LINE
+                                   "        return_statement" NEW_LINE
+                                   "            integer_literal" NEW_LINE
+                                   "                type: I32" NEW_LINE
+                                   "                value: 0" NEW_LINE,
                                    test.source_paths[0],
                                    types[index].name,
                                    types[index].name,
@@ -922,6 +979,10 @@ static void monomorphic_literal_in_polymorphic_function(void)
                           "\n"
                           "function c(I32 d) : [2]I32\n"
                           "    return a[I32](d)\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     SET_COMMAND_LINE("semantics/expressions/array_literal/monomorphic_literal_in_polymorphic_function.owen "
@@ -973,7 +1034,14 @@ static void monomorphic_literal_in_polymorphic_function(void)
                        "                    actual_type_parameter: I32" NEW_LINE
                        "                reference_expression" NEW_LINE
                        "                    type: I32" NEW_LINE
-                       "                    name: d" NEW_LINE);
+                       "                    name: d" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void integer_literal_index_is_out_of_bounds_by_one(void)
@@ -1114,6 +1182,10 @@ static bool enumeration_constant_access_index_inside_bound_where_x_as_the_underl
                           "\n"
                           "function a() : [2]I32\n"
                           "    return { [A.a] = 1 }\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end",
                           types[type_index].name);
 
@@ -1142,7 +1214,14 @@ static bool enumeration_constant_access_index_inside_bound_where_x_as_the_underl
                        "                        value: a" NEW_LINE
                        "                    integer_literal" NEW_LINE
                        "                        type: I32" NEW_LINE
-                       "                        value: 1" NEW_LINE,
+                       "                        value: 1" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE,
                        test.source_paths[0],
                        types[type_index].name);
 
@@ -1238,6 +1317,10 @@ static void explicit_out_of_order_element_initializers_followed_by_implicit_inde
                           "\n"
                           "function a() : [4]I32\n"
                           "    return { [2] = 1, [0] = 1, 1 }\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     SET_COMMAND_LINE("semantics/expressions/array_literal/explicit_out_of_order_element_initializers_followed_by_implicit_indexed_initializer.owen "
@@ -1273,7 +1356,14 @@ static void explicit_out_of_order_element_initializers_followed_by_implicit_inde
                        "                    index: 1" NEW_LINE
                        "                    integer_literal" NEW_LINE
                        "                        type: I32" NEW_LINE
-                       "                        value: 1" NEW_LINE);
+                       "                        value: 1" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void implicit_indexed_initializers_inside_bounds(void)
@@ -1286,6 +1376,10 @@ static void implicit_indexed_initializers_inside_bounds(void)
                           "\n"
                           "function a() : [3]I32\n"
                           "    return { 3, 4, 5 }\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     SET_COMMAND_LINE("semantics/expressions/array_literal/implicit_indexed_initializers_inside_bounds.owen "
@@ -1315,7 +1409,14 @@ static void implicit_indexed_initializers_inside_bounds(void)
                        "                    index: 2" NEW_LINE
                        "                    integer_literal" NEW_LINE
                        "                        type: I32" NEW_LINE
-                       "                        value: 5" NEW_LINE);
+                       "                        value: 5" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void implicit_indexed_initializers_outside_bounds(void)

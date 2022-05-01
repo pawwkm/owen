@@ -9,6 +9,10 @@ static void enumerations_with_the_same_name_in_different_namespaces(void)
                           "namespace Abc\n"
                           "\n"
                           "enumeration A : I32\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     format_source_path(1, "semantics/enumerations/enumerations_with_the_same_name_in_different_namespaces-2.owen");
@@ -30,6 +34,13 @@ static void enumerations_with_the_same_name_in_different_namespaces(void)
                        "        name: A" NEW_LINE
                        "        underlying_type: I32" NEW_LINE
                        "        is_public: false" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE
                        "file" NEW_LINE
                        "    path: semantics/enumerations/enumerations_with_the_same_name_in_different_namespaces-2.owen" NEW_LINE
                        "    namespace: Def" NEW_LINE
@@ -70,6 +81,10 @@ static void enumerations_with_the_same_name_in_the_same_namespaces(void)
                           "namespace Abc\n"
                           "\n"
                           "enumeration A : I32\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     format_source_path(1, "semantics/enumerations/enumerations_with_the_same_name_in_the_same_namespaces-2.owen");
@@ -91,6 +106,13 @@ static void enumerations_with_the_same_name_in_the_same_namespaces(void)
                        "        name: A" NEW_LINE
                        "        underlying_type: I32" NEW_LINE
                        "        is_public: false" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE
                        "file" NEW_LINE
                        "    path: semantics/enumerations/enumerations_with_the_same_name_in_the_same_namespaces-2.owen" NEW_LINE
                        "    namespace: Def" NEW_LINE
@@ -197,6 +219,10 @@ static bool x_typed_explicitly_positive_valued_constant_followed_by_implicitly_v
                           "enumeration A : %s\n"
                           "    a = 4\n"
                           "    b\n"
+                          "end"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end",
                           types[index].name);
 
@@ -214,7 +240,14 @@ static bool x_typed_explicitly_positive_valued_constant_followed_by_implicitly_v
                        "            value: 4" NEW_LINE
                        "        constant" NEW_LINE
                        "            name: b" NEW_LINE
-                       "            value: 5" NEW_LINE,
+                       "            value: 5" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE,
                        test.source_paths[0],
                        types[index].name);
 
@@ -237,6 +270,10 @@ static bool x_typed_explicitly_negative_valued_constant_followed_by_implicitly_v
                           "enumeration A : %s\n"
                           "    a = -4\n"
                           "    b\n"
+                          "end"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end",
                           types[index].name);
 
@@ -254,7 +291,14 @@ static bool x_typed_explicitly_negative_valued_constant_followed_by_implicitly_v
                        "            value: -4" NEW_LINE
                        "        constant" NEW_LINE
                        "            name: b" NEW_LINE
-                       "            value: -3" NEW_LINE,
+                       "            value: -3" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE,
                        test.source_paths[0],
                        types[index].name);
 
@@ -278,6 +322,10 @@ static bool x_typed_implicitly_valued_constant_between_explicitly_valued_constan
                           "    a = 2\n"
                           "    b\n"
                           "    c = 6\n"
+                          "end"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end",
                           types[index].name);
 
@@ -298,7 +346,14 @@ static bool x_typed_implicitly_valued_constant_between_explicitly_valued_constan
                        "            value: 3" NEW_LINE
                        "        constant" NEW_LINE
                        "            name: c" NEW_LINE
-                       "            value: 6" NEW_LINE,
+                       "            value: 6" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE,
                        test.source_paths[0],
                        types[index].name);
 
@@ -322,6 +377,10 @@ static bool x_typed_implicitly_valued_constants_only(void)
                           "    a\n"
                           "    b\n"
                           "    c\n"
+                          "end"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end",
                           types[index].name);
 
@@ -342,7 +401,14 @@ static bool x_typed_implicitly_valued_constants_only(void)
                        "            value: 1" NEW_LINE
                        "        constant" NEW_LINE
                        "            name: c" NEW_LINE
-                       "            value: 2" NEW_LINE,
+                       "            value: 2" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE,
                        test.source_paths[0],
                        types[index].name);
 

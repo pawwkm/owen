@@ -14,7 +14,9 @@ set owen_sources= src/*.c ^
                   src/semantics/*.c ^
                   src/semantics/expressions/*.c ^
                   src/semantics/expressions/call/*.c ^
-                  src/semantics/statements/*.c 
+                  src/semantics/statements/*.c ^
+                  src/ir/*.c ^
+                  src/x64/*.c
                   
 set runner_sources= tests/*.c 
 

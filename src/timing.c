@@ -99,7 +99,7 @@ void print_timings(void)
     print_timing("File writing    ", timers[Timer_file_writing]);
     
     uint64_t total = 0;
-    for (size_t i = 0; i < Timer_code_generation; i++)
+    for (Timer i = Timer_file_reading; i <= Timer_file_writing; i++)
         total += timers[i];
     
     print_timing("Total           ", total);

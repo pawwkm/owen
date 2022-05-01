@@ -21,7 +21,7 @@ static void parse_arguments(int argc, char* argv[])
             if (i + 1 == argc)
                 print_error("Missing path after -o");
 
-            options.destination = argv[i];
+            options.destination = argv[++i];
         }
         else if (!strcmp("-print-semantics", argv[i]))
             options.print_semantics = true;
@@ -77,9 +77,16 @@ int main(int argc, char *argv[])
         return 0;
     }
    
-    if (files_length) 
+    if (files_length)
+    {
         analyze_program();
-    
+        if (options.destination)
+        {
+            lower_ast();
+            generate_pe();
+        }
+    }
+
     print_extra_info(true);
     
     return 0;

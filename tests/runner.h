@@ -15,7 +15,7 @@
 typedef bool (*Test_Iterator)(void);
 
 #define MAX_OWEN_SOURCES 2
-#define OUTPUT_LENGTH 6500
+#define OUTPUT_LENGTH 6600
 
 #define EXE_NAME "owen "
 #define EXE_NAME_LENGTH 5

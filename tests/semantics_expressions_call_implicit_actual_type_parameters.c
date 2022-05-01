@@ -18,6 +18,10 @@ static void actual_type_parameters_make_signature_match_monomorphic_function(voi
                           "\n"
                           "function c(I32 d) : I32\n"
                           "    return a(d)\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     SET_COMMAND_LINE("semantics/expressions/call/implicit_actual_type_parameters/actual_type_parameters_make_signature_match_monomorphic_function.owen "
@@ -61,7 +65,14 @@ static void actual_type_parameters_make_signature_match_monomorphic_function(voi
                        "                    name: a" NEW_LINE
                        "                reference_expression" NEW_LINE
                        "                    type: I32" NEW_LINE
-                       "                    name: d" NEW_LINE,
+                       "                    name: d" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE,
                        test.source_paths[0]);
 }
 
@@ -169,6 +180,10 @@ static void formal_type_parameter_nested_in_compound(void)
                           "\n"
                           "function c(A[I32] d) : I32\n"
                           "    return a(d)\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     SET_COMMAND_LINE("semantics/expressions/call/implicit_actual_type_parameters/formal_type_parameter_nested_in_compound.owen "
@@ -232,7 +247,14 @@ static void formal_type_parameter_nested_in_compound(void)
                        "                    name: a" NEW_LINE
                        "                reference_expression" NEW_LINE
                        "                    type: A[I32]" NEW_LINE
-                       "                    name: d" NEW_LINE);
+                       "                    name: d" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void formal_type_parameter_not_specified_by_actual_parameters(void)
@@ -295,6 +317,10 @@ static void formal_type_parameters_is_actual_type_parameter(void)
                           "\n"
                           "function c(I32 d) : I32\n"
                           "    return a(d)\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     SET_COMMAND_LINE("semantics/expressions/call/implicit_actual_type_parameters/formal_type_parameters_is_actual_type_parameter.owen "
@@ -339,7 +365,14 @@ static void formal_type_parameters_is_actual_type_parameter(void)
                        "                    name: a" NEW_LINE
                        "                reference_expression" NEW_LINE
                        "                    type: I32" NEW_LINE
-                       "                    name: d" NEW_LINE);
+                       "                    name: d" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static bool literal_as_actual_parameter(void)

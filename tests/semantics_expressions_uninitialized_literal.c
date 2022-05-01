@@ -35,6 +35,10 @@ static bool x_typed(void)
                           "function a() : %s\n"
                           "    %s b = ---\n"
                           "    return b\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end", 
                           types[index].name,
                           types[index].name);
@@ -99,7 +103,14 @@ static bool x_typed(void)
                            "        return_statement" NEW_LINE
                            "            reference_expression" NEW_LINE
                            "                type: Union[I32]" NEW_LINE
-                           "                name: b" NEW_LINE,
+                           "                name: b" NEW_LINE
+                           "    function" NEW_LINE
+                           "        name: main" NEW_LINE
+                           "        return_type: I32" NEW_LINE
+                           "        return_statement" NEW_LINE
+                           "            integer_literal" NEW_LINE
+                           "                type: I32" NEW_LINE
+                           "                value: 0" NEW_LINE,
                            test.source_paths[0]);
     }
     else if (!strcmp("Structure[I32]", types[index].name))
@@ -160,7 +171,14 @@ static bool x_typed(void)
                            "        return_statement" NEW_LINE
                            "            reference_expression" NEW_LINE
                            "                type: Structure[I32]" NEW_LINE
-                           "                name: b" NEW_LINE,
+                           "                name: b" NEW_LINE
+                           "    function" NEW_LINE
+                           "        name: main" NEW_LINE
+                           "        return_type: I32" NEW_LINE
+                           "        return_statement" NEW_LINE
+                           "            integer_literal" NEW_LINE
+                           "                type: I32" NEW_LINE
+                           "                value: 0" NEW_LINE,
                            test.source_paths[0]);
     }
     else
@@ -214,7 +232,14 @@ static bool x_typed(void)
                            "        return_statement" NEW_LINE
                            "            reference_expression" NEW_LINE
                            "                type: %s" NEW_LINE
-                           "                name: b" NEW_LINE,
+                           "                name: b" NEW_LINE
+                           "    function" NEW_LINE
+                           "        name: main" NEW_LINE
+                           "        return_type: I32" NEW_LINE
+                           "        return_statement" NEW_LINE
+                           "            integer_literal" NEW_LINE
+                           "                type: I32" NEW_LINE
+                           "                value: 0" NEW_LINE,
                            test.source_paths[0],
                            types[index].name,
                            types[index].name,

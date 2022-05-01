@@ -34,6 +34,10 @@ static bool x_typed_literal(void)
                           "\n"
                           "function a() : %s\n"
                           "    return 'a'\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end",
                           types[type_index].name);
 
@@ -83,7 +87,14 @@ static bool x_typed_literal(void)
                            "        return_statement" NEW_LINE
                            "            integer_literal" NEW_LINE
                            "                type: %s" NEW_LINE
-                           "                value: 97" NEW_LINE,
+                           "                value: 97" NEW_LINE
+                           "    function" NEW_LINE
+                           "        name: main" NEW_LINE
+                           "        return_type: I32" NEW_LINE
+                           "        return_statement" NEW_LINE
+                           "            integer_literal" NEW_LINE
+                           "                type: I32" NEW_LINE
+                           "                value: 0" NEW_LINE,
                            test.source_paths[0],
                            types[type_index].name,
                            types[type_index].name);

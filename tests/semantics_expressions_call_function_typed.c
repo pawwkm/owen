@@ -10,7 +10,11 @@ static void no_parameters_or_return_types(void)
                           "\n"
                           "function a(Function() b)\n"
                           "    b()\n"
-                          "end\n");
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
+                          "end");
 
     SET_COMMAND_LINE("semantics/expressions/call/function_typed/no_parameters_or_return_types.owen "
                      "-print-semantics");
@@ -28,7 +32,14 @@ static void no_parameters_or_return_types(void)
                        "            type: none" NEW_LINE
                        "            reference_expression" NEW_LINE
                        "                type: Function()" NEW_LINE
-                       "                name: b" NEW_LINE);
+                       "                name: b" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void matching_number_of_parameters_but_wrong_type(void)
@@ -60,7 +71,11 @@ static void matching_number_of_parameters_and_types(void)
                           "\n"
                           "function a(Function(I32) b, I32 c)\n"
                           "    b(c)\n"
-                          "end\n");
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
+                          "end");
 
     SET_COMMAND_LINE("semantics/expressions/call/function_typed/matching_number_of_parameters_and_types.owen "
                      "-print-semantics");
@@ -84,7 +99,14 @@ static void matching_number_of_parameters_and_types(void)
                        "                name: b" NEW_LINE
                        "            reference_expression" NEW_LINE
                        "                type: I32" NEW_LINE
-                       "                name: c" NEW_LINE);
+                       "                name: c" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 bool semantics_expressions_call_function_typed(void)

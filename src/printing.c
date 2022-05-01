@@ -742,6 +742,8 @@ static void print_utf8_string_literal(const Utf8_String_Literal* literal, bool i
     printf("value: \"");
     print_string_by_handle(literal->string, stdout);
     printf("\"\n");
+
+    indentation--;
 }
 
 static void print_node_with_type(Type_Handle type, const char* node, bool is_not_polymorphic)
@@ -1393,6 +1395,15 @@ const char* type_tag_as_string(uint8_t tag)
     }
 }
 
+const char* instruction_tag_as_string(uint8_t tag)
+{
+    switch (tag)
+    {
+        case Ir_Instruction_Tag_return: return "Ir_Instruction_Tag_return";
+        default:                        return "Invalid Ir_Instruction_Tag";
+    }
+}
+
 // Error formats:
 // An error that is not tied to any file.
  
@@ -1712,4 +1723,9 @@ void unexpected_statement(const char* path, uint32_t line, uint8_t tag)
 void unexpected_token(const char* path, uint32_t line, uint8_t tag)
 {
     print_error("%s:%u: ICE: Unexpected %s", path, line, token_tag_as_string(tag));
+}
+
+void unexpected_instruction(const char* path, uint32_t line, uint8_t tag)
+{
+    print_error("%s:%u: ICE: Unexpected %s", path, line, instruction_tag_as_string(tag));
 }

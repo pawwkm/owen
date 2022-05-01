@@ -43,6 +43,10 @@ static void actual_type_parameters_make_signature_match_monomorphic_function(voi
                           "\n"
                           "function c(I32 d) : I32\n"
                           "    return a[I32](d)\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     SET_COMMAND_LINE("semantics/expressions/call/explicit_actual_type_parameters/actual_type_parameters_make_signature_match_monomorphic_function.owen "
@@ -98,7 +102,14 @@ static void actual_type_parameters_make_signature_match_monomorphic_function(voi
                        "                    actual_type_parameter: I32" NEW_LINE
                        "                reference_expression" NEW_LINE
                        "                    type: I32" NEW_LINE
-                       "                    name: d" NEW_LINE);
+                       "                    name: d" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void call_reference_that_is_not_a_function(void)
@@ -305,6 +316,10 @@ static void specifying_all_formal_type_parameters(void)
                           "\n"
                           "function b() : I32\n"
                           "    return a[I32]()\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     SET_COMMAND_LINE("semantics/expressions/call/explicit_actual_type_parameters/specifying_all_formal_type_parameters.owen "
@@ -338,7 +353,14 @@ static void specifying_all_formal_type_parameters(void)
                        "                reference_expression" NEW_LINE
                        "                    type: Function() : I32" NEW_LINE
                        "                    name: a" NEW_LINE
-                       "                    actual_type_parameter: I32" NEW_LINE);
+                       "                    actual_type_parameter: I32" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static bool pass_x_typed_expression_to_compatible_formal_parameter(void)
@@ -369,6 +391,10 @@ static bool pass_x_typed_expression_to_compatible_formal_parameter(void)
                                   "\n"
                                   "function c(%s d) : %s\n"
                                   "    return a[%s](d)\n"
+                                  "end\n"
+                                  "\n"
+                                  "function main() : I32\n"
+                                  "    return 0\n"
                                   "end", 
                                   types[lhs_index].name, types[rhs_index].name, 
                                   types[lhs_index].name);
@@ -414,7 +440,14 @@ static bool pass_x_typed_expression_to_compatible_formal_parameter(void)
                                "                    actual_type_parameter: %s" NEW_LINE
                                "                reference_expression" NEW_LINE
                                "                    type: %s" NEW_LINE
-                               "                    name: d" NEW_LINE,
+                               "                    name: d" NEW_LINE
+                               "    function" NEW_LINE
+                               "        name: main" NEW_LINE
+                               "        return_type: I32" NEW_LINE
+                               "        return_statement" NEW_LINE
+                               "            integer_literal" NEW_LINE
+                               "                type: I32" NEW_LINE
+                               "                value: 0" NEW_LINE,
                                test.source_paths[0],
                                types[lhs_index].name,
                                types[lhs_index].name, 
@@ -513,7 +546,11 @@ static void monomorphic_name_typed_formal_parameter_in_polymorphic_function(void
                           "\n"
                           "function c(I32 d) : I32\n"
                           "    return a[I32](d)\n"
-                          "end\n");
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
+                          "end");
 
     SET_COMMAND_LINE("semantics/expressions/call/explicit_actual_type_parameters/monomorphic_name_typed_formal_parameter_in_polymorphic_function.owen "
                      "-print-semantics");
@@ -558,7 +595,14 @@ static void monomorphic_name_typed_formal_parameter_in_polymorphic_function(void
                        "                    actual_type_parameter: I32" NEW_LINE
                        "                reference_expression" NEW_LINE
                        "                    type: I32" NEW_LINE
-                       "                    name: d" NEW_LINE);
+                       "                    name: d" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void polymorphic_name_typed_formal_parameter_in_polymorphic_function(void)
@@ -575,7 +619,11 @@ static void polymorphic_name_typed_formal_parameter_in_polymorphic_function(void
                           "\n"
                           "function c(I32 d) : I32\n"
                           "    return a[I32](d)\n"
-                          "end\n");
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
+                          "end");
 
     SET_COMMAND_LINE("semantics/expressions/call/explicit_actual_type_parameters/polymorphic_name_typed_formal_parameter_in_polymorphic_function.owen "
                      "-print-semantics");
@@ -620,7 +668,14 @@ static void polymorphic_name_typed_formal_parameter_in_polymorphic_function(void
                        "                    actual_type_parameter: I32" NEW_LINE
                        "                reference_expression" NEW_LINE
                        "                    type: I32" NEW_LINE
-                       "                    name: d" NEW_LINE);
+                       "                    name: d" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void monomorphic_pointer_typed_formal_parameter_in_polymorphic_function(void)
@@ -637,7 +692,11 @@ static void monomorphic_pointer_typed_formal_parameter_in_polymorphic_function(v
                           "\n"
                           "function c(#`I32 d) : #`I32\n"
                           "    return a[I32](d)\n"
-                          "end\n");
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
+                          "end");
 
     SET_COMMAND_LINE("semantics/expressions/call/explicit_actual_type_parameters/monomorphic_pointer_typed_formal_parameter_in_polymorphic_function.owen "
                      "-print-semantics");
@@ -682,7 +741,14 @@ static void monomorphic_pointer_typed_formal_parameter_in_polymorphic_function(v
                        "                    actual_type_parameter: I32" NEW_LINE
                        "                reference_expression" NEW_LINE
                        "                    type: #`I32" NEW_LINE
-                       "                    name: d" NEW_LINE);
+                       "                    name: d" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void polymorphic_pointer_typed_formal_parameter_in_polymorphic_function(void)
@@ -699,7 +765,11 @@ static void polymorphic_pointer_typed_formal_parameter_in_polymorphic_function(v
                           "\n"
                           "function c(#`I32 d) : #`I32\n"
                           "    return a[I32](d)\n"
-                          "end\n");
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
+                          "end");
 
     SET_COMMAND_LINE("semantics/expressions/call/explicit_actual_type_parameters/polymorphic_pointer_typed_formal_parameter_in_polymorphic_function.owen "
                      "-print-semantics");
@@ -744,7 +814,14 @@ static void polymorphic_pointer_typed_formal_parameter_in_polymorphic_function(v
                        "                    actual_type_parameter: I32" NEW_LINE
                        "                reference_expression" NEW_LINE
                        "                    type: #`I32" NEW_LINE
-                       "                    name: d" NEW_LINE);
+                       "                    name: d" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void polymorphic_non_matching_privilages_in_pointer_typed_formal_parameter_in_polymorphic_function(void)
@@ -786,7 +863,11 @@ static void monomorphic_dynamic_array_typed_formal_parameter_in_polymorphic_func
                           "\n"
                           "function c([]I32 d) : I32\n"
                           "    return a[I32](d)\n"
-                          "end\n");
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
+                          "end");
 
     SET_COMMAND_LINE("semantics/expressions/call/explicit_actual_type_parameters/monomorphic_dynamic_array_typed_formal_parameter_in_polymorphic_function.owen "
                      "-print-semantics");
@@ -839,7 +920,14 @@ static void monomorphic_dynamic_array_typed_formal_parameter_in_polymorphic_func
                        "                    actual_type_parameter: I32" NEW_LINE
                        "                reference_expression" NEW_LINE
                        "                    type: []I32" NEW_LINE
-                       "                    name: d" NEW_LINE);
+                       "                    name: d" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void polymorphic_dynamic_array_typed_formal_parameter_in_polymorphic_function(void)
@@ -856,7 +944,11 @@ static void polymorphic_dynamic_array_typed_formal_parameter_in_polymorphic_func
                           "\n"
                           "function c([]I32 d) : I32\n"
                           "    return a[I32](d)\n"
-                          "end\n");
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
+                          "end");
 
     SET_COMMAND_LINE("semantics/expressions/call/explicit_actual_type_parameters/polymorphic_dynamic_array_typed_formal_parameter_in_polymorphic_function.owen "
                      "-print-semantics");
@@ -909,7 +1001,14 @@ static void polymorphic_dynamic_array_typed_formal_parameter_in_polymorphic_func
                        "                    actual_type_parameter: I32" NEW_LINE
                        "                reference_expression" NEW_LINE
                        "                    type: []I32" NEW_LINE
-                       "                    name: d" NEW_LINE);
+                       "                    name: d" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void monomorphic_fixed_array_typed_formal_parameter_in_polymorphic_function(void)
@@ -926,7 +1025,11 @@ static void monomorphic_fixed_array_typed_formal_parameter_in_polymorphic_functi
                           "\n"
                           "function c([4]I32 d) : I32\n"
                           "    return a[I32](d)\n"
-                          "end\n");
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
+                          "end");
 
     SET_COMMAND_LINE("semantics/expressions/call/explicit_actual_type_parameters/monomorphic_fixed_array_typed_formal_parameter_in_polymorphic_function.owen "
                      "-print-semantics");
@@ -979,7 +1082,14 @@ static void monomorphic_fixed_array_typed_formal_parameter_in_polymorphic_functi
                        "                    actual_type_parameter: I32" NEW_LINE
                        "                reference_expression" NEW_LINE
                        "                    type: [4]I32" NEW_LINE
-                       "                    name: d" NEW_LINE);
+                       "                    name: d" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void polymorphic_fixed_array_typed_formal_parameter_in_polymorphic_function(void)
@@ -996,7 +1106,11 @@ static void polymorphic_fixed_array_typed_formal_parameter_in_polymorphic_functi
                           "\n"
                           "function c([4]I32 d) : I32\n"
                           "    return a[I32](d)\n"
-                          "end\n");
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
+                          "end");
 
     SET_COMMAND_LINE("semantics/expressions/call/explicit_actual_type_parameters/polymorphic_fixed_array_typed_formal_parameter_in_polymorphic_function.owen "
                      "-print-semantics");
@@ -1049,7 +1163,14 @@ static void polymorphic_fixed_array_typed_formal_parameter_in_polymorphic_functi
                        "                    actual_type_parameter: I32" NEW_LINE
                        "                reference_expression" NEW_LINE
                        "                    type: [4]I32" NEW_LINE
-                       "                    name: d" NEW_LINE);
+                       "                    name: d" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void monomorphic_function_typed_formal_parameter_in_polymorphic_function(void)
@@ -1066,7 +1187,11 @@ static void monomorphic_function_typed_formal_parameter_in_polymorphic_function(
                           "\n"
                           "function c(Function(I32) d) : Function(I32)\n"
                           "    return a[I32](d)\n"
-                          "end\n");
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
+                          "end");
 
     SET_COMMAND_LINE("semantics/expressions/call/explicit_actual_type_parameters/monomorphic_function_typed_formal_parameter_in_polymorphic_function.owen "
                      "-print-semantics");
@@ -1111,7 +1236,14 @@ static void monomorphic_function_typed_formal_parameter_in_polymorphic_function(
                        "                    actual_type_parameter: I32" NEW_LINE
                        "                reference_expression" NEW_LINE
                        "                    type: Function(I32)" NEW_LINE
-                       "                    name: d" NEW_LINE);
+                       "                    name: d" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void polymorphic_function_typed_formal_parameter_in_polymorphic_function(void)
@@ -1128,7 +1260,11 @@ static void polymorphic_function_typed_formal_parameter_in_polymorphic_function(
                           "\n"
                           "function c(Function(I32) d) : Function(I32)\n"
                           "    return a[I32](d)\n"
-                          "end\n");
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
+                          "end");
 
     SET_COMMAND_LINE("semantics/expressions/call/explicit_actual_type_parameters/polymorphic_function_typed_formal_parameter_in_polymorphic_function.owen "
                      "-print-semantics");
@@ -1174,7 +1310,13 @@ static void polymorphic_function_typed_formal_parameter_in_polymorphic_function(
                        "                reference_expression" NEW_LINE
                        "                    type: Function(I32)" NEW_LINE
                        "                    name: d" NEW_LINE
-);
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void monomorphic_actual_type_parameter_for_polymorphic_compound_typed_formal_parameter_in_polymorphic_function(void)
@@ -1195,7 +1337,11 @@ static void monomorphic_actual_type_parameter_for_polymorphic_compound_typed_for
                           "\n"
                           "function c(A[I32] d) : A[I32]\n"
                           "    return a[I32](d)\n"
-                          "end\n");
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
+                          "end");
 
     SET_COMMAND_LINE("semantics/expressions/call/explicit_actual_type_parameters/monomorphic_actual_type_parameter_for_polymorphic_compound_typed_formal_parameter_in_polymorphic_function.owen "
                      "-print-semantics");
@@ -1254,7 +1400,14 @@ static void monomorphic_actual_type_parameter_for_polymorphic_compound_typed_for
                        "                    actual_type_parameter: I32" NEW_LINE
                        "                reference_expression" NEW_LINE
                        "                    type: A[I32]" NEW_LINE
-                       "                    name: d" NEW_LINE);
+                       "                    name: d" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE );
 }
 
 static void polymorphic_actual_type_parameter_for_polymorphic_compound_typed_formal_parameter_in_polymorphic_function(void)
@@ -1275,7 +1428,11 @@ static void polymorphic_actual_type_parameter_for_polymorphic_compound_typed_for
                           "\n"
                           "function c(A[I32] d) : A[I32]\n"
                           "    return a[I32](d)\n"
-                          "end\n");
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
+                          "end");
 
     SET_COMMAND_LINE("semantics/expressions/call/explicit_actual_type_parameters/polymorphic_actual_type_parameter_for_polymorphic_compound_typed_formal_parameter_in_polymorphic_function.owen "
                      "-print-semantics");
@@ -1334,7 +1491,14 @@ static void polymorphic_actual_type_parameter_for_polymorphic_compound_typed_for
                        "                    actual_type_parameter: I32" NEW_LINE
                        "                reference_expression" NEW_LINE
                        "                    type: A[I32]" NEW_LINE
-                       "                    name: d" NEW_LINE);
+                       "                    name: d" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void polymorphic_formal_type_parameter_used_as_explicit_type_parameter(void)
@@ -1355,7 +1519,11 @@ static void polymorphic_formal_type_parameter_used_as_explicit_type_parameter(vo
                           "\n"
                           "function c() : I32\n"
                           "    return b[I32]()\n"
-                          "end\n");
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
+                          "end");
 
     SET_COMMAND_LINE("semantics/expressions/call/explicit_actual_type_parameters/polymorphic_formal_type_parameter_used_as_explicit_type_parameter.owen "
                      "-print-semantics");
@@ -1408,7 +1576,14 @@ static void polymorphic_formal_type_parameter_used_as_explicit_type_parameter(vo
                        "                reference_expression" NEW_LINE
                        "                    type: Function() : I32" NEW_LINE
                        "                    name: b" NEW_LINE
-                       "                    actual_type_parameter: I32" NEW_LINE);
+                       "                    actual_type_parameter: I32" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void retain_address_of_unretainable_expression(void)

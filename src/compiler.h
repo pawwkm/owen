@@ -1,7 +1,5 @@
 #pragma once
 
-#include "memory.h"
-
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -24,6 +22,14 @@
 #define INTERNED_STRING_CAPACITY        16000
 #define CHARACTER_CAPACITY              4000000
 
+#define IR_FUNCTION_CAPACITY            FUNCTION_CAPACITY
+#define IR_BASIC_BLOCK_CAPACITY         40000
+#define IR_INSTRUCTION_CAPACITY         100000
+#define IR_OPERAND_CAPACITY             10000
+#define IR_IMMEDIATE_CAPACITY           1000
+
+#define TEXT_SECTION_CAPACITY           1000000
+
 #define FILE_HANDLE_CAPACITY                FILE_CAPACITY
 #define TYPE_HANDLE_CAPACITY                16000
 #define TYPE_REFERENCE_HANDLE_CAPACITY      20000
@@ -38,6 +44,10 @@
 #define CONSTANT_HANDLE_CAPACITY            2000
 #define BRANCH_HANDLE_CAPACITY              10000
 #define VARIABLE_HANDLE_CAPACITY            VARIABLE_CAPACITY
+
+#define IR_BASIC_BLOCK_HANDLE_CAPACITY      IR_BASIC_BLOCK_CAPACITY
+#define IR_INSTRUCTION_HANDLE_CAPACITY      300000
+#define IR_OPERAND_HANDLE_CAPACITY          30000
 
 #define DEFINE_HANDLE_TYPE(SIZE, TYPE) \
 typedef struct                         \
@@ -68,6 +78,11 @@ DEFINE_HANDLE_TYPE(uint16_t, Field_Initializer)
 DEFINE_HANDLE_TYPE(uint16_t, Constant)
 DEFINE_HANDLE_TYPE(uint16_t, Element_Initializer)
 DEFINE_HANDLE_TYPE(uint16_t, Interned_String)
+DEFINE_HANDLE_TYPE(uint16_t, Ir_Function)
+DEFINE_HANDLE_TYPE(uint16_t, Ir_Basic_Block)
+DEFINE_HANDLE_TYPE(uint32_t, Ir_Instruction)
+DEFINE_HANDLE_TYPE(uint16_t, Ir_Operand)
+DEFINE_HANDLE_TYPE(uint16_t, Ir_Immediate)
 
 DEFINE_HANDLE_ARRAY_TYPE(File)
 DEFINE_HANDLE_ARRAY_TYPE(Type)
@@ -84,6 +99,9 @@ DEFINE_HANDLE_ARRAY_TYPE(Field_Initializer)
 DEFINE_HANDLE_ARRAY_TYPE(Constant)
 DEFINE_HANDLE_ARRAY_TYPE(Element_Initializer)
 DEFINE_HANDLE_ARRAY_TYPE(Interned_String)
+DEFINE_HANDLE_ARRAY_TYPE(Ir_Basic_Block)
+DEFINE_HANDLE_ARRAY_TYPE(Ir_Instruction)
+DEFINE_HANDLE_ARRAY_TYPE(Ir_Operand)
 
 typedef enum
 {
@@ -852,6 +870,7 @@ typedef struct
     Type_Reference_Handle_Array return_types;
     Type_Handle signature;
     Statement_Handle_Array body;
+    Ir_Function_Handle ir;
 } Function;
 
 typedef struct
@@ -871,6 +890,98 @@ typedef struct
     Function_Handle_Array function_declarations;
     Function_Handle_Array functions_in_scope;
 } File;
+
+typedef enum
+{
+    Ir_Operand_Tag_immediate,
+    Ir_Operand_Tag_virtual_register,
+    Ir_Operand_Tag_x64_register
+} Ir_Operand_Tag;
+
+#define COMMON_IR_OPERAND_FIELDS \
+struct                           \
+{                                \
+    uint8_t tag;                 \
+}
+
+typedef struct
+{
+    COMMON_IR_OPERAND_FIELDS;
+    Number value;
+    Type_Handle type;
+} Ir_Immediate;
+
+typedef enum
+{
+    X64_Register_Tag_rax,
+    X64_Register_Tag_rcx,
+    X64_Register_Tag_rdx,
+    X64_Register_Tag_rbx,
+    X64_Register_Tag_sp,
+    X64_Register_Tag_bp,
+    X64_Register_Tag_si,
+    X64_Register_Tag_r8,
+    X64_Register_Tag_r9,
+    X64_Register_Tag_r10,
+    X64_Register_Tag_r11,
+    X64_Register_Tag_r12,
+    X64_Register_Tag_r13,
+    X64_Register_Tag_r14,
+    X64_Register_Tag_r15
+} X64_Register_Tag;
+
+typedef struct
+{
+    COMMON_IR_OPERAND_FIELDS;
+    uint8_t reg;
+} Ir_X64_Register;
+
+typedef struct
+{
+    COMMON_IR_OPERAND_FIELDS;
+    uint8_t reg;
+} Ir_Virtual_Register;
+
+typedef union
+{
+    COMMON_IR_OPERAND_FIELDS;
+    Ir_Immediate imm;
+    Ir_X64_Register x64_reg;
+    Ir_Virtual_Register virtual_reg;
+} Ir_Operand;
+
+typedef enum
+{
+    Ir_Instruction_Tag_return
+} Ir_Instruction_Tag;
+
+#define COMMON_IR_INSTRUCTION_FIELDS \
+struct                               \
+{                                    \
+    uint8_t tag;                     \
+}
+
+typedef struct
+{
+    COMMON_IR_INSTRUCTION_FIELDS;
+    Ir_Operand_Handle_Array values;
+} Ir_Return_Instruction;
+
+typedef union
+{
+    COMMON_IR_INSTRUCTION_FIELDS;
+    Ir_Return_Instruction ret;
+} Ir_Instruction;
+
+typedef struct
+{
+    Ir_Instruction_Handle_Array instructions;
+} Ir_Basic_Block;
+
+typedef struct
+{
+    Ir_Basic_Block_Handle_Array blocks;
+} Ir_Function;
 
 typedef struct
 {
@@ -923,6 +1034,7 @@ void unexpected_reference_type(const char* path, uint32_t line, uint8_t tag);
 void unexpected_type(const char* path, uint32_t line, uint8_t tag);
 void unexpected_statement(const char* path, uint32_t line, uint8_t tag);
 void unexpected_token(const char* path, uint32_t line, uint8_t tag);
+void unexpected_instruction(const char* path, uint32_t line, uint8_t tag);
 void print_error(const char* message, ...);
 
 #define POLYMORPHIC_STACK_TYPES_CAPACITY 8
@@ -953,9 +1065,10 @@ typedef struct
     bool is_referenced;
 } Symbol;
 
+#define SYMBOL_CAPACITY 32
 typedef struct
 {
-    Symbol symbols[32];
+    Symbol symbols[SYMBOL_CAPACITY];
     uint8_t symbols_length;
 } Symbol_Table;
 
@@ -986,6 +1099,8 @@ void print_type_reference_for_compound(const Compound_Type* compound, FILE* file
 
 void parse_file(char* path);
 void analyze_program(void);
+void lower_ast(void);
+void generate_pe(void);
 
 Type_Handle lookup_signature(const File* file, const Function* function);
 Field* lookup_field_by_name(const Compound_Type* compound, Interned_String_Handle name, Span name_span);
@@ -1023,6 +1138,23 @@ DECLARE_DEFAULT_ARENA(Constant,            constant,            constants,      
 DECLARE_DEFAULT_ARENA(Element_Initializer, element_initializer, element_initializers, uint16_t)
 DECLARE_DEFAULT_ARENA(Variable,            variable,            variables,            uint16_t)
 
+DECLARE_DEFAULT_ARENA(Ir_Basic_Block,      ir_basic_block,      ir_basic_blocks,      uint16_t)
+DECLARE_DEFAULT_ARENA(Ir_Instruction,      ir_instruction,      ir_instructions,      uint32_t)
+DECLARE_DEFAULT_ARENA(Ir_Operand,          ir_operand,          ir_operands,          uint16_t)
+
+extern Ir_Function ir_functions[];
+extern uint16_t ir_functions_length;
+extern const Ir_Function_Handle invalid_ir_function_handle;
+extern Ir_Function_Handle ir_function_handles[];
+extern uint16_t ir_function_handles_length;
+Ir_Function_Handle add_ir_function(void);
+Ir_Function* lookup_ir_function(Ir_Function_Handle handle);
+bool is_invalid_ir_function_handle(Ir_Function_Handle handle);
+bool compare_ir_functions(Ir_Function_Handle a, Ir_Function_Handle b);
+
+extern const Function_Handle invalid_function_handle;
+extern Function_Handle main_function;
+
 extern File files[];
 extern uint8_t files_length;
 File* lookup_file(File_Handle handle);
@@ -1059,3 +1191,12 @@ bool is_ascii_digit(uint8_t c);
 bool is_ascii_alpha_numeric(uint8_t c);
 bool is_ascii_hex_digit(uint8_t c);
 bool is_ascii_binary_digit(uint8_t c);
+
+#ifdef __GNUC__
+#define PACK(__Declaration__) __Declaration__ __attribute__((__packed__))
+#else
+#define PACK(__Declaration__) __pragma(pack(push, 1)) __Declaration__ __pragma(pack(pop))
+#endif
+
+extern uint8_t  text_section[TEXT_SECTION_CAPACITY];
+extern uint32_t text_section_length;

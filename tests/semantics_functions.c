@@ -96,6 +96,10 @@ static void formal_type_parameter_with_the_same_name_as_polymorphic_compound(voi
                           "\n"
                           "function do_stuff[A](A a) : A\n"
                           "    return a\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     SET_COMMAND_LINE("semantics/functions/formal_type_parameter_with_the_same_name_as_polymorphic_compound.owen "
@@ -121,7 +125,14 @@ static void formal_type_parameter_with_the_same_name_as_polymorphic_compound(voi
                        "        return_type_reference: A" NEW_LINE
                        "        return_statement" NEW_LINE
                        "            reference_expression" NEW_LINE
-                       "                name: a" NEW_LINE);
+                       "                name: a" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void matching_formal_parameter_types_with_different_privileges(void)
@@ -155,6 +166,10 @@ static void matching_functions_in_different_files_in_the_same_namespace(void)
                           "namespace Abc\n"
                           "\n"
                           "function a()\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     format_source_path(1, "semantics/functions/matching_functions_in_different_files_in_the_same_namespace-2.owen");
@@ -174,6 +189,13 @@ static void matching_functions_in_different_files_in_the_same_namespace(void)
                        "    namespace: Abc" NEW_LINE
                        "    function" NEW_LINE
                        "        name: a" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE
                        "file" NEW_LINE
                        "    path: semantics/functions/matching_functions_in_different_files_in_the_same_namespace-2.owen" NEW_LINE
                        "    namespace: Abc" NEW_LINE
@@ -404,6 +426,10 @@ static void non_matching_functions_with_the_same_name(void)
                           "\n"
                           "function do_stuff[T](T a, T b) : T\n"
                           "    return a + b\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     SET_COMMAND_LINE("semantics/functions/non_matching_functions_with_the_same_name.owen "
@@ -652,7 +678,14 @@ static void non_matching_functions_with_the_same_name(void)
                        "                reference_expression" NEW_LINE
                        "                    name: a" NEW_LINE
                        "                reference_expression" NEW_LINE
-                       "                    name: b" NEW_LINE);
+                       "                    name: b" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void public_function_returning_non_public_compound(void)
@@ -713,6 +746,10 @@ static void public_function_returning_public_compound(void)
                           "\n"
                           "public function a() : A\n"
                           "    return { a = 1 }\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     SET_COMMAND_LINE("semantics/functions/public_function_returning_public_compound.owen "
@@ -739,7 +776,14 @@ static void public_function_returning_public_compound(void)
                        "                    name: a" NEW_LINE
                        "                    integer_literal" NEW_LINE
                        "                        type: I32" NEW_LINE
-                       "                        value: 1" NEW_LINE);
+                       "                        value: 1" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void public_function_returning_public_enumeration(void)
@@ -756,6 +800,10 @@ static void public_function_returning_public_enumeration(void)
                           "\n"
                           "public function a() : A\n"
                           "    return A.a\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     SET_COMMAND_LINE("semantics/functions/public_function_returning_public_enumeration.owen "
@@ -778,7 +826,14 @@ static void public_function_returning_public_enumeration(void)
                        "        return_statement" NEW_LINE
                        "            enumeration_constant_access" NEW_LINE
                        "                type: A" NEW_LINE
-                       "                value: a" NEW_LINE);
+                       "                value: a" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void public_function_with_formal_parameter_with_non_public_compound(void)
@@ -839,6 +894,10 @@ static void public_function_with_formal_parameter_with_public_compound(void)
                           "\n"
                           "public function do_stuff(A a) : A\n"
                           "    return a\n"
+                          "end"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     SET_COMMAND_LINE("semantics/functions/public_function_with_formal_parameter_with_public_compound.owen "
@@ -863,7 +922,14 @@ static void public_function_with_formal_parameter_with_public_compound(void)
                        "        return_statement" NEW_LINE
                        "            reference_expression" NEW_LINE
                        "                type: A" NEW_LINE
-                       "                name: a" NEW_LINE);
+                       "                name: a" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void public_function_with_formal_parameter_with_public_enumeration(void)
@@ -880,7 +946,11 @@ static void public_function_with_formal_parameter_with_public_enumeration(void)
                           "\n"
                           "public function a(A b) : A\n"
                           "    return b\n"
-                          "end\n");
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
+                          "end");
 
     SET_COMMAND_LINE("semantics/functions/public_function_with_formal_parameter_with_public_enumeration.owen "
                      "-print-semantics");
@@ -905,7 +975,14 @@ static void public_function_with_formal_parameter_with_public_enumeration(void)
                        "        return_statement" NEW_LINE
                        "            reference_expression" NEW_LINE
                        "                type: A" NEW_LINE
-                       "                name: b" NEW_LINE);
+                       "                name: b" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void unreferenced_formal_parameter(void)
@@ -934,6 +1011,10 @@ static void would_be_matching_functions_but_in_different_namespaces(void)
                           "namespace Abc\n"
                           "\n"
                           "function a()\n"
+                          "end"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     format_source_path(1, "semantics/functions/would_be_matching_functions_but_in_different_namespaces-2.owen");
@@ -953,6 +1034,13 @@ static void would_be_matching_functions_but_in_different_namespaces(void)
                        "    namespace: Abc" NEW_LINE
                        "    function" NEW_LINE
                        "        name: a" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE
                        "file" NEW_LINE
                        "    path: semantics/functions/would_be_matching_functions_but_in_different_namespaces-2.owen" NEW_LINE
                        "    namespace: Def" NEW_LINE
@@ -979,6 +1067,10 @@ static bool retained_pointer_return_type(void)
                                   "\n"
                                   "function a(%s b) : %s\n"
                                   "    return b\n"
+                                  "end"
+                                  "\n"
+                                  "function main() : I32\n"
+                                  "    return 0\n"
                                   "end", 
                                   types[index].name, types[index].name);
 
@@ -996,7 +1088,14 @@ static bool retained_pointer_return_type(void)
                                "        return_statement" NEW_LINE
                                "            reference_expression" NEW_LINE
                                "                type: %s" NEW_LINE
-                               "                name: b" NEW_LINE,
+                               "                name: b" NEW_LINE
+                               "    function" NEW_LINE
+                               "        name: main" NEW_LINE
+                               "        return_type: I32" NEW_LINE
+                               "        return_statement" NEW_LINE
+                               "            integer_literal" NEW_LINE
+                               "                type: I32" NEW_LINE
+                               "                value: 0" NEW_LINE,
                                test.source_paths[0], 
                                types[index].name, 
                                types[index].name, 
@@ -1025,6 +1124,10 @@ static void pointer_to_formal_type_parameter(void)
                           "\n"
                           "function c(#`?I32 b) : #`?I32\n"
                           "    return a(b)\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     SET_COMMAND_LINE("semantics/functions/pointer_to_formal_type_parameter.owen "
@@ -1069,7 +1172,14 @@ static void pointer_to_formal_type_parameter(void)
                        "                    name: a" NEW_LINE
                        "                reference_expression" NEW_LINE
                        "                    type: #`?I32" NEW_LINE
-                       "                    name: b" NEW_LINE);
+                       "                    name: b" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void dynamic_array_of_formal_type_parameter(void)
@@ -1086,6 +1196,10 @@ static void dynamic_array_of_formal_type_parameter(void)
                           "\n"
                           "function c([]I32 b) : []I32\n"
                           "    return a(b)\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     SET_COMMAND_LINE("semantics/functions/dynamic_array_of_formal_type_parameter.owen "
@@ -1130,7 +1244,14 @@ static void dynamic_array_of_formal_type_parameter(void)
                        "                    name: a" NEW_LINE
                        "                reference_expression" NEW_LINE
                        "                    type: []I32" NEW_LINE
-                       "                    name: b" NEW_LINE);
+                       "                    name: b" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void fixed_array_of_formal_type_parameter(void)
@@ -1147,6 +1268,10 @@ static void fixed_array_of_formal_type_parameter(void)
                           "\n"
                           "function c([2]I32 b) : [2]I32\n"
                           "    return a(b)\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     SET_COMMAND_LINE("semantics/functions/fixed_array_of_formal_type_parameter.owen "
@@ -1191,7 +1316,62 @@ static void fixed_array_of_formal_type_parameter(void)
                        "                    name: a" NEW_LINE
                        "                reference_expression" NEW_LINE
                        "                    type: [2]I32" NEW_LINE
-                       "                    name: b" NEW_LINE);
+                       "                    name: b" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
+}
+
+static void single_main_function(void)
+{
+    format_test_name("semantics/functions/single_main_function");
+
+    format_source_path(0, "semantics/functions/single_main_function.owen");
+    format_source_file(0, "// Generated by " __FILE__ " " __FUNCSIG__ "\n"
+                          "namespace Abc\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
+                          "end");
+
+    SET_COMMAND_LINE("semantics/functions/single_main_function.owen "
+                     "-print-semantics");
+
+    format_expectation(&test.expected_semantics, 
+                       "file" NEW_LINE
+                       "    path: semantics/functions/single_main_function.owen" NEW_LINE
+                       "    namespace: Abc" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
+}
+
+static void multiple_main_functions(void)
+{
+    format_test_name("semantics/functions/multiple_main_functions");
+
+    format_source_path(0, "semantics/functions/multiple_main_functions.owen");
+    format_source_file(0, "// Generated by " __FILE__ " " __FUNCSIG__ "\n"
+                          "namespace Abc\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
+                          "end\n"
+                          "\n"
+                          "function main(#[][]U8 args) : I32\n"
+                          "    return 0\n"
+                          "end\n");
+
+    SET_COMMAND_LINE("semantics/functions/multiple_main_functions.owen");
+    format_expectation(&test.expected_error, "%s:8:10: main function redeclared." NEW_LINE, test.source_paths[0]);
 }
 
 bool semantics_functions(void)
@@ -1222,6 +1402,7 @@ bool semantics_functions(void)
         case 4:
             formal_type_parameter_with_the_same_name_as_polymorphic_compound();
             state++;
+
             break;
 
         case 5:
@@ -1337,6 +1518,16 @@ bool semantics_functions(void)
 
         case 27:
             fixed_array_of_formal_type_parameter();
+            state++;
+            break;
+
+        case 28:
+            single_main_function();
+            state++;
+            break;
+
+        case 29:
+            multiple_main_functions();
             state++;
             break;
 

@@ -49,7 +49,11 @@ static bool cast_non_function_type_to_non_function_type(void)
                           "\n"
                           "function a(%s b) : %s\n"
                           "    return %s(b)\n"
-                          "end\n",
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
+                          "end",
                           types[source_index].name,
                           types[target_index].name,
                           types[target_index].name);
@@ -106,7 +110,14 @@ static bool cast_non_function_type_to_non_function_type(void)
                            "                type: %s" NEW_LINE
                            "                reference_expression" NEW_LINE
                            "                    type: %s" NEW_LINE
-                           "                    name: b" NEW_LINE,
+                           "                    name: b" NEW_LINE
+                           "    function" NEW_LINE
+                           "        name: main" NEW_LINE
+                           "        return_type: I32" NEW_LINE
+                           "        return_statement" NEW_LINE
+                           "            integer_literal" NEW_LINE
+                           "                type: I32" NEW_LINE
+                           "                value: 0" NEW_LINE,
                            test.source_paths[0],
                            types[source_index].name,
                            types[target_index].name,
@@ -148,7 +159,11 @@ static void polymorphic_types(void)
                           "\n"
                           "function b(I8 c) : I32\n"
                           "    return a[I8, I32](c)\n"
-                          "end\n");
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
+                          "end");
     
     format_command_line_options("semantics/expressions/cast/polymorphic_types.owen -print-semantics");
     format_expectation(&test.expected_semantics,
@@ -198,7 +213,14 @@ static void polymorphic_types(void)
                        "                    actual_type_parameter: I32" NEW_LINE
                        "                reference_expression" NEW_LINE
                        "                    type: I8" NEW_LINE
-                       "                    name: c" NEW_LINE);
+                       "                    name: c" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE );
 }
 
 static bool cast_literal_to_x(void)
@@ -240,7 +262,11 @@ static bool cast_literal_to_x(void)
                                   "\n"
                                   "function a() : %s\n"
                                   "    return %s(%s)\n"
-                                  "end\n",
+                                  "end\n"
+                                  "\n"
+                                  "function main() : I32\n"
+                                  "    return 0\n"
+                                  "end",
                                   types[index].name,
                                   types[index].name,
                                   types[index].default_value);
@@ -291,7 +317,14 @@ static bool cast_literal_to_x(void)
                                "                type: %s" NEW_LINE
                                "                %s_literal" NEW_LINE
                                "                    type: %s" NEW_LINE
-                               "                    value: 0" NEW_LINE,
+                               "                    value: 0" NEW_LINE
+                               "    function" NEW_LINE
+                               "        name: main" NEW_LINE
+                               "        return_type: I32" NEW_LINE
+                               "        return_statement" NEW_LINE
+                               "            integer_literal" NEW_LINE
+                               "                type: I32" NEW_LINE
+                               "                value: 0" NEW_LINE,
                                test.source_paths[0],
                                types[index].name,
                                types[index].name,
@@ -321,7 +354,11 @@ static void matching_monomorphic_function(void)
                           "\n"
                           "function c() : Function(I32) : I32\n"
                           "    return Function(I32) : I32(a)\n"
-                          "end\n");
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
+                          "end");
     
     format_command_line_options("semantics/expressions/cast/matching_monomorphic_function.owen -print-semantics");
     format_expectation(&test.expected_semantics,
@@ -346,7 +383,14 @@ static void matching_monomorphic_function(void)
                        "                type: Function(I32) : I32" NEW_LINE
                        "                reference_expression" NEW_LINE
                        "                    type: Function(I32) : I32" NEW_LINE
-                       "                    name: a" NEW_LINE);
+                       "                    name: a" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void matching_polymorphic_function(void)
@@ -363,7 +407,11 @@ static void matching_polymorphic_function(void)
                           "\n"
                           "function c() : Function(I32) : I32\n"
                           "    return Function(I32) : I32(a)\n"
-                          "end\n");
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
+                          "end");
     
     format_command_line_options("semantics/expressions/cast/matching_polymorphic_function.owen -print-semantics");
     format_expectation(&test.expected_semantics,
@@ -399,7 +447,14 @@ static void matching_polymorphic_function(void)
                        "                type: Function(I32) : I32" NEW_LINE
                        "                reference_expression" NEW_LINE
                        "                    type: Function(I32) : I32" NEW_LINE
-                       "                    name: a" NEW_LINE);
+                       "                    name: a" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void formal_type_parameter_nested_in_compound(void)
@@ -420,7 +475,11 @@ static void formal_type_parameter_nested_in_compound(void)
                           "\n"
                           "function c() : Function(A[I32]) : I32\n"
                           "    return Function(A[I32]) : I32(a)\n"
-                          "end\n");
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
+                          "end");
     
     format_command_line_options("semantics/expressions/cast/formal_type_parameter_nested_in_compound.owen -print-semantics");
     format_expectation(&test.expected_semantics,
@@ -475,7 +534,14 @@ static void formal_type_parameter_nested_in_compound(void)
                        "                type: Function(A[I32]) : I32" NEW_LINE
                        "                reference_expression" NEW_LINE
                        "                    type: Function(A[I32]) : I32" NEW_LINE
-                       "                    name: a" NEW_LINE);
+                       "                    name: a" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void formal_type_parameter_not_specified_by_actual_parameters(void)

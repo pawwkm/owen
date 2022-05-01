@@ -32,6 +32,10 @@ static void call_to_function_with_multiple_actual_parameters_matching_multiple_f
                           "\n"
                           "function c(I32 d)\n"
                           "    d, d = a(d)\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     SET_COMMAND_LINE("semantics/expressions/call/monomorphic/call_to_function_with_multiple_actual_parameters_matching_multiple_formal_parameters.owen "
@@ -75,7 +79,14 @@ static void call_to_function_with_multiple_actual_parameters_matching_multiple_f
                        "                    name: a" NEW_LINE
                        "                reference_expression" NEW_LINE
                        "                    type: I32" NEW_LINE
-                       "                    name: d" NEW_LINE);
+                       "                    name: d" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void call_to_function_with_multiple_actual_parameters_matching_the_formal_parameters(void)
@@ -92,6 +103,10 @@ static void call_to_function_with_multiple_actual_parameters_matching_the_formal
                           "\n"
                           "function d(I32 e)\n"
                           "    e, e = a(e, e)\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     SET_COMMAND_LINE("semantics/expressions/call/monomorphic/call_to_function_with_multiple_actual_parameters_matching_the_formal_parameters.owen "
@@ -141,7 +156,14 @@ static void call_to_function_with_multiple_actual_parameters_matching_the_formal
                        "                    name: e" NEW_LINE
                        "                reference_expression" NEW_LINE
                        "                    type: I32" NEW_LINE
-                       "                    name: e" NEW_LINE);
+                       "                    name: e" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void call_to_function_with_one_actual_parameter_matching_one_formal_parameter(void)
@@ -158,6 +180,10 @@ static void call_to_function_with_one_actual_parameter_matching_one_formal_param
                           "\n"
                           "function c(I32 d) : I32\n" 
                           "    return a(d)\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     SET_COMMAND_LINE("semantics/expressions/call/monomorphic/call_to_function_with_one_actual_parameter_matching_one_formal_parameter.owen "
@@ -191,7 +217,14 @@ static void call_to_function_with_one_actual_parameter_matching_one_formal_param
                        "                    name: a" NEW_LINE
                        "                reference_expression" NEW_LINE
                        "                    type: I32" NEW_LINE
-                       "                    name: d" NEW_LINE);
+                       "                    name: d" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void call_to_function_with_zero_actual_parameters_matching_zero_formal_parameters(void)
@@ -207,7 +240,11 @@ static void call_to_function_with_zero_actual_parameters_matching_zero_formal_pa
                           "\n"
                           "function b()\n"
                           "    a()\n"
-                          "end\n");
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
+                          "end");
 
     SET_COMMAND_LINE("semantics/expressions/call/monomorphic/call_to_function_with_zero_actual_parameters_matching_zero_formal_parameters.owen "
                      "-print-semantics");
@@ -224,7 +261,14 @@ static void call_to_function_with_zero_actual_parameters_matching_zero_formal_pa
                        "            type: none" NEW_LINE
                        "            reference_expression" NEW_LINE
                        "                type: Function()" NEW_LINE
-                       "                name: a" NEW_LINE);
+                       "                name: a" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE );
 }
 
 static void call_undefined_function(void)
@@ -325,6 +369,10 @@ static bool pass_x_typed_expression_to_compatible_formal_parameter(void)
                                   "\n"
                                   "function c(%s d) : %s\n"
                                   "    return a(d)\n"
+                                  "end\n"
+                                  "\n"
+                                  "function main() : I32\n"
+                                  "    return 0\n"
                                   "end", 
                                   types[rhs_index].name, types[rhs_index].name,
                                   types[lhs_index].name, types[rhs_index].name);
@@ -358,7 +406,14 @@ static bool pass_x_typed_expression_to_compatible_formal_parameter(void)
                                "                    name: a" NEW_LINE
                                "                reference_expression" NEW_LINE
                                "                    type: %s" NEW_LINE
-                               "                    name: d" NEW_LINE,
+                               "                    name: d" NEW_LINE
+                               "    function" NEW_LINE
+                               "        name: main" NEW_LINE
+                               "        return_type: I32" NEW_LINE
+                               "        return_statement" NEW_LINE
+                               "            integer_literal" NEW_LINE
+                               "                type: I32" NEW_LINE
+                               "                value: 0" NEW_LINE,
                                test.source_paths[0],
                                types[rhs_index].name,
                                types[rhs_index].name,

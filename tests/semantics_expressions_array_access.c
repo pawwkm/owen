@@ -14,6 +14,10 @@ static bool integer_typed_index_expression(void)
                           "\n"
                           "function a([]I32 b, %s c) : I32\n"
                           "    return b[c]\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end",
                           types[type_index].name);
 
@@ -39,7 +43,14 @@ static bool integer_typed_index_expression(void)
                        "                    name: b" NEW_LINE
                        "                reference_expression" NEW_LINE
                        "                    type: %s" NEW_LINE
-                       "                    name: c" NEW_LINE,
+                       "                    name: c" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE,
                        test.source_paths[0],
                        types[type_index].name,
                        types[type_index].name);
@@ -65,7 +76,11 @@ static bool enumeration_constant_access_with_x_as_the_underlying_type(void)
                           "\n"
                           "function a([]I32 b, A c) : I32\n"
                           "    return b[c]\n"
-                          "end",
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
+                          "end", 
                           types[type_index].name);
 
     format_command_line_options("%s -print-semantics", test.source_paths[0]);
@@ -94,7 +109,14 @@ static bool enumeration_constant_access_with_x_as_the_underlying_type(void)
                        "                    name: b" NEW_LINE
                        "                reference_expression" NEW_LINE
                        "                    type: A" NEW_LINE
-                       "                    name: c" NEW_LINE,
+                       "                    name: c" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE,
                        test.source_paths[0],
                        types[type_index].name);
 
@@ -112,6 +134,10 @@ static void integer_literal_index(void)
                           "\n"
                           "function a([]I32 b) : I32\n"
                           "    return b[0]\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     SET_COMMAND_LINE("semantics/expressions/array_access/integer_literal_index.owen "
@@ -135,7 +161,14 @@ static void integer_literal_index(void)
                        "                    name: b" NEW_LINE
                        "                integer_literal" NEW_LINE
                        "                    type: U32" NEW_LINE
-                       "                    value: 0" NEW_LINE);
+                       "                    value: 0" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void indexing_non_array_type(void)
@@ -188,7 +221,11 @@ static void monomorphic_array_access_in_polymorphic_function(void)
                           "\n"
                           "function c([]I32 d) : I32\n"
                           "    return a[I32](d)\n"
-                          "end\n");
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
+                          "end");
 
     SET_COMMAND_LINE("semantics/expressions/array_access/monomorphic_array_access_in_polymorphic_function.owen "
                      "-print-semantics");
@@ -241,7 +278,14 @@ static void monomorphic_array_access_in_polymorphic_function(void)
                        "                    actual_type_parameter: I32" NEW_LINE
                        "                reference_expression" NEW_LINE
                        "                    type: []I32" NEW_LINE
-                       "                    name: d" NEW_LINE);
+                       "                    name: d" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE );
 }
 
 static void polymorphic_array_access_in_polymorphic_function(void)
@@ -258,7 +302,11 @@ static void polymorphic_array_access_in_polymorphic_function(void)
                           "\n"
                           "function c([]I32 d) : I32\n"
                           "    return a(d)\n"
-                          "end\n");
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
+                          "end");
 
     SET_COMMAND_LINE("semantics/expressions/array_access/polymorphic_array_access_in_polymorphic_function.owen "
                      "-print-semantics");
@@ -310,7 +358,14 @@ static void polymorphic_array_access_in_polymorphic_function(void)
                        "                    name: a" NEW_LINE
                        "                reference_expression" NEW_LINE
                        "                    type: []I32" NEW_LINE
-                       "                    name: d" NEW_LINE);
+                       "                    name: d" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static bool access_array_through_pointer(void)
@@ -327,6 +382,10 @@ static bool access_array_through_pointer(void)
                                   "\n"
                                   "function a(#?[]I32 b) : I32\n"
                                   "    return b[0]\n"
+                                  "end\n"
+                                  "\n"
+                                  "function main() : I32\n"
+                                  "    return 0\n"
                                   "end");
 
             format_command_line_options("%s -print-semantics", test.source_paths[0]);
@@ -348,7 +407,14 @@ static bool access_array_through_pointer(void)
                                "                    name: b" NEW_LINE
                                "                integer_literal" NEW_LINE
                                "                    type: U32" NEW_LINE
-                               "                    value: 0" NEW_LINE,
+                               "                    value: 0" NEW_LINE
+                               "    function" NEW_LINE
+                               "        name: main" NEW_LINE
+                               "        return_type: I32" NEW_LINE
+                               "        return_statement" NEW_LINE
+                               "            integer_literal" NEW_LINE
+                               "                type: I32" NEW_LINE
+                               "                value: 0" NEW_LINE ,
                                test.source_paths[0]);
 
             return true;

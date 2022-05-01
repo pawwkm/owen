@@ -34,6 +34,10 @@ static bool x_typed_expression(void)
                           "\n"
                           "function b(%s c) : Bool\n"
                           "    return !c\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end", 
                           types[index].name);
 
@@ -88,7 +92,14 @@ static bool x_typed_expression(void)
                            "                type: Bool" NEW_LINE
                            "                reference_expression" NEW_LINE
                            "                    type: Bool" NEW_LINE
-                           "                    name: c" NEW_LINE);
+                           "                    name: c" NEW_LINE
+                           "    function" NEW_LINE
+                           "        name: main" NEW_LINE
+                           "        return_type: I32" NEW_LINE
+                           "        return_statement" NEW_LINE
+                           "            integer_literal" NEW_LINE
+                           "                type: I32" NEW_LINE
+                           "                value: 0" NEW_LINE);
     }
     else
     {

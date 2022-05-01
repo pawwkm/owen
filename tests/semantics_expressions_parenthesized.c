@@ -10,7 +10,11 @@ static void parenthesize_an_expression(void)
                           "\n"
                           "function a(I32 b) : I32\n"
                           "    return (b)\n"
-                          "end\n");
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
+                          "end");
 
     SET_COMMAND_LINE("semantics/expressions/parenthesized/parenthesize_an_expression.owen "
                      "-print-semantics");
@@ -30,7 +34,14 @@ static void parenthesize_an_expression(void)
                        "                type: I32" NEW_LINE
                        "                reference_expression" NEW_LINE
                        "                    type: I32" NEW_LINE
-                       "                    name: b" NEW_LINE);
+                       "                    name: b" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 bool semantics_expressions_parenthesized(void)

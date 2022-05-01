@@ -34,7 +34,11 @@ static bool sizeof_x_typed_expression(void)
                           "\n"
                           "function a(%s b) : I32\n"
                           "    return sizeof(b)\n"
-                          "end\n",
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
+                          "end",
                           types[index].name);
 
     format_command_line_options("%s -print-semantics", test.source_paths[0]);
@@ -84,7 +88,14 @@ static bool sizeof_x_typed_expression(void)
                        "        return_statement" NEW_LINE
                        "            integer_literal" NEW_LINE
                        "                type: I32" NEW_LINE
-                       "                value: %u" NEW_LINE,
+                       "                value: %u" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE,
                        test.source_paths[0],
                        types[index].name,
                        types[index].size_of);
@@ -127,7 +138,11 @@ static bool sizeof_x_type(void)
                           "\n"
                           "function a() : I32\n"
                           "    return sizeof(%s)\n"
-                          "end\n",
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
+                          "end",
                           types[index].name);
 
     format_command_line_options("%s -print-semantics", test.source_paths[0]);
@@ -174,7 +189,14 @@ static bool sizeof_x_type(void)
                        "        return_statement" NEW_LINE
                        "            integer_literal" NEW_LINE
                        "                type: I32" NEW_LINE
-                       "                value: %u" NEW_LINE,
+                       "                value: %u" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE,
                        test.source_paths[0],
                        types[index].size_of);
 

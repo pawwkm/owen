@@ -41,6 +41,10 @@ static bool assign_non_pointer_x_typed_expression_to_non_pointer_x_typed_field(v
                           "\n"
                           "function do_stuff(%s b) : A\n"
                           "    return { a = b }\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end", 
                           types[index].name,
                           types[index].name);
@@ -105,7 +109,14 @@ static bool assign_non_pointer_x_typed_expression_to_non_pointer_x_typed_field(v
                            "                    name: a" NEW_LINE
                            "                    reference_expression" NEW_LINE
                            "                        type: %s" NEW_LINE
-                           "                        name: b" NEW_LINE,
+                           "                        name: b" NEW_LINE
+                           "    function" NEW_LINE
+                           "        name: main" NEW_LINE
+                           "        return_type: I32" NEW_LINE
+                           "        return_statement" NEW_LINE
+                           "            integer_literal" NEW_LINE
+                           "                type: I32" NEW_LINE
+                           "                value: 0" NEW_LINE,
                            test.source_paths[0],
                            types[index].name,
                            types[index].name,
@@ -178,7 +189,14 @@ static bool assign_non_pointer_x_typed_expression_to_non_pointer_x_typed_field(v
                            "                    name: a" NEW_LINE
                            "                    reference_expression" NEW_LINE
                            "                        type: %s" NEW_LINE
-                           "                        name: b" NEW_LINE,
+                           "                        name: b" NEW_LINE
+                           "    function" NEW_LINE
+                           "        name: main" NEW_LINE
+                           "        return_type: I32" NEW_LINE
+                           "        return_statement" NEW_LINE
+                           "            integer_literal" NEW_LINE
+                           "                type: I32" NEW_LINE
+                           "                value: 0" NEW_LINE,
                            test.source_paths[0],
                            types[index].name,
                            types[index].name,
@@ -244,7 +262,14 @@ static bool assign_non_pointer_x_typed_expression_to_non_pointer_x_typed_field(v
                            "                    name: a" NEW_LINE
                            "                    reference_expression" NEW_LINE
                            "                        type: %s" NEW_LINE
-                           "                        name: b" NEW_LINE,
+                           "                        name: b" NEW_LINE
+                           "    function" NEW_LINE
+                           "        name: main" NEW_LINE
+                           "        return_type: I32" NEW_LINE
+                           "        return_statement" NEW_LINE
+                           "            integer_literal" NEW_LINE
+                           "                type: I32" NEW_LINE
+                           "                value: 0" NEW_LINE,
                            test.source_paths[0],
                            types[index].name,
                            types[index].name,
@@ -317,7 +342,14 @@ static bool assign_non_pointer_x_typed_expression_to_non_pointer_x_typed_field(v
                            "                    name: a" NEW_LINE
                            "                    reference_expression" NEW_LINE
                            "                        type: %s" NEW_LINE
-                           "                        name: b" NEW_LINE,
+                           "                        name: b" NEW_LINE
+                           "    function" NEW_LINE
+                           "        name: main" NEW_LINE
+                           "        return_type: I32" NEW_LINE
+                           "        return_statement" NEW_LINE
+                           "            integer_literal" NEW_LINE
+                           "                type: I32" NEW_LINE
+                           "                value: 0" NEW_LINE,
                            test.source_paths[0],
                            types[index].name,
                            types[index].name,
@@ -383,7 +415,14 @@ static bool assign_non_pointer_x_typed_expression_to_non_pointer_x_typed_field(v
                            "                    name: a" NEW_LINE
                            "                    reference_expression" NEW_LINE
                            "                        type: %s" NEW_LINE
-                           "                        name: b" NEW_LINE,
+                           "                        name: b" NEW_LINE
+                           "    function" NEW_LINE
+                           "        name: main" NEW_LINE
+                           "        return_type: I32" NEW_LINE
+                           "        return_statement" NEW_LINE
+                           "            integer_literal" NEW_LINE
+                           "                type: I32" NEW_LINE
+                           "                value: 0" NEW_LINE,
                            test.source_paths[0],
                            types[index].name,
                            types[index].name,
@@ -415,6 +454,10 @@ static bool assign_x_typed_expression_to_pointer_x_typed_field(void)
                             "\n"
                             "function do_stuff(%s b) : A\n"
                             "    return { a = b }\n"
+                            "end\n"
+                            "\n"
+                            "function main() : I32\n"
+                            "    return 0\n"
                             "end", 
                             types[expression_type_index].name,
                             types[field_type_index].name);
@@ -446,7 +489,14 @@ static bool assign_x_typed_expression_to_pointer_x_typed_field(void)
                             "                    name: a" NEW_LINE
                             "                    reference_expression" NEW_LINE
                             "                        type: %s" NEW_LINE
-                            "                        name: b" NEW_LINE,
+                            "                        name: b" NEW_LINE
+                            "    function" NEW_LINE
+                            "        name: main" NEW_LINE
+                            "        return_type: I32" NEW_LINE
+                            "        return_statement" NEW_LINE
+                            "            integer_literal" NEW_LINE
+                            "                type: I32" NEW_LINE
+                            "                value: 0" NEW_LINE,
                             test.source_paths[0],
                             types[expression_type_index].name,
                             types[field_type_index].name,
@@ -718,6 +768,10 @@ static bool x_type_compatible_literal_assigned_to_x_typed_field(void)
                                   "\n"
                                   "function do_stuff() : A\n"
                                   "    return { a = %s }\n"
+                                  "end\n"
+                                  "\n"
+                                  "function main() : I32\n"
+                                  "    return 0\n"
                                   "end", 
                                   types[index].name,
                                   types[index].default_value);
@@ -784,7 +838,14 @@ static bool x_type_compatible_literal_assigned_to_x_typed_field(void)
                                    "                            name: a" NEW_LINE
                                    "                            integer_literal" NEW_LINE
                                    "                                type: I32" NEW_LINE
-                                   "                                value: 0" NEW_LINE,
+                                   "                                value: 0" NEW_LINE
+                                   "    function" NEW_LINE
+                                   "        name: main" NEW_LINE
+                                   "        return_type: I32" NEW_LINE
+                                   "        return_statement" NEW_LINE
+                                   "            integer_literal" NEW_LINE
+                                   "                type: I32" NEW_LINE
+                                   "                value: 0" NEW_LINE,
                                    test.source_paths[0],
                                    types[index].name,
                                    types[index].name,
@@ -851,7 +912,14 @@ static bool x_type_compatible_literal_assigned_to_x_typed_field(void)
                                    "                            name: a" NEW_LINE
                                    "                            integer_literal" NEW_LINE
                                    "                                type: I32" NEW_LINE
-                                   "                                value: 0" NEW_LINE,
+                                   "                                value: 0" NEW_LINE
+                                   "    function" NEW_LINE
+                                   "        name: main" NEW_LINE
+                                   "        return_type: I32" NEW_LINE
+                                   "        return_statement" NEW_LINE
+                                   "            integer_literal" NEW_LINE
+                                   "                type: I32" NEW_LINE
+                                   "                value: 0" NEW_LINE,
                                    test.source_paths[0],
                                    types[index].name,
                                    types[index].name,
@@ -911,7 +979,14 @@ static bool x_type_compatible_literal_assigned_to_x_typed_field(void)
                                    "                            name: a" NEW_LINE
                                    "                            integer_literal" NEW_LINE
                                    "                                type: I32" NEW_LINE
-                                   "                                value: 0" NEW_LINE,
+                                   "                                value: 0" NEW_LINE
+                                   "    function" NEW_LINE
+                                   "        name: main" NEW_LINE
+                                   "        return_type: I32" NEW_LINE
+                                   "        return_statement" NEW_LINE
+                                   "            integer_literal" NEW_LINE
+                                   "                type: I32" NEW_LINE
+                                   "                value: 0" NEW_LINE,
                                    test.source_paths[0],
                                    types[index].name,
                                    types[index].name,
@@ -966,7 +1041,14 @@ static bool x_type_compatible_literal_assigned_to_x_typed_field(void)
                                    "                    name: a" NEW_LINE
                                    "                    %s_literal" NEW_LINE
                                    "                        type: %s" NEW_LINE
-                                   "                        value: 0" NEW_LINE,
+                                   "                        value: 0" NEW_LINE
+                                   "    function" NEW_LINE
+                                   "        name: main" NEW_LINE
+                                   "        return_type: I32" NEW_LINE
+                                   "        return_statement" NEW_LINE
+                                   "            integer_literal" NEW_LINE
+                                   "                type: I32" NEW_LINE
+                                   "                value: 0" NEW_LINE,
                                    test.source_paths[0],
                                    types[index].name,
                                    types[index].name,
@@ -1073,6 +1155,10 @@ static void monomorphic_literal_in_polymorphic_function(void)
                           "\n"
                           "function c(I32 d) : A\n"
                           "    return a[I32](d)\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end");
 
     SET_COMMAND_LINE("semantics/expressions/compound_literal/monomorphic_literal_in_polymorphic_function.owen "
@@ -1132,7 +1218,14 @@ static void monomorphic_literal_in_polymorphic_function(void)
                        "                    actual_type_parameter: I32" NEW_LINE
                        "                reference_expression" NEW_LINE
                        "                    type: I32" NEW_LINE
-                       "                    name: d" NEW_LINE);
+                       "                    name: d" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 bool semantics_expressions_compound_literal(void)

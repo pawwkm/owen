@@ -80,6 +80,10 @@ static bool x_typed_literal_with_leading_zeroes(void)
                               "\n"
                               "function a() : %s\n"
                               "    return 0001\n"
+                              "end\n"
+                              "\n"
+                              "function main() : I32\n"
+                              "    return 0\n"
                               "end",
                               types[type_index].name);
 
@@ -94,7 +98,14 @@ static bool x_typed_literal_with_leading_zeroes(void)
                             "        return_statement" NEW_LINE
                             "            integer_literal" NEW_LINE
                             "                type: %s" NEW_LINE
-                            "                value: 1" NEW_LINE,
+                            "                value: 1" NEW_LINE
+                            "    function" NEW_LINE
+                            "        name: main" NEW_LINE
+                            "        return_type: I32" NEW_LINE
+                            "        return_statement" NEW_LINE
+                            "            integer_literal" NEW_LINE
+                            "                type: I32" NEW_LINE
+                            "                value: 0" NEW_LINE,
                             test.source_paths[0],
                             types[type_index].name,
                             types[type_index].name);
@@ -120,6 +131,10 @@ static bool x_typed_binary_literal(void)
                                 "\n"
                                 "function a() : %s\n"
                                 "    return 0b1011\n"
+                                "end\n"
+                                "\n"
+                                "function main() : I32\n"
+                                "    return 0\n"
                                 "end",
                                 types[type_index].name);
 
@@ -134,7 +149,14 @@ static bool x_typed_binary_literal(void)
                            "        return_statement" NEW_LINE
                            "            integer_literal" NEW_LINE
                            "                type: %s" NEW_LINE
-                           "                value: 11" NEW_LINE,
+                           "                value: 11" NEW_LINE
+                           "    function" NEW_LINE
+                           "        name: main" NEW_LINE
+                           "        return_type: I32" NEW_LINE
+                           "        return_statement" NEW_LINE
+                           "            integer_literal" NEW_LINE
+                           "                type: I32" NEW_LINE
+                           "                value: 0" NEW_LINE,
                            test.source_paths[0],
                            types[type_index].name,
                            types[type_index].name);
@@ -160,7 +182,11 @@ static bool x_typed_decimal_literal(void)
                                 "\n"
                                 "function a() : %s\n"
                                 "    return 14\n"
-                                "end",
+                                "end\n"
+                                "\n"
+                                "function main() : I32\n"
+                                "    return 0\n"
+                                "end\n",
                                 types[type_index].name);
 
         format_command_line_options("%s -print-semantics", test.source_paths[0]);
@@ -174,7 +200,14 @@ static bool x_typed_decimal_literal(void)
                            "        return_statement" NEW_LINE
                            "            integer_literal" NEW_LINE
                            "                type: %s" NEW_LINE
-                           "                value: 14" NEW_LINE,
+                           "                value: 14" NEW_LINE
+                           "    function" NEW_LINE
+                           "        name: main" NEW_LINE
+                           "        return_type: I32" NEW_LINE
+                           "        return_statement" NEW_LINE
+                           "            integer_literal" NEW_LINE
+                           "                type: I32" NEW_LINE
+                           "                value: 0" NEW_LINE,
                            test.source_paths[0],
                            types[type_index].name,
                            types[type_index].name);
@@ -200,6 +233,10 @@ static bool x_typed_hexadecimal_literal(void)
                                 "\n"
                                 "function a() : %s\n"
                                 "    return 0x1F\n"
+                                "end\n"
+                                "\n"
+                                "function main() : I32\n"
+                                "    return 0\n"
                                 "end",
                                 types[type_index].name);
 
@@ -214,7 +251,14 @@ static bool x_typed_hexadecimal_literal(void)
                            "        return_statement" NEW_LINE
                            "            integer_literal" NEW_LINE
                            "                type: %s" NEW_LINE
-                           "                value: 31" NEW_LINE,
+                           "                value: 31" NEW_LINE
+                           "    function" NEW_LINE
+                           "        name: main" NEW_LINE
+                           "        return_type: I32" NEW_LINE
+                           "        return_statement" NEW_LINE
+                           "            integer_literal" NEW_LINE
+                           "                type: I32" NEW_LINE
+                           "                value: 0" NEW_LINE,
                            test.source_paths[0],
                            types[type_index].name,
                            types[type_index].name);
@@ -240,6 +284,10 @@ static bool x_typed_maximum_literal(void)
                               "\n"
                               "function a() : %s\n"
                               "    return %s\n"
+                              "end\n"
+                              "\n"
+                              "function main() : I32\n"
+                              "    return 0\n"
                               "end",
                               types[type_index].name,
                               types[type_index].max_value);
@@ -255,7 +303,14 @@ static bool x_typed_maximum_literal(void)
                             "        return_statement" NEW_LINE
                             "            integer_literal" NEW_LINE
                             "                type: %s" NEW_LINE
-                            "                value: %s" NEW_LINE,
+                            "                value: %s" NEW_LINE
+                            "    function" NEW_LINE
+                            "        name: main" NEW_LINE
+                            "        return_type: I32" NEW_LINE
+                            "        return_statement" NEW_LINE
+                            "            integer_literal" NEW_LINE
+                            "                type: I32" NEW_LINE
+                            "                value: 0" NEW_LINE,
                             test.source_paths[0],
                             types[type_index].name,
                             types[type_index].name,
@@ -282,6 +337,10 @@ static bool x_typed_minimum_literal(void)
                               "\n"
                               "function a() : %s\n"
                               "    return %s\n"
+                              "end\n"
+                              "\n"
+                              "function main() : I32\n"
+                              "    return 0\n"
                               "end",
                               types[type_index].name,
                               types[type_index].min_value);
@@ -297,7 +356,14 @@ static bool x_typed_minimum_literal(void)
                             "        return_statement" NEW_LINE
                             "            integer_literal" NEW_LINE
                             "                type: %s" NEW_LINE
-                            "                value: %s" NEW_LINE,
+                            "                value: %s" NEW_LINE
+                            "    function" NEW_LINE
+                            "        name: main" NEW_LINE
+                            "        return_type: I32" NEW_LINE
+                            "        return_statement" NEW_LINE
+                            "            integer_literal" NEW_LINE
+                            "                type: I32" NEW_LINE
+                            "                value: 0" NEW_LINE,
                             test.source_paths[0],
                             types[type_index].name,
                             types[type_index].name,
@@ -324,6 +390,10 @@ static bool x_typed_multiple_zeroes_binary_literal_with_seperators(void)
                               "\n"
                               "function a() : %s\n"
                               "    return 0b0_000\n"
+                              "end"
+                              "\n"
+                              "function main() : I32\n"
+                              "    return 0\n"
                               "end",
                               types[type_index].name);
 
@@ -338,6 +408,13 @@ static bool x_typed_multiple_zeroes_binary_literal_with_seperators(void)
                             "        return_statement" NEW_LINE
                             "            integer_literal" NEW_LINE
                             "                type: %s" NEW_LINE
+                            "                value: 0" NEW_LINE
+                            "    function" NEW_LINE
+                            "        name: main" NEW_LINE
+                            "        return_type: I32" NEW_LINE
+                            "        return_statement" NEW_LINE
+                            "            integer_literal" NEW_LINE
+                            "                type: I32" NEW_LINE
                             "                value: 0" NEW_LINE,
                             test.source_paths[0],
                             types[type_index].name,
@@ -364,6 +441,10 @@ static bool x_typed_multiple_zeroes_decimal_literal_with_seperators(void)
                               "\n"
                               "function a() : %s\n"
                               "    return 0_000\n"
+                              "end"
+                              "\n"
+                              "function main() : I32\n"
+                              "    return 0\n"
                               "end",
                               types[type_index].name);
 
@@ -378,6 +459,13 @@ static bool x_typed_multiple_zeroes_decimal_literal_with_seperators(void)
                             "        return_statement" NEW_LINE
                             "            integer_literal" NEW_LINE
                             "                type: %s" NEW_LINE
+                            "                value: 0" NEW_LINE
+                            "    function" NEW_LINE
+                            "        name: main" NEW_LINE
+                            "        return_type: I32" NEW_LINE
+                            "        return_statement" NEW_LINE
+                            "            integer_literal" NEW_LINE
+                            "                type: I32" NEW_LINE
                             "                value: 0" NEW_LINE,
                             test.source_paths[0],
                             types[type_index].name,
@@ -404,6 +492,10 @@ static bool x_typed_multiple_zeroes_decimal_literal_without_seperators(void)
                               "\n"
                               "function a() : %s\n"
                               "    return 000\n"
+                              "end\n"
+                              "\n"
+                              "function main() : I32\n"
+                              "    return 0\n"
                               "end",
                               types[type_index].name);
 
@@ -418,6 +510,13 @@ static bool x_typed_multiple_zeroes_decimal_literal_without_seperators(void)
                             "        return_statement" NEW_LINE
                             "            integer_literal" NEW_LINE
                             "                type: %s" NEW_LINE
+                            "                value: 0" NEW_LINE
+                            "    function" NEW_LINE
+                            "        name: main" NEW_LINE
+                            "        return_type: I32" NEW_LINE
+                            "        return_statement" NEW_LINE
+                            "            integer_literal" NEW_LINE
+                            "                type: I32" NEW_LINE
                             "                value: 0" NEW_LINE,
                             test.source_paths[0],
                             types[type_index].name,
@@ -444,6 +543,10 @@ static bool x_typed_single_zero_binary_digit_literal(void)
                               "\n"
                               "function a() : %s\n"
                               "    return 0b0\n"
+                              "end"
+                              "\n"
+                              "function main() : I32\n"
+                              "    return 0\n"
                               "end",
                               types[type_index].name);
 
@@ -458,6 +561,13 @@ static bool x_typed_single_zero_binary_digit_literal(void)
                            "        return_statement" NEW_LINE
                            "            integer_literal" NEW_LINE
                            "                type: %s" NEW_LINE
+                           "                value: 0" NEW_LINE
+                           "    function" NEW_LINE
+                           "        name: main" NEW_LINE
+                           "        return_type: I32" NEW_LINE
+                           "        return_statement" NEW_LINE
+                           "            integer_literal" NEW_LINE
+                           "                type: I32" NEW_LINE
                            "                value: 0" NEW_LINE,
                            test.source_paths[0],
                            types[type_index].name,
@@ -524,6 +634,10 @@ static bool x_typed_single_zero_hexadecimal_digit_literal(void)
                               "\n"
                               "function a() : %s\n"
                               "    return 0x0\n"
+                              "end\n"
+                              "\n"
+                              "function main() : I32\n"
+                              "    return 0\n"
                               "end",
                               types[type_index].name);
 
@@ -538,6 +652,13 @@ static bool x_typed_single_zero_hexadecimal_digit_literal(void)
                            "        return_statement" NEW_LINE
                            "            integer_literal" NEW_LINE
                            "                type: %s" NEW_LINE
+                           "                value: 0" NEW_LINE
+                           "    function" NEW_LINE
+                           "        name: main" NEW_LINE
+                           "        return_type: I32" NEW_LINE
+                           "        return_statement" NEW_LINE
+                           "            integer_literal" NEW_LINE
+                           "                type: I32" NEW_LINE
                            "                value: 0" NEW_LINE,
                            test.source_paths[0],
                            types[type_index].name,

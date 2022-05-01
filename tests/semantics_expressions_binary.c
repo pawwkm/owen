@@ -27,6 +27,10 @@ static bool x_type_compatible_literal_operator_x_typed_expression(void)
                                    "\n"
                                    "function a(%s b) : %s\n"
                                    "    return b %s %s\n"
+                                   "end\n"
+                                   "\n"
+                                   "function main() : I32\n"
+                                   "    return 0\n"
                                    "end",
                                    types[type_index].name, return_type,
                                    binary_operators[operator_index].token, types[type_index].default_value);
@@ -51,7 +55,14 @@ static bool x_type_compatible_literal_operator_x_typed_expression(void)
                                "                    name: b" NEW_LINE
                                "                %s_literal" NEW_LINE
                                "                    type: %s" NEW_LINE
-                               "                    value: 0" NEW_LINE,
+                               "                    value: 0" NEW_LINE
+                               "    function" NEW_LINE
+                               "        name: main" NEW_LINE
+                               "        return_type: I32" NEW_LINE
+                               "        return_statement" NEW_LINE
+                               "            integer_literal" NEW_LINE
+                               "                type: I32" NEW_LINE
+                               "                value: 0" NEW_LINE,
                                test.source_paths[0],
                                types[type_index].name,
                                return_type,
@@ -103,6 +114,10 @@ static bool x_typed_expression_operator_x_type_compatible_literal(void)
                                    "\n"
                                    "function a(%s b) : %s\n"
                                    "    return %s %s b\n"
+                                   "end\n"
+                                   "\n"
+                                   "function main() : I32\n"
+                                   "    return 0\n"
                                    "end",
                                    types[type_index].name, return_type,
                                    types[type_index].default_value, binary_operators[operator_index].token);
@@ -127,7 +142,14 @@ static bool x_typed_expression_operator_x_type_compatible_literal(void)
                                "                    value: 0" NEW_LINE
                                "                reference_expression" NEW_LINE
                                "                    type: %s" NEW_LINE
-                               "                    name: b" NEW_LINE,
+                               "                    name: b" NEW_LINE
+                               "    function" NEW_LINE
+                               "        name: main" NEW_LINE
+                               "        return_type: I32" NEW_LINE
+                               "        return_statement" NEW_LINE
+                               "            integer_literal" NEW_LINE
+                               "                type: I32" NEW_LINE
+                               "                value: 0" NEW_LINE,
                                test.source_paths[0],
                                types[type_index].name,
                                return_type,
@@ -177,7 +199,12 @@ static bool infer_float_literal_x_operator_integer_float_as_x_type(void)
                                   "\n"
                                   "function a() : %s\n"
                                   "    return %s %s %s\n"
-                                  "end", types[type_index].name,
+                                  "end\n" 
+                                  "\n"
+                                  "function main() : I32\n"
+                                  "    return 0\n"
+                                  "end",
+                                  types[type_index].name,
                                   types[type_index].default_value, binary_operators[operator_index].token, types[type_index].default_value);
 
             format_command_line_options("%s -print-semantics", test.source_paths[0]);
@@ -197,7 +224,14 @@ static bool infer_float_literal_x_operator_integer_float_as_x_type(void)
                                "                    value: 0" NEW_LINE
                                "                float_literal" NEW_LINE
                                "                    type: %s" NEW_LINE
-                               "                    value: 0" NEW_LINE,
+                               "                    value: 0" NEW_LINE
+                               "    function" NEW_LINE
+                               "        name: main" NEW_LINE
+                               "        return_type: I32" NEW_LINE
+                               "        return_statement" NEW_LINE
+                               "            integer_literal" NEW_LINE
+                               "                type: I32" NEW_LINE
+                               "                value: 0" NEW_LINE,
                                test.source_paths[0],
                                types[type_index].name,
                                types[type_index].name,
@@ -244,7 +278,12 @@ static bool infer_integer_literal_x_operator_integer_literal_as_x_type(void)
                                   "\n"
                                   "function a() : %s\n"
                                   "    return %s %s %s\n"
-                                  "end", types[type_index].name,
+                                  "end\n"
+                                  "\n"
+                                  "function main() : I32\n"
+                                  "    return 0\n"
+                                  "end", 
+                                  types[type_index].name,
                                   types[type_index].default_value, binary_operators[operator_index].token, types[type_index].default_value);
 
             format_command_line_options("%s -print-semantics", test.source_paths[0]);
@@ -264,7 +303,14 @@ static bool infer_integer_literal_x_operator_integer_literal_as_x_type(void)
                                "                    value: 0" NEW_LINE
                                "                integer_literal" NEW_LINE
                                "                    type: %s" NEW_LINE
-                               "                    value: 0" NEW_LINE,
+                               "                    value: 0" NEW_LINE
+                               "    function" NEW_LINE
+                               "        name: main" NEW_LINE
+                               "        return_type: I32" NEW_LINE
+                               "        return_statement" NEW_LINE
+                               "            integer_literal" NEW_LINE
+                               "                type: I32" NEW_LINE
+                               "                value: 0" NEW_LINE,
                                test.source_paths[0],
                                types[type_index].name,
                                types[type_index].name,
@@ -471,6 +517,10 @@ static bool x_typed_expression_x_type_compatible_operator_x_typed_expression(voi
                                   "\n"
                                   "function a(%s b) : %s\n"
                                   "    return b %s b\n"
+                                  "end\n"
+                                  "\n"
+                                  "function main() : I32\n"
+                                  "    return 0\n"
                                   "end",
                                   types[type_index].name, return_type,
                                   binary_operators[operator_index].token, types[type_index].default_value);
@@ -502,7 +552,14 @@ static bool x_typed_expression_x_type_compatible_operator_x_typed_expression(voi
                                "                    name: b" NEW_LINE
                                "                reference_expression" NEW_LINE
                                "                    type: %s" NEW_LINE
-                               "                    name: b" NEW_LINE,
+                               "                    name: b" NEW_LINE
+                               "    function" NEW_LINE
+                               "        name: main" NEW_LINE
+                               "        return_type: I32" NEW_LINE
+                               "        return_statement" NEW_LINE
+                               "            integer_literal" NEW_LINE
+                               "                type: I32" NEW_LINE
+                               "                value: 0" NEW_LINE,
                                test.source_paths[0],
                                types[type_index].name,
                                return_type,
@@ -1068,6 +1125,10 @@ static bool pointer_typed_expression_plus_or_minus_uxx_typed_expression(void)
                                 "\n"
                                 "function a(%s b, %s c) : %s\n"
                                 "    return b %s c\n"
+                                "end\n"
+                                "\n"
+                                "function main() : I32\n"
+                                "    return 0\n"
                                 "end",
                                 types[lhs_type_index].name, types[rhs_type_index].name, return_type,
                                 binary_operators[operator_index].token);
@@ -1095,7 +1156,14 @@ static bool pointer_typed_expression_plus_or_minus_uxx_typed_expression(void)
                             "                    name: b" NEW_LINE
                             "                reference_expression" NEW_LINE
                             "                    type: %s" NEW_LINE
-                            "                    name: c" NEW_LINE,
+                            "                    name: c" NEW_LINE
+                            "    function" NEW_LINE
+                            "        name: main" NEW_LINE
+                            "        return_type: I32" NEW_LINE
+                            "        return_statement" NEW_LINE
+                            "            integer_literal" NEW_LINE
+                            "                type: I32" NEW_LINE
+                            "                value: 0" NEW_LINE,
                             test.source_paths[0],
                             types[lhs_type_index].name, 
                             types[rhs_type_index].name,
@@ -1146,6 +1214,9 @@ static bool uxx_typed_expression_plus_or_minus_pointer_typed_expression(void)
                                "\n"
                                "function a(%s b, %s c) : %s\n"
                                "    return b %s c\n"
+                               "end\n"
+                               "function main() : I32\n"
+                               "    return 0\n"
                                "end",
                                types[lhs_type_index].name, types[rhs_type_index].name, return_type,
                                binary_operators[operator_index].token);
@@ -1173,7 +1244,14 @@ static bool uxx_typed_expression_plus_or_minus_pointer_typed_expression(void)
                            "                    name: b" NEW_LINE
                            "                reference_expression" NEW_LINE
                            "                    type: %s" NEW_LINE
-                           "                    name: c" NEW_LINE,
+                           "                    name: c" NEW_LINE
+                           "    function" NEW_LINE
+                           "        name: main" NEW_LINE
+                           "        return_type: I32" NEW_LINE
+                           "        return_statement" NEW_LINE
+                           "            integer_literal" NEW_LINE
+                           "                type: I32" NEW_LINE
+                           "                value: 0" NEW_LINE,
                            test.source_paths[0],
                            types[lhs_type_index].name, 
                            types[rhs_type_index].name,
@@ -1215,7 +1293,11 @@ static void monomorphic_binary_in_polymorphic_function(void)
                           "\n"
                           "function c(I32 d) : I32\n"
                           "    return a[I32](d)\n"
-                          "end\n");
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
+                          "end");
 
     SET_COMMAND_LINE("semantics/expressions/binary/monomorphic_binary_in_polymorphic_function.owen "
                      "-print-semantics");
@@ -1270,7 +1352,14 @@ static void monomorphic_binary_in_polymorphic_function(void)
                        "                    actual_type_parameter: I32" NEW_LINE
                        "                reference_expression" NEW_LINE
                        "                    type: I32" NEW_LINE
-                       "                    name: d" NEW_LINE,
+                       "                    name: d" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE,
                        test.source_paths[0]);
 }
 
@@ -1288,7 +1377,11 @@ static void polymorphic_binary_in_polymorphic_function(void)
                           "\n"
                           "function c(I32 d) : I32\n"
                           "    return a(d)\n"
-                          "end\n");
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
+                          "end");
 
     SET_COMMAND_LINE("semantics/expressions/binary/polymorphic_binary_in_polymorphic_function.owen "
                      "-print-semantics");
@@ -1342,7 +1435,14 @@ static void polymorphic_binary_in_polymorphic_function(void)
                        "                    name: a" NEW_LINE
                        "                reference_expression" NEW_LINE
                        "                    type: I32" NEW_LINE
-                       "                    name: d" NEW_LINE,
+                       "                    name: d" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE,
                        test.source_paths[0]);
 }
 

@@ -334,6 +334,7 @@ Type_Handle monomorphisize_function(Function_Handle polymorphic_handle)
     monomorphic->attributes = polymorphic->attributes & ~Function_Attribute_is_polymorphic;
     monomorphic->name = polymorphic->name;
     monomorphic->template = polymorphic_handle;
+    monomorphic->ir = invalid_ir_function_handle;
 
     reserve_formal_parameter_handles(&monomorphic->formal_parameters, polymorphic->formal_parameters.handles_length);
     for (uint8_t i = 0; i < polymorphic->formal_parameters.handles_length; i++)

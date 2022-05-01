@@ -34,6 +34,10 @@ static bool x_typed_expression(void)
                           "\n"
                           "function b(%s c) : %s\n"
                           "    return -c\n"
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
                           "end", 
                           types[index].name,
                           types[index].name);
@@ -89,7 +93,14 @@ static bool x_typed_expression(void)
                            "                type: %s" NEW_LINE
                            "                reference_expression" NEW_LINE
                            "                    type: %s" NEW_LINE
-                           "                    name: c" NEW_LINE,
+                           "                    name: c" NEW_LINE
+                           "    function" NEW_LINE
+                           "        name: main" NEW_LINE
+                           "        return_type: I32" NEW_LINE
+                           "        return_statement" NEW_LINE
+                           "            integer_literal" NEW_LINE
+                           "                type: I32" NEW_LINE
+                           "                value: 0" NEW_LINE,
                            test.source_paths[0],
                            types[index].name,
                            types[index].name,
@@ -128,6 +139,10 @@ static bool x_typed_literal(void)
                                   "\n"
                                   "function b() : %s\n"
                                   "    return -%s\n"
+                                  "end\n"
+                                  "\n"
+                                  "function main() : I32\n"
+                                  "    return 0\n"
                                   "end",
                                   types[index].name,
                                   index >= FIRST_FLOAT_TYPE_INDEX && index <= LAST_FLOAT_TYPE_INDEX ? "1.0" : "1");
@@ -143,7 +158,14 @@ static bool x_typed_literal(void)
                                "        return_statement" NEW_LINE
                                "            %s_literal" NEW_LINE
                                "                type: %s" NEW_LINE
-                               "                value: -1" NEW_LINE,
+                               "                value: -1" NEW_LINE
+                               "    function" NEW_LINE
+                               "        name: main" NEW_LINE
+                               "        return_type: I32" NEW_LINE
+                               "        return_statement" NEW_LINE
+                               "            integer_literal" NEW_LINE
+                               "                type: I32" NEW_LINE
+                               "                value: 0" NEW_LINE,
                                test.source_paths[0],
                                types[index].name,
                                types[index].file_friendly_default_value_name,

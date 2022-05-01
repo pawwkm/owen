@@ -14,7 +14,11 @@ static void monomorphic_reference_in_polymorphic_function(void)
                           "\n"
                           "function c(I32 d) : I32\n"
                           "    return a[I32](d)\n"
-                          "end\n");
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
+                          "end");
 
     SET_COMMAND_LINE("semantics/expressions/reference/monomorphic_reference_in_polymorphic_function.owen "
                      "-print-semantics");
@@ -59,7 +63,14 @@ static void monomorphic_reference_in_polymorphic_function(void)
                        "                    actual_type_parameter: I32" NEW_LINE
                        "                reference_expression" NEW_LINE
                        "                    type: I32" NEW_LINE
-                       "                    name: d" NEW_LINE);
+                       "                    name: d" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void polymorphic_reference_in_polymorphic_function(void)
@@ -76,7 +87,11 @@ static void polymorphic_reference_in_polymorphic_function(void)
                           "\n"
                           "function c(I32 d) : I32\n"
                           "    return a(d)\n"
-                          "end\n");
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
+                          "end");
 
     SET_COMMAND_LINE("semantics/expressions/reference/polymorphic_reference_in_polymorphic_function.owen "
                      "-print-semantics");
@@ -120,7 +135,14 @@ static void polymorphic_reference_in_polymorphic_function(void)
                        "                    name: a" NEW_LINE
                        "                reference_expression" NEW_LINE
                        "                    type: I32" NEW_LINE
-                       "                    name: d" NEW_LINE);
+                       "                    name: d" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void reference_a_parameter(void)
@@ -133,7 +155,11 @@ static void reference_a_parameter(void)
                           "\n"
                           "function a(Function() b) : Function()\n"
                           "    return b\n"
-                          "end\n");
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
+                          "end");
 
     SET_COMMAND_LINE("semantics/expressions/reference/reference_a_parameter.owen "
                      "-print-semantics");
@@ -151,7 +177,14 @@ static void reference_a_parameter(void)
                        "        return_statement" NEW_LINE
                        "            reference_expression" NEW_LINE
                        "                type: Function()" NEW_LINE
-                       "                name: b" NEW_LINE);
+                       "                name: b" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void reference_a_variable(void)
@@ -164,9 +197,12 @@ static void reference_a_variable(void)
                           "\n"
                           "function a() : I32\n"
                           "    I32 b = 0\n"
-                          "\n"
                           "    return b\n"
-                          "end\n");
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
+                          "end");
 
     SET_COMMAND_LINE("semantics/expressions/reference/reference_a_variable.owen "
                      "-print-semantics");
@@ -188,7 +224,14 @@ static void reference_a_variable(void)
                        "        return_statement" NEW_LINE
                        "            reference_expression" NEW_LINE
                        "                type: I32" NEW_LINE
-                       "                name: b" NEW_LINE);
+                       "                name: b" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 static void undefined_reference(void)

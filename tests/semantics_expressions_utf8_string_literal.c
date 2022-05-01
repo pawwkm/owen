@@ -10,7 +10,11 @@ static void inferrable_privileges(void)
                           "\n"
                           "function a() : #[]U8\n"
                           "    return \"abc\"\n"
-                          "end\n");
+                          "end\n"
+                          "\n"
+                          "function main() : I32\n"
+                          "    return 0\n"
+                          "end");
 
     SET_COMMAND_LINE("semantics/expressions/utf8_string_literal/inferrable_privileges.owen "
                      "-print-semantics");
@@ -25,7 +29,14 @@ static void inferrable_privileges(void)
                        "        return_statement" NEW_LINE
                        "            utf8_string_literal" NEW_LINE
                        "                type: #[]U8" NEW_LINE
-                       "                value: \"abc\"" NEW_LINE);
+                       "                value: \"abc\"" NEW_LINE
+                       "    function" NEW_LINE
+                       "        name: main" NEW_LINE
+                       "        return_type: I32" NEW_LINE
+                       "        return_statement" NEW_LINE
+                       "            integer_literal" NEW_LINE
+                       "                type: I32" NEW_LINE
+                       "                value: 0" NEW_LINE);
 }
 
 bool semantics_expressions_utf8_string_literal(void)
