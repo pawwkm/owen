@@ -16,10 +16,8 @@ bool type_check_statements(const File* file, Statement_Handle_Array* body, const
             type_check_expression_statement(file, lookup_expression(statement->expression_statement));
         else if (statement->tag == Statement_Tag_if)
             terminated = type_check_if_statement(file, &statement->if_statement, function, is_inside_loop) && i == body->handles_length - 1;
-        else if (statement->tag == Statement_Tag_for)
-            type_check_for_statement(file, &statement->for_statement, function);
-        else if (statement->tag == Statement_Tag_while)
-            type_check_while_statement(file, &statement->while_statement, function);
+        else if (statement->tag == Statement_Tag_loop)
+            type_check_loop_statement(file, &statement->loop_statement, function);
         else if (statement->tag == Statement_Tag_break)
             type_check_break_statement(file, &statement->break_statement, is_inside_loop);
         else if (statement->tag == Statement_Tag_continue)
@@ -51,10 +49,8 @@ static void deep_copy_statement(Statement* restrict destination, const Statement
     }
     else if (source->tag == Statement_Tag_if)
         deep_copy_if_statement(&destination->if_statement, &source->if_statement);
-    else if (source->tag == Statement_Tag_for)
-        deep_copy_for_statement(&destination->for_statement, &source->for_statement);
-    else if (source->tag == Statement_Tag_while)
-        deep_copy_while_statement(&destination->while_statement, &source->while_statement);
+    else if (source->tag == Statement_Tag_loop)
+        deep_copy_loop_statement(&destination->loop_statement, &source->loop_statement);
     else if (source->tag == Statement_Tag_break)
         deep_copy_break_statement(&destination->break_statement, &source->break_statement);
     else if (source->tag == Statement_Tag_continue)

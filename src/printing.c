@@ -953,38 +953,28 @@ static void print_if_statement(const If_Statement* if_statement, bool is_not_pol
     indentation--;
 }
 
-static void print_for_statement(const For_Statement* for_statement, bool is_not_polymorphic)
+static void print_loop_statement(const Loop_Statement* loop_statement, bool is_not_polymorphic)
 {
-    printf("for_statement\n");
+    printf("loop_statement\n");
     
     indentation++;
-    print_indentation();
-    print_declaration_statement(&lookup_statement(for_statement->declaration_statement)->declaration_statement, is_not_polymorphic);
-    print_expression(lookup_expression(for_statement->condition), is_not_polymorphic);
-    
-    print_indentation();
-    print_assignment_statement(&lookup_statement(for_statement->assignment_statement)->assignment_statement, is_not_polymorphic);
-    
-    indentation--;
-
-    print_statements(&for_statement->body, is_not_polymorphic);
-}
-
-static void print_while_statement(const While_Statement* while_statement, bool is_not_polymorphic)
-{
-    printf("while_statement\n");
-    
-    indentation++;
-    if (!is_invalid_statement_handle(while_statement->declaration_statement))
+    if (!is_invalid_statement_handle(loop_statement->declaration_statement))
     {
         print_indentation();
-        print_declaration_statement(&lookup_statement(while_statement->declaration_statement)->declaration_statement, is_not_polymorphic);
+        print_declaration_statement(&lookup_statement(loop_statement->declaration_statement)->declaration_statement, is_not_polymorphic);
     }
 
-    print_expression(lookup_expression(while_statement->condition), is_not_polymorphic);
-    indentation--;
+    if (!is_invalid_expression_handle(loop_statement->condition)) 
+        print_expression(lookup_expression(loop_statement->condition), is_not_polymorphic);
+    
+    if (!is_invalid_statement_handle(loop_statement->assignment_statement))
+    {
+        print_indentation();
+        print_assignment_statement(&lookup_statement(loop_statement->assignment_statement)->assignment_statement, is_not_polymorphic);
+    }
 
-    print_statements(&while_statement->body, is_not_polymorphic);
+    indentation--;
+    print_statements(&loop_statement->body, is_not_polymorphic);
 }
 
 static void print_return_statement(const Return_Statement* return_statement, bool is_not_polymorphic)
@@ -1017,10 +1007,8 @@ static void print_statements(const Statement_Handle_Array* body, bool is_not_pol
             print_expression(lookup_expression(statement->expression_statement), is_not_polymorphic);
         else if (statement->tag == Statement_Tag_if)
             print_if_statement(&statement->if_statement, is_not_polymorphic);
-        else if (statement->tag == Statement_Tag_for)
-            print_for_statement(&statement->for_statement, is_not_polymorphic);
-        else if (statement->tag == Statement_Tag_while)
-            print_while_statement(&statement->while_statement, is_not_polymorphic);
+        else if (statement->tag == Statement_Tag_loop)
+            print_loop_statement(&statement->loop_statement, is_not_polymorphic);
         else if (statement->tag == Statement_Tag_break)
             printf("break_statement\n");
         else if (statement->tag == Statement_Tag_continue)
@@ -1345,8 +1333,7 @@ const char* statement_tag_as_string(uint8_t tag)
         case Statement_Tag_assignment:  return "Statement_Tag_assignment";
         case Statement_Tag_expression:  return "Statement_Tag_expression";
         case Statement_Tag_if:          return "Statement_Tag_if";
-        case Statement_Tag_for:         return "Statement_Tag_for";
-        case Statement_Tag_while:       return "Statement_Tag_while";
+        case Statement_Tag_loop:        return "Statement_Tag_loop";
         case Statement_Tag_break:       return "Statement_Tag_break";
         case Statement_Tag_continue:    return "Statement_Tag_continue";
         case Statement_Tag_return:      return "Statement_Tag_return";

@@ -712,8 +712,7 @@ typedef enum
     Statement_Tag_assignment,
     Statement_Tag_expression,
     Statement_Tag_if,
-    Statement_Tag_for,
-    Statement_Tag_while,
+    Statement_Tag_loop,
     Statement_Tag_break,
     Statement_Tag_continue,
     Statement_Tag_return
@@ -779,14 +778,7 @@ typedef struct
     Expression_Handle condition;
     Statement_Handle assignment_statement;
     Statement_Handle_Array body;
-} For_Statement;
-
-typedef struct
-{
-    Statement_Handle declaration_statement;
-    Expression_Handle condition;
-    Statement_Handle_Array body;
-} While_Statement;
+} Loop_Statement;
 
 typedef struct
 {
@@ -813,8 +805,7 @@ typedef struct
         Assignment_Statement assignment_statement;
         Expression_Handle expression_statement;        
         If_Statement if_statement;
-        For_Statement for_statement;
-        While_Statement while_statement;
+        Loop_Statement loop_statement;
         Continue_Statement continue_statement;
         Break_Statement break_statement;
         Return_Statement return_statement;

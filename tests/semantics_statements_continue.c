@@ -44,7 +44,7 @@ static void inside_while_loop(void)
                        "    function" NEW_LINE
                        "        name: main" NEW_LINE
                        "        return_type: I32" NEW_LINE
-                       "        while_statement" NEW_LINE
+                       "        loop_statement" NEW_LINE
                        "            boolean_literal" NEW_LINE
                        "                type: Bool" NEW_LINE
                        "                value: true" NEW_LINE
@@ -102,7 +102,7 @@ static void inside_for_loop(void)
                        "    function" NEW_LINE
                        "        name: main" NEW_LINE
                        "        return_type: I32" NEW_LINE
-                       "        for_statement" NEW_LINE
+                       "        loop_statement" NEW_LINE
                        "            declaration_statement" NEW_LINE
                        "                variable" NEW_LINE
                        "                    type: I32" NEW_LINE

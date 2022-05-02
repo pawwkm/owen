@@ -863,12 +863,12 @@ static Statement_Handle parse_for_statement(void)
     Statement_Handle statement_handle = add_statement();
     Statement* statement = lookup_statement(statement_handle);
 
-    statement->for_statement.declaration_statement = parse_declaration_statement();
-    if (!is_invalid_statement_handle(statement->for_statement.declaration_statement))
+    statement->loop_statement.declaration_statement = parse_declaration_statement();
+    if (!is_invalid_statement_handle(statement->loop_statement.declaration_statement))
         expect(Token_Tag_semicolon, "; expected after declaration statement.");
 
-    statement->for_statement.condition = parse_expression(0);
-    if (is_invalid_expression_handle(statement->for_statement.condition))
+    statement->loop_statement.condition = parse_expression(0);
+    if (is_invalid_expression_handle(statement->loop_statement.condition))
         print_span_error(file, lexer.token.span, "Condition expected.");
 
     expect(Token_Tag_semicolon, "; expected after condition.");
@@ -877,16 +877,16 @@ static Statement_Handle parse_for_statement(void)
     if (is_invalid_expression_handle(first))
         print_span_error(file, lexer.token.span, "Expression expected.");
 
-    statement->for_statement.assignment_statement = add_statement();
-    Assignment_Statement* assignment = &lookup_statement(statement->for_statement.assignment_statement)->assignment_statement;
+    statement->loop_statement.assignment_statement = add_statement();
+    Assignment_Statement* assignment = &lookup_statement(statement->loop_statement.assignment_statement)->assignment_statement;
 
     add_to_expression_array(&assignment->lhs, first);
     parse_assignment_statement(assignment);
 
-    parse_statements(&statement->for_statement.body);
+    parse_statements(&statement->loop_statement.body);
     expect(Token_Tag_end, "Missing end keyword in for loop.");
 
-    statement->tag = Statement_Tag_for;
+    statement->tag = Statement_Tag_loop;
 
     return statement_handle;
 }
@@ -896,23 +896,24 @@ static Statement_Handle parse_while_statement(void)
     Statement_Handle statement_handle = add_statement();
     Statement* statement = lookup_statement(statement_handle);
 
-    statement->while_statement.declaration_statement = parse_declaration_statement();
-    if (!is_invalid_statement_handle(statement->while_statement.declaration_statement))
+    statement->loop_statement.declaration_statement = parse_declaration_statement();
+    if (!is_invalid_statement_handle(statement->loop_statement.declaration_statement))
         expect(Token_Tag_semicolon, "; expected after declaration statement.");
 
-    statement->while_statement.condition = parse_expression(0);
-    if (is_invalid_expression_handle(statement->while_statement.condition))
+    statement->loop_statement.condition = parse_expression(0);
+    if (is_invalid_expression_handle(statement->loop_statement.condition))
     {
-        if (is_invalid_statement_handle(statement->while_statement.declaration_statement))
+        if (is_invalid_statement_handle(statement->loop_statement.declaration_statement))
             print_span_error(file, lexer.token.span, "Declaration or condition expected.");
         else
             print_span_error(file, lexer.token.span, "Condition expected.");
     }
     
-    parse_statements(&statement->while_statement.body);
+    parse_statements(&statement->loop_statement.body);
     expect(Token_Tag_end, "Missing end keyword in while loop.");
 
-    statement->tag = Statement_Tag_while;
+    statement->loop_statement.assignment_statement = invalid_statement_handle;
+    statement->tag = Statement_Tag_loop;
 
     return statement_handle;
 }

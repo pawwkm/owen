@@ -29,7 +29,7 @@ static void bool_typed_condition(void)
                        "        formal_parameter" NEW_LINE
                        "            type: Bool" NEW_LINE
                        "            name: b" NEW_LINE
-                       "        while_statement" NEW_LINE
+                       "        loop_statement" NEW_LINE
                        "            reference_expression" NEW_LINE
                        "                type: Bool" NEW_LINE
                        "                name: b" NEW_LINE
@@ -74,7 +74,7 @@ static void monomorphic_statement_in_a_polymorphic_function(void)
                        "    function" NEW_LINE
                        "        name: a" NEW_LINE
                        "        formal_type_parameter: T" NEW_LINE
-                       "        while_statement" NEW_LINE
+                       "        loop_statement" NEW_LINE
                        "            declaration_statement" NEW_LINE
                        "                variable" NEW_LINE
                        "                    type_reference: I32" NEW_LINE
@@ -96,7 +96,7 @@ static void monomorphic_statement_in_a_polymorphic_function(void)
                        "    function" NEW_LINE
                        "        name: a" NEW_LINE
                        "        actual_type_parameter: U8" NEW_LINE
-                       "        while_statement" NEW_LINE
+                       "        loop_statement" NEW_LINE
                        "            declaration_statement" NEW_LINE
                        "                variable" NEW_LINE
                        "                    type: I32" NEW_LINE
@@ -228,7 +228,7 @@ static void polymorphic_statement_in_a_polymorphic_function(void)
                        "    function" NEW_LINE
                        "        name: a" NEW_LINE
                        "        formal_type_parameter: T" NEW_LINE
-                       "        while_statement" NEW_LINE
+                       "        loop_statement" NEW_LINE
                        "            declaration_statement" NEW_LINE
                        "                variable" NEW_LINE
                        "                    type_reference: T" NEW_LINE
@@ -250,7 +250,7 @@ static void polymorphic_statement_in_a_polymorphic_function(void)
                        "    function" NEW_LINE
                        "        name: a" NEW_LINE
                        "        actual_type_parameter: U8" NEW_LINE
-                       "        while_statement" NEW_LINE
+                       "        loop_statement" NEW_LINE
                        "            declaration_statement" NEW_LINE
                        "                variable" NEW_LINE
                        "                    type: U8" NEW_LINE
@@ -362,7 +362,7 @@ static void refer_to_variable_declared_before_body_in_the_inner_scope(void)
                        "    function" NEW_LINE
                        "        name: main" NEW_LINE
                        "        return_type: I32" NEW_LINE
-                       "        while_statement" NEW_LINE
+                       "        loop_statement" NEW_LINE
                        "            declaration_statement" NEW_LINE
                        "                variable" NEW_LINE
                        "                    type: I32" NEW_LINE
@@ -414,7 +414,7 @@ static void refer_to_variable_declared_in_body_in_the_inner_scope(void)
                        "    function" NEW_LINE
                        "        name: main" NEW_LINE
                        "        return_type: I32" NEW_LINE
-                       "        while_statement" NEW_LINE
+                       "        loop_statement" NEW_LINE
                        "            boolean_literal" NEW_LINE
                        "                type: Bool" NEW_LINE
                        "                value: false" NEW_LINE
@@ -474,7 +474,7 @@ static void refer_to_variable_declared_in_the_outer_scope_inside_inner_scope(voi
                        "            integer_literal" NEW_LINE
                        "                type: I32" NEW_LINE
                        "                value: 0" NEW_LINE
-                       "        while_statement" NEW_LINE
+                       "        loop_statement" NEW_LINE
                        "            boolean_literal" NEW_LINE
                        "                type: Bool" NEW_LINE
                        "                value: false" NEW_LINE
@@ -570,7 +570,7 @@ static bool dereferenced_condition(void)
                                    "        formal_parameter" NEW_LINE
                                    "            type: %s" NEW_LINE
                                    "            name: b" NEW_LINE
-                                   "        while_statement" NEW_LINE
+                                   "        loop_statement" NEW_LINE
                                    "            binary" NEW_LINE
                                    "                type: Bool" NEW_LINE
                                    "                operator: ==" NEW_LINE
@@ -649,7 +649,7 @@ static bool pointer_typed_field_access(void)
                                "        formal_parameter" NEW_LINE
                                "            type: #?A" NEW_LINE
                                "            name: b" NEW_LINE
-                               "        while_statement" NEW_LINE
+                               "        loop_statement" NEW_LINE
                                "            binary" NEW_LINE
                                "                type: Bool" NEW_LINE
                                "                operator: ==" NEW_LINE
@@ -732,7 +732,7 @@ static bool pointer_typed_array_access(void)
                                "        formal_parameter" NEW_LINE
                                "            type: #?[]I32" NEW_LINE
                                "            name: b" NEW_LINE
-                               "        while_statement" NEW_LINE
+                               "        loop_statement" NEW_LINE
                                "            binary" NEW_LINE
                                "                type: Bool" NEW_LINE
                                "                operator: ==" NEW_LINE
