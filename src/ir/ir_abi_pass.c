@@ -43,18 +43,24 @@ static void do_block(Ir_Basic_Block* block, const Function_Type* signature)
     {
         Ir_Instruction* inst = lookup_ir_instruction(block->ir.handles[a]);
         const Function_Type* callee_signature;
-
-        if (inst->tag != Ir_Tag_return && inst->tag != Ir_Tag_call)
-            continue;
+        Type_Handle_Array str;
 
         if (inst->tag == Ir_Tag_call)
+        {
             callee_signature = type_of_callee(&inst->call);
-        
+            str = callee_signature->return_types;
+        }
+        else if (inst->tag == Ir_Tag_return)
+            str = signature->return_types;
+        else
+            continue;
+
         for (uint8_t b = 0; b < inst->sources.handles_length; b++)
         {
             Ir_Instruction_Handle mov_handle = add_ir_instruction();
             Ir_Instruction* mov = lookup_ir_instruction(mov_handle);
             mov->tag = Ir_Tag_x64_mov;
+            mov->type = str.handles[b];
             
             add_to_ir_operand_array(&mov->sources, inst->sources.handles[b]);
             mov->destination = add_ir_operand();
@@ -98,11 +104,7 @@ static void lower_formal_parameters(Ir_Basic_Block* block, const Function_Type* 
 {
     for (uint8_t i = 0; i < block->definitions_length; i++)
     {
-        Ir_Definition definition = block->definitions[i];
-        if (is_invalid_ir_operand_handle(definition.value))
-            continue;
-        
-        Ir_Operand* operand = lookup_ir_operand(definition.value);
+        Ir_Operand* operand = lookup_ir_operand(block->definitions[i].value);
         if (operand->tag != Ir_Operand_Tag_parameter)
             continue;
         
