@@ -20,8 +20,27 @@
 #define MOD_REGISTER_ADDRESSING 3
 #define MOD_RM(MOD, REG, RM) ((MOD << 6) | (REG << 3) | RM)
 
-void assemble_function(Ir_Function_Handle handle);
-void mov(const Ir_Operand* destination, const Ir_Operand* source);
-void xor(const Ir_Operand* destination, const Ir_Operand* source);
-void write_imm(const Ir_Immediate* imm);
-bool imm_is_zero(const Ir_Immediate* imm);
+void assemble_function(Ir_Function* function);
+
+void x64_call(const Ir_X64_Call* call);
+uint16_t size_of_x64_call();
+
+void x64_mov(const Ir_Instruction* inst);
+uint16_t size_of_x64_mov(const Ir_Instruction* inst);
+
+void x64_xor(const Ir_Instruction* inst);
+uint16_t size_of_x64_xor(const Ir_Instruction* inst);
+
+void x64_ret(void);
+uint16_t size_of_x64_ret(void);
+
+void write_number(Number value, Type_Handle type);
+void write_text_u8(uint8_t value);
+void write_text_i8(int8_t value);
+void write_text_i16(int16_t value);
+void write_text_i32(int32_t value);
+void write_text_i64(int64_t value);
+void write_text_u8(uint8_t value);
+void write_text_u16(uint16_t value);
+void write_text_u32(uint32_t value);
+void write_text_u64(uint64_t value);

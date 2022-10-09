@@ -22,11 +22,12 @@
 #define INTERNED_STRING_CAPACITY        16000
 #define CHARACTER_CAPACITY              4000000
 
+#define SYMBOL_CAPACITY                 32
+
 #define IR_FUNCTION_CAPACITY            FUNCTION_CAPACITY
 #define IR_BASIC_BLOCK_CAPACITY         40000
 #define IR_INSTRUCTION_CAPACITY         100000
-#define IR_OPERAND_CAPACITY             10000
-#define IR_IMMEDIATE_CAPACITY           1000
+#define IR_OPERAND_CAPACITY             20000
 
 #define TEXT_SECTION_CAPACITY           1000000
 
@@ -81,8 +82,8 @@ DEFINE_HANDLE_TYPE(uint16_t, Interned_String)
 DEFINE_HANDLE_TYPE(uint16_t, Ir_Function)
 DEFINE_HANDLE_TYPE(uint16_t, Ir_Basic_Block)
 DEFINE_HANDLE_TYPE(uint32_t, Ir_Instruction)
-DEFINE_HANDLE_TYPE(uint16_t, Ir_Operand)
 DEFINE_HANDLE_TYPE(uint16_t, Ir_Immediate)
+DEFINE_HANDLE_TYPE(uint16_t, Ir_Operand)
 
 DEFINE_HANDLE_ARRAY_TYPE(File)
 DEFINE_HANDLE_ARRAY_TYPE(Type)
@@ -884,10 +885,49 @@ typedef struct
 
 typedef enum
 {
+    Ir_Operand_Tag_x64_rax,
+    Ir_Operand_Tag_x64_rcx,
+    Ir_Operand_Tag_x64_rdx,
+    Ir_Operand_Tag_x64_rbx,
+    Ir_Operand_Tag_x64_sp,
+    Ir_Operand_Tag_x64_bp,
+    Ir_Operand_Tag_x64_si,
+    Ir_Operand_Tag_x64_r8,
+    Ir_Operand_Tag_x64_r9,
+    Ir_Operand_Tag_x64_r10,
+    Ir_Operand_Tag_x64_r11,
+    Ir_Operand_Tag_x64_r12,
+    Ir_Operand_Tag_x64_r13,
+    Ir_Operand_Tag_x64_r14,
+    Ir_Operand_Tag_x64_r15,
+
     Ir_Operand_Tag_immediate,
-    Ir_Operand_Tag_virtual_register,
-    Ir_Operand_Tag_x64_register
+    Ir_Operand_Tag_vreg,
+    Ir_Operand_Tag_stack_slot,
+    Ir_Operand_Tag_parameter
 } Ir_Operand_Tag;
+
+#define IS_X64_REG(TAG) (TAG >= Ir_Operand_Tag_x64_rax && TAG <= Ir_Operand_Tag_x64_r15)
+
+typedef enum
+{
+    Ir_Tag_store,
+    Ir_Tag_call,
+    Ir_Tag_return,
+    Ir_Tag_x64_mov,
+    Ir_Tag_x64_xor,
+    Ir_Tag_x64_call,
+    Ir_Tag_x64_ret
+} Ir_Tag;
+
+#define COMMON_IR_FIELDS             \
+struct                               \
+{                                    \
+    uint8_t tag;                     \
+    Type_Handle type;                \
+    Ir_Operand_Handle_Array sources; \
+    Ir_Operand_Handle destination;   \
+}
 
 #define COMMON_IR_OPERAND_FIELDS \
 struct                           \
@@ -899,78 +939,80 @@ typedef struct
 {
     COMMON_IR_OPERAND_FIELDS;
     Number value;
-    Type_Handle type;
 } Ir_Immediate;
+
+typedef struct
+{
+    COMMON_IR_OPERAND_FIELDS;
+    Ir_Instruction_Handle ir;
+} Ir_Virtual_Register;
 
 typedef enum
 {
-    X64_Register_Tag_rax,
-    X64_Register_Tag_rcx,
-    X64_Register_Tag_rdx,
-    X64_Register_Tag_rbx,
-    X64_Register_Tag_sp,
-    X64_Register_Tag_bp,
-    X64_Register_Tag_si,
-    X64_Register_Tag_r8,
-    X64_Register_Tag_r9,
-    X64_Register_Tag_r10,
-    X64_Register_Tag_r11,
-    X64_Register_Tag_r12,
-    X64_Register_Tag_r13,
-    X64_Register_Tag_r14,
-    X64_Register_Tag_r15
-} X64_Register_Tag;
+    Ir_Stack_Slot_Tag_formal_parameter
+} Ir_Stack_Slot_Tag;
 
 typedef struct
 {
     COMMON_IR_OPERAND_FIELDS;
-    uint8_t reg;
-} Ir_X64_Register;
+    uint8_t stack_tag;
+    int32_t offset;
+} Ir_Stack_Slot;
 
 typedef struct
 {
     COMMON_IR_OPERAND_FIELDS;
-    uint8_t reg;
-} Ir_Virtual_Register;
+    uint8_t index;
+} Ir_Parameter;
 
 typedef union
 {
     COMMON_IR_OPERAND_FIELDS;
     Ir_Immediate imm;
-    Ir_X64_Register x64_reg;
-    Ir_Virtual_Register virtual_reg;
+    Ir_Virtual_Register vreg;
+    Ir_Stack_Slot stack;
+    Ir_Parameter parameter;
 } Ir_Operand;
-
-typedef enum
-{
-    Ir_Instruction_Tag_return
-} Ir_Instruction_Tag;
-
-#define COMMON_IR_INSTRUCTION_FIELDS \
-struct                               \
-{                                    \
-    uint8_t tag;                     \
-}
 
 typedef struct
 {
-    COMMON_IR_INSTRUCTION_FIELDS;
-    Ir_Operand_Handle_Array values;
-} Ir_Return_Instruction;
+    COMMON_IR_FIELDS;
+    Type_Handle callee_type;
+    Function_Handle callee_declaration;
+} Ir_Call_Instruction;
+
+typedef struct
+{
+    COMMON_IR_FIELDS;
+    Function_Handle callee_declaration;
+    uint32_t absolute_address;
+} Ir_X64_Call;
 
 typedef union
 {
-    COMMON_IR_INSTRUCTION_FIELDS;
-    Ir_Return_Instruction ret;
+    COMMON_IR_FIELDS;
+    Ir_Call_Instruction call;
+    Ir_X64_Call x64_call;
 } Ir_Instruction;
 
 typedef struct
 {
-    Ir_Instruction_Handle_Array instructions;
+    Interned_String_Handle name;
+    Ir_Operand_Handle value;
+} Ir_Definition;
+
+typedef struct
+{
+    uint16_t size_of_ir_in_bytes;
+    Ir_Instruction_Handle_Array ir;
+    Ir_Definition definitions[SYMBOL_CAPACITY];
+    uint8_t definitions_length;
 } Ir_Basic_Block;
 
 typedef struct
 {
+    uint32_t absolute_address;
+    uint16_t size_of_blocks_in_bytes;
     Ir_Basic_Block_Handle_Array blocks;
 } Ir_Function;
 
@@ -1025,7 +1067,7 @@ void unexpected_reference_type(const char* path, uint32_t line, uint8_t tag);
 void unexpected_type(const char* path, uint32_t line, uint8_t tag);
 void unexpected_statement(const char* path, uint32_t line, uint8_t tag);
 void unexpected_token(const char* path, uint32_t line, uint8_t tag);
-void unexpected_instruction(const char* path, uint32_t line, uint8_t tag);
+void unexpected_ir_instruction(const char* path, uint32_t line, uint8_t tag);
 void print_error(const char* message, ...);
 
 #define POLYMORPHIC_STACK_TYPES_CAPACITY 8
@@ -1056,7 +1098,6 @@ typedef struct
     bool is_referenced;
 } Symbol;
 
-#define SYMBOL_CAPACITY 32
 typedef struct
 {
     Symbol symbols[SYMBOL_CAPACITY];
@@ -1068,6 +1109,8 @@ extern uint8_t deepest_symbol_table;
 void add_symbol(Interned_String_Handle name, Span name_span, Type_Handle type);
 void acquire_symbol_table(void);
 void release_symbol_table(void);
+
+void add_definition(Ir_Basic_Block* block, Ir_Definition definition);
 
 void acquire_polymorphic_type_mapping(void);
 void release_polymorphic_type_mapping(void);
@@ -1091,6 +1134,9 @@ void print_type_reference_for_compound(const Compound_Type* compound, FILE* file
 void parse_file(char* path);
 void analyze_program(void);
 void lower_ast(void);
+void ir_abi_pass(void);
+void ir_x64_pass(void);
+uint16_t size_of_x64_ir(const Ir_Instruction* inst);
 void generate_pe(void);
 
 Type_Handle lookup_signature(const File* file, const Function* function);
@@ -1099,20 +1145,22 @@ Constant* lookup_constant_by_name(const Enumeration_Type* enumeration, Interned_
 Type_Handle lookup_type_by_reference(const File* file, Type_Reference_Handle reference_handle, bool print_error_if_reference_is_undefined);
 Type_Handle lookup_tuple_type_by_signature(Type_Handle signature_handle);
 
-#define DECLARE_DEFAULT_ARENA(TYPE, LOWER_CASE_TYPE, LOWER_CASE_TYPE_PLURAL, UINT_X)     \
-extern TYPE LOWER_CASE_TYPE_PLURAL[];                                                    \
-extern UINT_X LOWER_CASE_TYPE_PLURAL##_length;                                           \
-                                                                                         \
-extern const TYPE##_Handle invalid_##LOWER_CASE_TYPE##_handle;                           \
-extern TYPE##_Handle LOWER_CASE_TYPE##_handles[];                                        \
-extern UINT_X LOWER_CASE_TYPE##_handles_length;                                          \
-                                                                                         \
-TYPE##_Handle add_##LOWER_CASE_TYPE(void);                                               \
-TYPE* lookup_##LOWER_CASE_TYPE(TYPE##_Handle handle);                                    \
-bool is_invalid_##LOWER_CASE_TYPE##_handle(TYPE##_Handle handle);                        \
-bool compare_##LOWER_CASE_TYPE_PLURAL(TYPE##_Handle a, TYPE##_Handle b);                 \
-void add_to_##LOWER_CASE_TYPE##_array(TYPE##_Handle_Array* array, TYPE##_Handle handle); \
-void reserve_##LOWER_CASE_TYPE##_handles(TYPE##_Handle_Array* array, uint8_t amount);    \
+#define DECLARE_DEFAULT_ARENA(TYPE, LOWER_CASE_TYPE, LOWER_CASE_TYPE_PLURAL, UINT_X)                       \
+extern TYPE LOWER_CASE_TYPE_PLURAL[];                                                                      \
+extern UINT_X LOWER_CASE_TYPE_PLURAL##_length;                                                             \
+                                                                                                           \
+extern const TYPE##_Handle invalid_##LOWER_CASE_TYPE##_handle;                                             \
+extern TYPE##_Handle LOWER_CASE_TYPE##_handles[];                                                          \
+extern UINT_X LOWER_CASE_TYPE##_handles_length;                                                            \
+                                                                                                           \
+TYPE##_Handle add_##LOWER_CASE_TYPE(void);                                                                 \
+TYPE* lookup_##LOWER_CASE_TYPE(TYPE##_Handle handle);                                                      \
+bool is_invalid_##LOWER_CASE_TYPE##_handle(TYPE##_Handle handle);                                          \
+bool compare_##LOWER_CASE_TYPE_PLURAL(TYPE##_Handle a, TYPE##_Handle b);                                   \
+void add_to_##LOWER_CASE_TYPE##_array(TYPE##_Handle_Array* array, TYPE##_Handle handle);                   \
+void insert_##LOWER_CASE_TYPE##_in_array(TYPE##_Handle_Array* array, TYPE##_Handle handle, uint8_t index); \
+void remove_##LOWER_CASE_TYPE##_from_array(TYPE##_Handle_Array* array, uint8_t index);                     \
+void reserve_##LOWER_CASE_TYPE##_handles(TYPE##_Handle_Array* array, uint8_t amount);
 
 DECLARE_DEFAULT_ARENA(File,                file,                files,                uint8_t )
 DECLARE_DEFAULT_ARENA(Type,                type,                types,                uint16_t)
@@ -1158,6 +1206,7 @@ extern uint8_t symbol_tables_length;
 
 bool is_public_type(Type_Handle handle);
 void print_semantics(void);
+void print_ir(void);
 
 extern Interned_String interned_strings[];
 extern uint16_t interned_strings_length;
@@ -1172,6 +1221,9 @@ const char* type_reference_tag_as_string(uint8_t tag);
 const char* type_tag_as_string(uint8_t tag);
 const char* statement_tag_as_string(uint8_t tag);
 const char* token_tag_as_string(uint8_t tag);
+
+void ordered_ir_function_iteration(void (*func)(Ir_Function*));
+bool imm_is_zero(const Ir_Immediate* value, uint8_t tag);
 
 uint8_t count_bytes_in_sequence(const char* text);
 uint32_t sequence_to_code_point(const char* text, uint8_t length);

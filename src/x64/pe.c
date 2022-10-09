@@ -1,5 +1,7 @@
 #include "x64.h"
 #include <time.h>
+#include <errno.h>
+#include <string.h>
 
 PACK(typedef struct
 {
@@ -150,7 +152,7 @@ PACK(typedef struct
 
 static Section_Header assemble_ir(uint32_t alignment)
 {
-    assemble_function(lookup_function(main_function)->ir);
+    ordered_ir_function_iteration(assemble_function);
     return (Section_Header) 
     {
         .name = ".text",
@@ -228,6 +230,9 @@ void generate_pe(void)
 
     start_timer(Timer_file_writing);
     FILE* file = fopen(options.destination, "wb");
+    if (!file)
+        print_error("Could not open %s. Reason: %s\n", options.destination, strerror(errno));
+
     fwrite(&pe, sizeof(pe), 1, file);
 
     // Write section_headers.

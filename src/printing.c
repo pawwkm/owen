@@ -1382,12 +1382,44 @@ const char* type_tag_as_string(uint8_t tag)
     }
 }
 
-const char* instruction_tag_as_string(uint8_t tag)
+const char* ir_operand_tag_as_string(uint8_t tag)
 {
     switch (tag)
     {
-        case Ir_Instruction_Tag_return: return "Ir_Instruction_Tag_return";
-        default:                        return "Invalid Ir_Instruction_Tag";
+        case Ir_Operand_Tag_x64_rax:    return "Ir_Operand_Tag_x64_rax";
+        case Ir_Operand_Tag_x64_rcx:    return "Ir_Operand_Tag_x64_rcx";
+        case Ir_Operand_Tag_x64_rdx:    return "Ir_Operand_Tag_x64_rdx";
+        case Ir_Operand_Tag_x64_rbx:    return "Ir_Operand_Tag_x64_rbx";
+        case Ir_Operand_Tag_x64_sp:     return "Ir_Operand_Tag_x64_sp";
+        case Ir_Operand_Tag_x64_bp:     return "Ir_Operand_Tag_x64_bp";
+        case Ir_Operand_Tag_x64_si:     return "Ir_Operand_Tag_x64_si";
+        case Ir_Operand_Tag_x64_r8:     return "Ir_Operand_Tag_x64_r8";
+        case Ir_Operand_Tag_x64_r9:     return "Ir_Operand_Tag_x64_r9";
+        case Ir_Operand_Tag_x64_r10:    return "Ir_Operand_Tag_x64_r10";
+        case Ir_Operand_Tag_x64_r11:    return "Ir_Operand_Tag_x64_r11";
+        case Ir_Operand_Tag_x64_r12:    return "Ir_Operand_Tag_x64_r12";
+        case Ir_Operand_Tag_x64_r13:    return "Ir_Operand_Tag_x64_r13";
+        case Ir_Operand_Tag_x64_r14:    return "Ir_Operand_Tag_x64_r14";
+        case Ir_Operand_Tag_x64_r15:    return "Ir_Operand_Tag_x64_r15";
+        case Ir_Operand_Tag_immediate:  return "Ir_Operand_Tag_immediate";
+        case Ir_Operand_Tag_vreg:       return "Ir_Operand_Tag_vreg";
+        case Ir_Operand_Tag_stack_slot: return "Ir_Operand_Tag_stack_slot";
+        case Ir_Operand_Tag_parameter:  return "Ir_Operand_Tag_parameter";
+        default:                        return "Invalid Ir_Operand_Tag";
+    }
+}
+
+const char* ir_instruction_tag_as_string(uint8_t tag)
+{
+    switch (tag)
+    {
+        case Ir_Tag_store:    return "Ir_Tag_store";
+        case Ir_Tag_call:     return "Ir_Tag_call";
+        case Ir_Tag_return:   return "Ir_Tag_return";
+        case Ir_Tag_x64_mov:  return "Ir_Tag_x64_mov";
+        case Ir_Tag_x64_call: return "Ir_Tag_x64_call";
+        case Ir_Tag_x64_ret:  return "Ir_Tag_x64_ret";
+        default:              return "Invalid Ir_Tag";
     }
 }
 
@@ -1546,6 +1578,167 @@ static void print_polymorphic_stack(void)
     }
 
     fprintf(stderr, "\n");
+}
+
+static void print_number(Number value, Type_Handle type)
+{
+    if (compare_types(type, i8_handle))
+        printf("%" PRIi8, value.i8);
+    else if (compare_types(type, i16_handle))
+        printf("%" PRIi16, value.i16);
+    else if (compare_types(type, i32_handle))
+        printf("%" PRIi32, value.i32);
+    else if (compare_types(type, i64_handle))
+        printf("%" PRIi64, value.i64);
+    else if (compare_types(type, u8_handle))
+        printf("%" PRIu8, value.u8);
+    else if (compare_types(type, u16_handle))
+        printf("%" PRIu16, value.u16);
+    else if (compare_types(type, u32_handle))
+        printf("%" PRIu32, value.u32);
+    else if (compare_types(type, u64_handle))
+        printf("%" PRIu64, value.u64);
+}
+
+static const char* x64_register_as_string(uint8_t tag)
+{
+    // skip the Ir_Operand_Tag_x64_ part.
+    return &ir_operand_tag_as_string(tag)[19];
+}
+
+static void print_ir_operand(Ir_Operand_Handle handle, Type_Handle type)
+{
+    Ir_Operand* operand = lookup_ir_operand(handle);
+    if (operand->tag == Ir_Operand_Tag_immediate)
+        print_number(operand->imm.value, type);
+    else if (operand->tag == Ir_Operand_Tag_vreg)
+        fprintf(stdout, "v%u", operand->vreg.ir.index);
+    else if (IS_X64_REG(operand->tag))
+        fprintf(stdout, x64_register_as_string(operand->tag));
+    else if (operand->tag == Ir_Operand_Tag_stack_slot)
+    {
+        if (operand->stack.offset < 0)
+            fprintf(stdout, "[bp%" PRIi32 "]", operand->stack.offset);
+        else
+            fprintf(stdout, "[bp+%" PRIi32 "]", operand->stack.offset);
+    }
+    else if (operand->tag == Ir_Operand_Tag_parameter)
+        fprintf(stdout, "p%" PRIu32, operand->parameter.index);
+}
+
+static void print_ir_instruction(const Ir_Instruction* inst)
+{
+    Type_Handle callee_type = invalid_type_handle;
+    if (inst->tag == Ir_Tag_store)
+        fprintf(stdout, "store ");
+    else if (inst->tag == Ir_Tag_call)
+    {
+        fprintf(stdout, "call ");
+        if (!is_invalid_function_handle(inst->call.callee_declaration))
+        {
+            Function* function = lookup_function(inst->call.callee_declaration);
+            print_string_by_handle(function->name, stdout);
+            fputc(' ', stdout);
+        
+            callee_type = function->signature;
+        }
+        else
+            callee_type = inst->call.callee_type;
+    }
+    else if (inst->tag == Ir_Tag_return)
+        fprintf(stdout, "return");
+    else if (inst->tag == Ir_Tag_x64_mov)
+        fprintf(stdout, "mov");
+    else if (inst->tag == Ir_Tag_x64_xor)
+        fprintf(stdout, "xor");
+    else if (inst->tag == Ir_Tag_x64_call)
+    {
+        fprintf(stdout, "call ");
+        if (!is_invalid_function_handle(inst->x64_call.callee_declaration))
+        {
+            Function* function = lookup_function(inst->x64_call.callee_declaration);
+            print_string_by_handle(function->name, stdout);
+            fputc(' ', stdout);
+
+            callee_type = function->signature;
+        }
+        else
+            callee_type = inst->x64_call.type;
+    }
+    else if (inst->tag == Ir_Tag_x64_ret)
+        fprintf(stdout, "ret");
+    else
+        unexpected_ir_instruction(__FILE__, __LINE__, inst->tag);
+
+    Type_Handle_Array source_types = { 0 };
+    if (!is_invalid_type_handle(callee_type))
+    {
+        source_types = lookup_type(callee_type)->function.formal_parameters;
+        print_type_reference_for_type(callee_type, stdout);
+    }
+
+    if (!is_invalid_ir_operand_handle(inst->destination))
+    {
+        fputc(' ', stdout);
+        print_ir_operand(inst->destination, inst->type);
+    }
+
+    if (inst->sources.handles_length)
+    {
+        fputc(' ', stdout);
+        
+        print_ir_operand(inst->sources.handles[0], source_types.handles_length ? source_types.handles[0] : inst->type);
+        for (uint8_t i = 1; i < inst->sources.handles_length; i++)
+        {
+            fprintf(stdout, ", ");
+            print_ir_operand(inst->sources.handles[i], source_types.handles_length ? source_types.handles[i] : inst->type);
+        }
+    }
+}
+
+static void print_ir_function(const Function* function)
+{
+    Ir_Function* ir_function = lookup_ir_function(function->ir);
+
+    print_string_by_handle(function->name, stdout);
+    fputc(' ', stdout);  
+    print_type_reference_for_type(function->signature, stdout);
+    fputc('\n', stdout);
+
+    for (uint8_t a = 0; a < ir_function->blocks.handles_length; a++)
+    {
+        Ir_Basic_Block* block = lookup_ir_basic_block(ir_function->blocks.handles[a]);
+        
+        fprintf(stdout, "b%u\n", ir_function->blocks.handles[a].index);
+        for (uint8_t b = 0; b < block->ir.handles_length; b++)
+        {
+            Ir_Instruction_Handle handle = block->ir.handles[b];
+            Ir_Instruction* inst = lookup_ir_instruction(handle);
+            
+            fprintf(stdout, "    ");
+            if (inst->tag == Ir_Tag_call)
+                fprintf(stdout, "v%u = ", handle.index);
+            
+            print_ir_instruction(inst);
+            fputc('\n', stdout);
+        }
+    }
+}
+
+void print_ir(void)
+{
+    for (uint8_t a = 0; a < files_length; a++)
+    {
+        File* file = &files[a];
+        
+        fprintf(stdout, "%s\n", file->path);
+        for (uint8_t b = 0; b < file->function_declarations.handles_length; b++)
+        {
+            Function* function = lookup_function(file->function_declarations.handles[b]);
+            if (!is_invalid_ir_function_handle(function->ir))
+                print_ir_function(function);
+        }
+    }
 }
 
 static void print_file_position(const File* file, Position position)
@@ -1712,7 +1905,7 @@ void unexpected_token(const char* path, uint32_t line, uint8_t tag)
     print_error("%s:%u: ICE: Unexpected %s", path, line, token_tag_as_string(tag));
 }
 
-void unexpected_instruction(const char* path, uint32_t line, uint8_t tag)
+void unexpected_ir_instruction(const char* path, uint32_t line, uint8_t tag)
 {
-    print_error("%s:%u: ICE: Unexpected %s", path, line, instruction_tag_as_string(tag));
+    print_error("%s:%u: ICE: Unexpected %s", path, line, ir_instruction_tag_as_string(tag));
 }

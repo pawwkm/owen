@@ -16,12 +16,16 @@ set owen_sources= src/*.c ^
                   src/semantics/expressions/call/*.c ^
                   src/semantics/statements/*.c ^
                   src/ir/*.c ^
+                  src/ir/ast_lowering_pass/*.c ^
+                  src/ir/ast_lowering_pass/expressions/*.c ^
+                  src/ir/ast_lowering_pass/statements/*.c ^
                   src/x64/*.c
                   
 set runner_sources= tests/*.c 
 
 set compiler_defines= /D _CRT_SECURE_NO_WARNINGS ^
-                      /D VERSION=\"%git_sha%\"
+                      /D VERSION=\"%git_sha%\" ^
+                      /D WIN32_LEAN_AND_MEAN
 
 set compiler_warnings= /W4 ^
                        /WX ^

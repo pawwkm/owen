@@ -1,4 +1,4 @@
-﻿#include "compiler.h"
+#include "compiler.h"
 #include <string.h>
 #include <stdlib.h>
 
@@ -6,9 +6,10 @@ Options options;
 static void parse_arguments(int argc, char* argv[])
 {
     if (argc == 1)
-        print_error("Usage: owen <files> -o program.exe [options]\n"
+        print_error("Usage: owen <files> [options]\n"
                     "\n"
                     "Options:\n"
+                    "  -o                  Path to the executable.\n"
                     "  -print-semantics    Print semantic information of the program.\n"
                     "  -print-memory       Print the memory usage.\n"
                     "  -print-timings      Print the timing of each pass.\n"
@@ -48,6 +49,7 @@ static void print_extra_info(bool valid_semantics)
     if (options.print_semantics && valid_semantics)
         print_semantics();
 
+    //print_ir();
     if (options.print_timings)
         print_timings();
 
@@ -83,6 +85,9 @@ int main(int argc, char *argv[])
         if (options.destination)
         {
             lower_ast();
+            ir_abi_pass();
+            ir_x64_pass();
+
             generate_pe();
         }
     }

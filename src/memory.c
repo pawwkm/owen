@@ -95,6 +95,34 @@ void add_to_##LOWER_CASE_TYPE##_array(TYPE##_Handle_Array* array, TYPE##_Handle 
 {                                                                                                                      \
     reserve_##LOWER_CASE_TYPE##_handles(array, 1);                                                                     \
     array->handles[array->handles_length++] = handle;                                                                  \
+}                                                                                                                      \
+                                                                                                                       \
+void insert_##LOWER_CASE_TYPE##_in_array(TYPE##_Handle_Array* array, TYPE##_Handle handle, uint8_t index)              \
+{                                                                                                                      \
+    if (array->handles_length == index)                                                                                \
+        add_to_##LOWER_CASE_TYPE##_array(array, handle);                                                               \
+    else if (array->handles_length <= index)                                                                           \
+        print_error("%s:%u: ICE: Insertion out of bounds of " #TYPE "_Handle_Array.", __FILE__, __LINE__);             \
+    else                                                                                                               \
+    {                                                                                                                  \
+        reserve_##LOWER_CASE_TYPE##_handles(array, 1);                                                                 \
+        for (uint8_t i = array->handles_length - 1; i != index; i--)                                                   \
+            array->handles[i] = array->handles[i - 1];                                                                 \
+                                                                                                                       \
+        array->handles[index] = handle;                                                                                \
+        array->handles_length++;                                                                                       \
+    }                                                                                                                  \
+}                                                                                                                      \
+                                                                                                                       \
+void remove_##LOWER_CASE_TYPE##_from_array(TYPE##_Handle_Array* array, uint8_t index)                                  \
+{                                                                                                                      \
+    if (array->handles_length <= index)                                                                                \
+        print_error("%s:%u: ICE: Insertion out of bounds of " #TYPE "_Handle_Array.", __FILE__, __LINE__);             \
+                                                                                                                       \
+    for (uint8_t i = index; i < array->handles_length - 1; i++)                                                        \
+        array->handles[i] = array->handles[i + 1];                                                                     \
+                                                                                                                       \
+    array->handles_length--;                                                                                           \
 }
 
 #define DEFINE_ARENA(TYPE, LOWER_CASE_TYPE, LOWER_CASE_TYPE_PLURAL, UPPER_CASE_TYPE, UINT_X, UINT_X_MAX) \
@@ -174,6 +202,14 @@ void add_symbol(Interned_String_Handle name, Span name_span, Type_Handle type)
         .name_span = name_span,
         .type = type
     };
+}
+
+void add_definition(Ir_Basic_Block* block, Ir_Definition definition)
+{
+    if (block->definitions_length == SYMBOL_CAPACITY)
+        out_of_memory(__FILE__, __LINE__, "Ir_Definition");
+
+    block->definitions[block->definitions_length++] = definition;
 }
 
 Interned_String_Handle add_interned_string(String string)
