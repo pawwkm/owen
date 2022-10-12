@@ -6,16 +6,16 @@ static void check_for_non_public_types_in_public_function_signature(const Functi
         return;
 
     Function_Type* function_type = &lookup_type(function->signature)->function;    
-    for (uint8_t i = 0; i < function->formal_parameters.handles_length; i++)
+    for (Array_Size i = 0; i < function->formal_parameters.handles_length; i++)
     {
-        Type_Handle type = function_type->formal_parameters.handles[i];
+        Type_Handle type = type_at(&function_type->formal_parameters, i);
         if (!is_public_type(type))
             print_span_error(lookup_file(function->file), function->name_span, "%I exposes %t which is not public.", function->name, type);
     }
 
-    for (uint8_t i = 0; i < function->return_types.handles_length; i++)
+    for (Array_Size i = 0; i < function->return_types.handles_length; i++)
     {
-        Type_Handle type = function_type->return_types.handles[i];
+        Type_Handle type = type_at(&function_type->return_types, i);
         if (!is_public_type(type))
             print_span_error(lookup_file(function->file), function->name_span, "%I exposes %t which is not public.", function->name, type);
     }
@@ -23,12 +23,12 @@ static void check_for_non_public_types_in_public_function_signature(const Functi
 
 static void check_if_signature_has_duplicate_formal_type_parameters(const Function* function)
 {
-    for (uint8_t a = 0; a < function->formal_type_parameters.handles_length; a++)
+    for (Array_Size a = 0; a < function->formal_type_parameters.handles_length; a++)
     {
-        Named_Type_Reference* a_reference = &lookup_type_reference(function->formal_type_parameters.handles[a])->named;
-        for (uint8_t b = a + 1; b < function->formal_type_parameters.handles_length; b++)
+        Named_Type_Reference* a_reference = &lookup_type_reference(type_reference_at(&function->formal_type_parameters, a))->named;
+        for (Array_Size b = a + 1; b < function->formal_type_parameters.handles_length; b++)
         {
-            Named_Type_Reference* b_reference = &lookup_type_reference(function->formal_type_parameters.handles[b])->named;
+            Named_Type_Reference* b_reference = &lookup_type_reference(type_reference_at(&function->formal_type_parameters, b))->named;
             if (compare_interned_strings(a_reference->name, b_reference->name))
                 print_span_error(lookup_file(function->file), b_reference->span, "Duplicate formal type parameter %I.", b_reference->name);
         }
@@ -37,9 +37,9 @@ static void check_if_signature_has_duplicate_formal_type_parameters(const Functi
 
 static void check_if_signatures_formal_type_parameters_matches_any_types(const File* file, Function* function)
 {
-    for (uint8_t i = 0; i < function->formal_type_parameters.handles_length; i++)
+    for (Array_Size i = 0; i < function->formal_type_parameters.handles_length; i++)
     {
-        Type_Reference_Handle type_reference_handle = function->formal_type_parameters.handles[i];
+        Type_Reference_Handle type_reference_handle = type_reference_at(&function->formal_type_parameters, i);
         Type_Handle type_handle = lookup_type_by_reference(file, type_reference_handle, false);
 
         if (is_invalid_type_handle(type_handle))
@@ -65,33 +65,33 @@ static void check_for_nested_formal_type_parameters_in_reference(const File* fil
         check_for_nested_formal_type_parameters_in_reference(file, function, reference->fixed_array.base_type);
     else if (reference->tag == Type_Reference_Tag_function)
     {
-        for (uint8_t i = 0; i < reference->function.formal_parameters.handles_length; i++)
-            check_for_nested_formal_type_parameters_in_reference(file, function, reference->function.formal_parameters.handles[i]);
+        for (Array_Size i = 0; i < reference->function.formal_parameters.handles_length; i++)
+            check_for_nested_formal_type_parameters_in_reference(file, function, type_reference_at(&reference->function.formal_parameters, i));
 
-        for (uint8_t i = 0; i < reference->function.return_types.handles_length; i++)
-            check_for_nested_formal_type_parameters_in_reference(file, function, reference->function.return_types.handles[i]);
+        for (Array_Size i = 0; i < reference->function.return_types.handles_length; i++)
+            check_for_nested_formal_type_parameters_in_reference(file, function, type_reference_at(&reference->function.return_types, i));
     }
     else if (reference->tag == Type_Reference_Tag_polymorphic_compound)
     {
-        for (uint8_t i = 0; i < function->formal_type_parameters.handles_length; i++)
+        for (Array_Size i = 0; i < function->formal_type_parameters.handles_length; i++)
         {
-            Named_Type_Reference* formal_type_parameter = &lookup_type_reference(function->formal_type_parameters.handles[i])->named;
+            Named_Type_Reference* formal_type_parameter = &lookup_type_reference(type_reference_at(&function->formal_type_parameters, i))->named;
             if (compare_interned_strings(reference->named.name, formal_type_parameter->name))
                 print_span_error(file, reference->named.span, "Type parameters can't be nested.");
         }
         
-        for (uint8_t i = 0; i < reference->polymorphic_compound.actual_type_parameters.handles_length; i++)
-            check_for_nested_formal_type_parameters_in_reference(file, function, reference->polymorphic_compound.actual_type_parameters.handles[i]);
+        for (Array_Size i = 0; i < reference->polymorphic_compound.actual_type_parameters.handles_length; i++)
+            check_for_nested_formal_type_parameters_in_reference(file, function, type_reference_at(&reference->polymorphic_compound.actual_type_parameters, i));
     }
 }
 
 static void check_for_nested_formal_type_parameters_in_signature(const File* file, const Function* function)
 {
-    for (uint8_t i = 0; i < function->formal_parameters.handles_length; i++)
-        check_for_nested_formal_type_parameters_in_reference(file, function, lookup_formal_parameter(function->formal_parameters.handles[i])->type);
+    for (Array_Size i = 0; i < function->formal_parameters.handles_length; i++)
+        check_for_nested_formal_type_parameters_in_reference(file, function, lookup_formal_parameter(formal_parameter_at(&function->formal_parameters, i))->type);
 
-    for (uint8_t i = 0; i < function->return_types.handles_length; i++)
-        check_for_nested_formal_type_parameters_in_reference(file, function, function->return_types.handles[i]);
+    for (Array_Size i = 0; i < function->return_types.handles_length; i++)
+        check_for_nested_formal_type_parameters_in_reference(file, function, type_reference_at(&function->return_types, i));
 }
 
 void type_check_signature(const File* file, Function* function)
@@ -114,12 +114,12 @@ void type_check_signature(const File* file, Function* function)
 static void put_formal_parameters_into_scope(const File* file, const Function* function)
 {
     Function_Type* function_type = &lookup_type(function->signature)->function;
-    for (uint8_t i = 0; i < function->formal_parameters.handles_length; i++)
+    for (Array_Size i = 0; i < function->formal_parameters.handles_length; i++)
     {
-        Formal_Parameter* formal_parameter = lookup_formal_parameter(function->formal_parameters.handles[i]);
+        Formal_Parameter* formal_parameter = lookup_formal_parameter(formal_parameter_at(&function->formal_parameters, i));
         check_that_identifier_is_undefined(file, formal_parameter->name, formal_parameter->name_span);
 
-        add_symbol(formal_parameter->name, formal_parameter->name_span, function_type->formal_parameters.handles[i]);
+        add_symbol(formal_parameter->name, formal_parameter->name_span, type_at(&function_type->formal_parameters, i));
     }
 }
 
@@ -143,14 +143,14 @@ static bool possibly_polymorphic_type_references_match(const Function* a_functio
     else if (a_reference->tag == Type_Reference_Tag_name)
     {
         // No matter the order and names of formal type parameters they match any other formal type parameter.
-        for (uint8_t a = 0; a < a_function->formal_type_parameters.handles_length; a++)
+        for (Array_Size a = 0; a < a_function->formal_type_parameters.handles_length; a++)
         {
-            if (!compare_interned_strings(lookup_type_reference(a_function->formal_type_parameters.handles[a])->named.name, a_reference->named.name))
+            if (!compare_interned_strings(lookup_type_reference(type_reference_at(&a_function->formal_type_parameters, a))->named.name, a_reference->named.name))
                 continue;
 
-            for (uint8_t b = 0; b < b_function->formal_type_parameters.handles_length; b++)
+            for (Array_Size b = 0; b < b_function->formal_type_parameters.handles_length; b++)
             {
-                if (compare_interned_strings(lookup_type_reference(b_function->formal_type_parameters.handles[b])->named.name, b_reference->named.name))
+                if (compare_interned_strings(lookup_type_reference(type_reference_at(&b_function->formal_type_parameters, b))->named.name, b_reference->named.name))
                     return true;
             }
         }
@@ -172,9 +172,9 @@ static bool possibly_polymorphic_type_references_match(const Function* a_functio
             a_reference->polymorphic_compound.actual_type_parameters.handles_length != b_reference->polymorphic_compound.actual_type_parameters.handles_length)
             return false;
 
-        for (uint8_t i = 0; i < a_reference->polymorphic_compound.actual_type_parameters.handles_length; i++)
+        for (Array_Size i = 0; i < a_reference->polymorphic_compound.actual_type_parameters.handles_length; i++)
         {
-            if (!possibly_polymorphic_type_references_match(a_function, lookup_type_reference(a_reference->polymorphic_compound.actual_type_parameters.handles[i]), b_function, lookup_type_reference(b_reference->polymorphic_compound.actual_type_parameters.handles[i])))
+            if (!possibly_polymorphic_type_references_match(a_function, lookup_type_reference(type_reference_at(&a_reference->polymorphic_compound.actual_type_parameters, i)), b_function, lookup_type_reference(type_reference_at(&b_reference->polymorphic_compound.actual_type_parameters, i))))
                 return false;
         }
 
@@ -193,9 +193,9 @@ static bool possibly_polymorphic_compound_reference_matches_type(const Function*
 
     if (reference->tag == Type_Reference_Tag_name)
     {
-        for (uint8_t i = 0; i < function->formal_type_parameters.handles_length; i++)
+        for (Array_Size i = 0; i < function->formal_type_parameters.handles_length; i++)
         {
-            if (compare_interned_strings(lookup_type_reference(function->formal_type_parameters.handles[i])->named.name, reference->named.name))
+            if (compare_interned_strings(lookup_type_reference(type_reference_at(&function->formal_type_parameters, i))->named.name, reference->named.name))
                 return false;
         }
 
@@ -226,9 +226,9 @@ static bool possibly_polymorphic_compound_reference_matches_type(const Function*
             type->compound.actual_type_parameters.handles_length != reference->polymorphic_compound.actual_type_parameters.handles_length)
             return false;
 
-        for (uint8_t i = 0; i < reference->polymorphic_compound.actual_type_parameters.handles_length; i++)
+        for (Array_Size i = 0; i < reference->polymorphic_compound.actual_type_parameters.handles_length; i++)
         {
-            if (!possibly_polymorphic_compound_reference_matches_type(function, reference->polymorphic_compound.actual_type_parameters.handles[i], type->compound.actual_type_parameters.handles[i]))
+            if (!possibly_polymorphic_compound_reference_matches_type(function, type_reference_at(&reference->polymorphic_compound.actual_type_parameters, i), type_at(&type->compound.actual_type_parameters, i)))
                 return false;
         }
 
@@ -256,9 +256,9 @@ static bool formal_parameter_types_in_signatures_matches(Type_Handle a_handle, T
         if (a->function.formal_parameters.handles_length != b->function.formal_parameters.handles_length)
             return false;
 
-        for (uint8_t i = 0; i < a->function.formal_parameters.handles_length; i++)
+        for (Array_Size i = 0; i < a->function.formal_parameters.handles_length; i++)
         {
-            if (!formal_parameter_types_in_signatures_matches(a->function.formal_parameters.handles[i], b->function.formal_parameters.handles[i]))
+            if (!formal_parameter_types_in_signatures_matches(type_at(&a->function.formal_parameters, i), type_at(&b->function.formal_parameters, i)))
                 return false;
         }
 
@@ -288,10 +288,10 @@ bool signatures_match(Function_Handle a_handle, Function_Handle b_handle)
         if (a_function->formal_parameters.handles_length != b_function->formal_parameters.handles_length)
             return false;
 
-        for (uint8_t i = 0; i < a_function->formal_parameters.handles_length; i++)
+        for (Array_Size i = 0; i < a_function->formal_parameters.handles_length; i++)
         {
-            Formal_Parameter* a_formal_parameter = lookup_formal_parameter(a_function->formal_parameters.handles[i]);
-            Formal_Parameter* b_formal_parameter = lookup_formal_parameter(b_function->formal_parameters.handles[i]);
+            Formal_Parameter* a_formal_parameter = lookup_formal_parameter(formal_parameter_at(&a_function->formal_parameters, i));
+            Formal_Parameter* b_formal_parameter = lookup_formal_parameter(formal_parameter_at(&b_function->formal_parameters, i));
             
             if (!possibly_polymorphic_type_references_match(a_function, lookup_type_reference(a_formal_parameter->type), b_function, lookup_type_reference(b_formal_parameter->type)))
                 return false;
@@ -306,12 +306,12 @@ bool signatures_match(Function_Handle a_handle, Function_Handle b_handle)
         if (a_function->formal_parameters.handles_length != b_function->formal_parameters.handles_length)
             return false;
 
-        for (uint8_t i = 0; i < a_function->formal_parameters.handles_length; i++)
+        for (Array_Size i = 0; i < a_function->formal_parameters.handles_length; i++)
         {
-            Formal_Parameter* b_formal_parameter = lookup_formal_parameter(b_function->formal_parameters.handles[i]);
+            Formal_Parameter* b_formal_parameter = lookup_formal_parameter(formal_parameter_at(&b_function->formal_parameters, i));
             Function_Type* a_function_type = &lookup_type(a_function->signature)->function;
             
-            if (!possibly_polymorphic_compound_reference_matches_type(b_function, b_formal_parameter->type, a_function_type->formal_parameters.handles[i]))
+            if (!possibly_polymorphic_compound_reference_matches_type(b_function, b_formal_parameter->type, type_at(&a_function_type->formal_parameters, i)))
                 return false;
         }
 
@@ -337,12 +337,12 @@ Type_Handle monomorphisize_function(Function_Handle polymorphic_handle)
     monomorphic->ir = invalid_ir_function_handle;
 
     reserve_formal_parameter_handles(&monomorphic->formal_parameters, polymorphic->formal_parameters.handles_length);
-    for (uint8_t i = 0; i < polymorphic->formal_parameters.handles_length; i++)
+    for (Array_Size i = 0; i < polymorphic->formal_parameters.handles_length; i++)
     {
         add_to_formal_parameter_array(&monomorphic->formal_parameters, add_formal_parameter());
 
-        Formal_Parameter* monomorphic_formal_parameter = lookup_formal_parameter(monomorphic->formal_parameters.handles[i]);
-        Formal_Parameter* polymorphic_formal_parameter = lookup_formal_parameter(polymorphic->formal_parameters.handles[i]);
+        Formal_Parameter* monomorphic_formal_parameter = lookup_formal_parameter(formal_parameter_at(&monomorphic->formal_parameters, i));
+        Formal_Parameter* polymorphic_formal_parameter = lookup_formal_parameter(formal_parameter_at(&polymorphic->formal_parameters, i));
 
         monomorphic_formal_parameter->name = polymorphic_formal_parameter->name;
         monomorphic_formal_parameter->type = add_type_reference();
@@ -352,7 +352,7 @@ Type_Handle monomorphisize_function(Function_Handle polymorphic_handle)
     
     current_polymorphic_type_mapping->monomorphisized_function = monomorphic;
     deep_copy_type_references(&monomorphic->return_types, &polymorphic->return_types);
-    for (uint8_t i = 0; i < current_polymorphic_type_mapping->length; i++)
+    for (Array_Size i = 0; i < current_polymorphic_type_mapping->length; i++)
         add_to_type_array(&monomorphic->actual_type_parameters, current_polymorphic_type_mapping->monomorphic_types[i]);
 
     deep_copy_statements(&monomorphic->body, &polymorphic->body);

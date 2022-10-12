@@ -3,9 +3,9 @@
 
 Field* lookup_field_by_name(const Compound_Type* compound, Interned_String_Handle name, Span name_span)
 {
-    for (uint8_t i = 0; i < compound->fields.handles_length; i++)
+    for (Array_Size i = 0; i < compound->fields.handles_length; i++)
     {
-        Field* field = lookup_field(compound->fields.handles[i]);
+        Field* field = lookup_field(field_at(&compound->fields, i));
         if (compare_interned_strings(field->name, name))
             return field;
     }
@@ -16,9 +16,9 @@ Field* lookup_field_by_name(const Compound_Type* compound, Interned_String_Handl
 
 static bool check_compound_for_recursive_fields_continued(const Compound_Type* compound, const Field* first_field)
 {
-    for (uint8_t i = 0; i < compound->fields.handles_length; i++)
+    for (Array_Size i = 0; i < compound->fields.handles_length; i++)
     {
-        Field* field = lookup_field(compound->fields.handles[i]);
+        Field* field = lookup_field(field_at(&compound->fields, i));
         if (is_invalid_type_handle(field->type))
         {
             // structure A<T>
@@ -66,9 +66,9 @@ static bool check_compound_for_recursive_fields_continued(const Compound_Type* c
 
 void check_compound_for_recursive_fields(const Compound_Type* compound)
 {
-    for (uint8_t i = 0; i < compound->fields.handles_length; i++)
+    for (Array_Size i = 0; i < compound->fields.handles_length; i++)
     {
-        Field* field = lookup_field(compound->fields.handles[i]);
+        Field* field = lookup_field(field_at(&compound->fields, i));
         Type* type = lookup_type(field->type); 
         
         if (type->tag == Type_Tag_compound)
@@ -98,9 +98,9 @@ void check_compound_for_recursive_fields(const Compound_Type* compound)
 void assign_types_to_compound_fields(const Compound_Type* compound)
 {
     File* file = lookup_file(compound->file);
-    for (uint8_t i = 0; i < compound->fields.handles_length; i++)
+    for (Array_Size i = 0; i < compound->fields.handles_length; i++)
     {
-        Field* field = lookup_field(compound->fields.handles[i]);   
+        Field* field = lookup_field(field_at(&compound->fields, i));   
         field->type = lookup_type_by_reference(file, field->type_reference, true);
     }
 }
@@ -110,9 +110,9 @@ void check_public_compound_for_fields_with_non_public_type(const Compound_Type* 
     if ((compound->attributes & Compound_Attribute_is_public) == 0)
         return;
     
-    for (uint8_t i = 0; i < compound->fields.handles_length; i++)
+    for (Array_Size i = 0; i < compound->fields.handles_length; i++)
     {
-        Field_Handle field_handle = compound->fields.handles[i];
+        Field_Handle field_handle = field_at(&compound->fields, i);
         Field* field = lookup_field(field_handle);
         
         if (!is_public_type(field->type))
@@ -134,31 +134,31 @@ void check_if_compound_has_nested_formal_type_parameter(const Compound_Type* com
         not_implemented(__FILE__, __LINE__, "Type_Reference_Tag_function.");
     else if (reference->tag == Type_Reference_Tag_polymorphic_compound)
     {
-        for (uint8_t i = 0; i < compound->formal_type_parameters.handles_length; i++)
+        for (Array_Size i = 0; i < compound->formal_type_parameters.handles_length; i++)
         {
-            Named_Type_Reference* formal_type_parameter = &lookup_type_reference(compound->formal_type_parameters.handles[i])->named;
+            Named_Type_Reference* formal_type_parameter = &lookup_type_reference(type_reference_at(&compound->formal_type_parameters, i))->named;
             if (compare_interned_strings(reference->named.name, formal_type_parameter->name))
                 print_span_error(lookup_file(compound->file), reference->named.span, "Type parameters can't be nested.");
         }
 
-        for (uint8_t i = 0; i < reference->polymorphic_compound.actual_type_parameters.handles_length; i++)
-            check_if_compound_has_nested_formal_type_parameter(compound, reference->polymorphic_compound.actual_type_parameters.handles[i]);
+        for (Array_Size i = 0; i < reference->polymorphic_compound.actual_type_parameters.handles_length; i++)
+            check_if_compound_has_nested_formal_type_parameter(compound, type_reference_at(&reference->polymorphic_compound.actual_type_parameters, i));
     }
 }
 
 void check_if_compound_has_nested_formal_type_parameters(const Compound_Type* compound)
 {
-    for (uint8_t i = 0; i < compound->fields.handles_length; i++)
-        check_if_compound_has_nested_formal_type_parameter(compound, lookup_field(compound->fields.handles[i])->type_reference);
+    for (Array_Size i = 0; i < compound->fields.handles_length; i++)
+        check_if_compound_has_nested_formal_type_parameter(compound, lookup_field(field_at(&compound->fields, i))->type_reference);
 }
 
 void check_if_compounds_formal_type_parameters_matches_any_types(Type_Handle compound_handle)
 {
     Compound_Type* compound = &lookup_type(compound_handle)->compound;
     File* file = lookup_file(compound->file);
-    for (uint8_t i = 0; i < compound->formal_type_parameters.handles_length; i++)
+    for (Array_Size i = 0; i < compound->formal_type_parameters.handles_length; i++)
     {
-        Type_Reference_Handle type_reference_handle = compound->formal_type_parameters.handles[i];
+        Type_Reference_Handle type_reference_handle = type_reference_at(&compound->formal_type_parameters, i);
         Type_Handle type_handle = lookup_type_by_reference(file, type_reference_handle, false);
         if (is_invalid_type_handle(type_handle))
             continue;
@@ -176,12 +176,12 @@ void check_if_compounds_formal_type_parameters_matches_any_types(Type_Handle com
 
 void check_if_compound_has_duplicate_formal_type_parameters(const Compound_Type* compound)
 {
-    for (uint8_t a = 0; a < compound->formal_type_parameters.handles_length; a++)
+    for (Array_Size a = 0; a < compound->formal_type_parameters.handles_length; a++)
     {
-        Named_Type_Reference* a_reference = &lookup_type_reference(compound->formal_type_parameters.handles[a])->named;
-        for (uint8_t b = a + 1; b < compound->formal_type_parameters.handles_length; b++)
+        Named_Type_Reference* a_reference = &lookup_type_reference(type_reference_at(&compound->formal_type_parameters, a))->named;
+        for (Array_Size b = a + 1; b < compound->formal_type_parameters.handles_length; b++)
         {
-            Named_Type_Reference* b_reference = &lookup_type_reference(compound->formal_type_parameters.handles[b])->named;
+            Named_Type_Reference* b_reference = &lookup_type_reference(type_reference_at(&compound->formal_type_parameters, b))->named;
             if (compare_interned_strings(a_reference->name, b_reference->name))
                 print_span_error(lookup_file(compound->file), b_reference->span, "Duplicate formal type parameter %I.", b_reference->name);
         }
@@ -190,12 +190,12 @@ void check_if_compound_has_duplicate_formal_type_parameters(const Compound_Type*
 
 void check_if_compound_has_duplicate_field_names(const Compound_Type* compound)
 {
-    for (uint8_t a = 0; a < compound->fields.handles_length; a++)
+    for (Array_Size a = 0; a < compound->fields.handles_length; a++)
     {
-        Field* a_field = lookup_field(compound->fields.handles[a]);
-        for (uint8_t b = a + 1; b < compound->fields.handles_length; b++)
+        Field* a_field = lookup_field(field_at(&compound->fields, a));
+        for (Array_Size b = a + 1; b < compound->fields.handles_length; b++)
         {
-            Field* b_field = lookup_field(compound->fields.handles[b]);
+            Field* b_field = lookup_field(field_at(&compound->fields, b));
             if (compare_interned_strings(a_field->name, b_field->name))
                 print_span_error(lookup_file(compound->file), b_field->name_span, "Duplicate field name %I.", b_field->name);
         }
@@ -230,7 +230,7 @@ Type_Handle monomorphisize_compound(Type_Handle polymorphic_handle, const Compou
     
     reserve_field_handles(&monomorphic->fields, polymorphic->fields.handles_length);
     for (uint8_t a = 0; a < polymorphic->fields.handles_length; a++)
-        add_to_field_array(&monomorphic->fields, deep_copy_field(lookup_field(polymorphic->fields.handles[a])));
+        add_to_field_array(&monomorphic->fields, deep_copy_field(lookup_field(field_at(&polymorphic->fields, a))));
 
     for (uint8_t i = 0; i < polymorphic->formal_type_parameters.handles_length; i++)
         add_to_type_array(&monomorphic->actual_type_parameters, current_polymorphic_type_mapping->monomorphic_types[i]);

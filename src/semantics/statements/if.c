@@ -4,9 +4,9 @@ bool type_check_if_statement(const File* file, const If_Statement* if_statement,
 {
     bool terminated = true;
     bool else_branch = false;
-    for (uint8_t i = 0; i < if_statement->branches.handles_length; i++)
+    for (Array_Size i = 0; i < if_statement->branches.handles_length; i++)
     {
-        Branch* branch = lookup_branch(if_statement->branches.handles[i]);
+        Branch* branch = lookup_branch(branch_at(&if_statement->branches, i));
         if (!is_invalid_statement_handle(branch->declaration_statement))
             type_check_declaration_statement(file, &lookup_statement(branch->declaration_statement)->declaration_statement);
         
@@ -45,9 +45,9 @@ void deep_copy_branch(Branch* restrict destination, Branch* restrict source)
 void deep_copy_if_statement(If_Statement* restrict destination, const If_Statement* restrict source)
 {
     reserve_branch_handles(&destination->branches, source->branches.handles_length);
-    for (uint8_t i = 0; i < source->branches.handles_length; i++)
+    for (Array_Size i = 0; i < source->branches.handles_length; i++)
     {
         add_to_branch_array(&destination->branches, add_branch());
-        deep_copy_branch(lookup_branch(destination->branches.handles[i]), lookup_branch(source->branches.handles[i]));
+        deep_copy_branch(lookup_branch(branch_at(&destination->branches, i)), lookup_branch(branch_at(&source->branches, i)));
     }
 }

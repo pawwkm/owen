@@ -13,10 +13,10 @@ void call_to_function_typed_expression(const File* file, Call* call, Expression_
                                              signature->formal_parameters.handles_length == 1 ? "expression" : "expressions",
                                              call->actual_parameters.handles_length);
 
-    for (uint8_t i = 0; i < signature->formal_parameters.handles_length; i++)
+    for (Array_Size i = 0; i < signature->formal_parameters.handles_length; i++)
     {
-        Type_Handle expected_type = signature->formal_parameters.handles[i];
-        Expression* actual_parameter = lookup_expression(call->actual_parameters.handles[i]);
+        Type_Handle expected_type = type_at(&signature->formal_parameters, i);
+        Expression* actual_parameter = lookup_expression(expression_at(&call->actual_parameters, i));
         if (!expression_types_match(expected_type, actual_parameter->type))
             print_span_error(file, actual_parameter->span, "%t expected but found %t.", expected_type, actual_parameter->type);
     }

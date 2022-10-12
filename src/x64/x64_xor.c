@@ -14,7 +14,7 @@ static void xor_reg_reg(uint8_t destination, uint8_t source, Type_Handle type)
 
 void x64_xor(const Ir_Instruction* xor)
 {
-    Ir_Operand* source = lookup_ir_operand(xor->sources.handles[0]);
+    Ir_Operand* source = lookup_ir_operand(ir_operand_at(&xor->sources, 0));
     Ir_Operand* destination = lookup_ir_operand(xor->destination);
 
     if (IS_X64_REG(destination->tag) && IS_X64_REG(source->tag))
@@ -25,7 +25,7 @@ void x64_xor(const Ir_Instruction* xor)
 
 uint16_t size_of_x64_xor(const Ir_Instruction* xor)
 {
-    Ir_Operand* source = lookup_ir_operand(xor->sources.handles[0]);
+    Ir_Operand* source = lookup_ir_operand(ir_operand_at(&xor->sources, 0));
     Ir_Operand* destination = lookup_ir_operand(xor->destination);
     
     if (IS_X64_REG(destination->tag) && IS_X64_REG(source->tag))

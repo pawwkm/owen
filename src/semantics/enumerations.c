@@ -3,9 +3,9 @@
 
 Constant* lookup_constant_by_name(const Enumeration_Type* enumeration, Interned_String_Handle name, Span name_span)
 {
-    for (uint8_t i = 0; i < enumeration->constants.handles_length; i++)
+    for (Array_Size i = 0; i < enumeration->constants.handles_length; i++)
     {
-        Constant* constant = lookup_constant(enumeration->constants.handles[i]);
+        Constant* constant = lookup_constant(constant_at(&enumeration->constants, i));
         if (compare_interned_strings(constant->name, name))
             return constant;
     }
@@ -29,9 +29,9 @@ static void type_check_underlying_type_of_enumeration(const File* file, Enumerat
 static void assign_constant_values(const File* file, const Enumeration_Type* enumeration)
 {
     Number previous_value = { 0 };
-    for (uint8_t i = 0; i < enumeration->constants.handles_length; i++)
+    for (Array_Size i = 0; i < enumeration->constants.handles_length; i++)
     {
-        Constant* constant = lookup_constant(enumeration->constants.handles[i]);
+        Constant* constant = lookup_constant(constant_at(&enumeration->constants, i));
         if (!is_invalid_expression_handle(constant->explicit_value))
         {
             Expression* explicit_value = lookup_expression(constant->explicit_value);
@@ -44,7 +44,7 @@ static void assign_constant_values(const File* file, const Enumeration_Type* enu
         {
             if (i)
             {
-                Number previous_constant = lookup_constant(enumeration->constants.handles[i - 1])->value;
+                Number previous_constant = lookup_constant(constant_at(&enumeration->constants, i - 1))->value;
                 if (compare_types(enumeration->underlying_type, i8_handle)  && previous_constant.i8  == INT8_MAX   ||
                     compare_types(enumeration->underlying_type, i16_handle) && previous_constant.i16 == INT16_MAX  ||
                     compare_types(enumeration->underlying_type, i32_handle) && previous_constant.i32 == INT32_MAX  ||

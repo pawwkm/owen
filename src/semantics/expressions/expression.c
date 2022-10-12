@@ -73,10 +73,10 @@ bool expression_types_match(Type_Handle expected_type_handle, Type_Handle actual
 void deep_copy_expressions(Expression_Handle_Array* destination, const Expression_Handle_Array* source)
 {
     reserve_expression_handles(destination, source->handles_length);
-    for (uint8_t i = 0; i < source->handles_length; i++)
+    for (Array_Size i = 0; i < source->handles_length; i++)
     {
         add_to_expression_array(destination, add_expression());
-        deep_copy_expression(lookup_expression(destination->handles[i]), lookup_expression(source->handles[i]));
+        deep_copy_expression(lookup_expression(expression_at(destination, i)), lookup_expression(expression_at(source, i)));
     }
 }
 

@@ -56,12 +56,13 @@ typedef struct                         \
     SIZE index;                        \
 } TYPE##_Handle;
 
+typedef uint8_t Array_Size;
 #define DEFINE_HANDLE_ARRAY_TYPE(TYPE) \
 typedef struct                         \
 {                                      \
-    TYPE##_Handle* handles;            \
-    uint8_t handles_length;            \
-    uint8_t handles_capacity;          \
+    TYPE##_Handle* handless;            \
+    Array_Size handles_length;         \
+    Array_Size handles_capacity;       \
 } TYPE##_Handle_Array;
 
 DEFINE_HANDLE_TYPE(uint8_t,  File)
@@ -1073,7 +1074,7 @@ void print_error(const char* message, ...);
 #define POLYMORPHIC_STACK_TYPES_CAPACITY 8
 typedef struct
 {
-    uint8_t length;
+    Array_Size length;
     Type_Reference_Handle polymorphic_types[POLYMORPHIC_STACK_TYPES_CAPACITY];
     Type_Handle monomorphic_types[POLYMORPHIC_STACK_TYPES_CAPACITY];
     
@@ -1145,22 +1146,24 @@ Constant* lookup_constant_by_name(const Enumeration_Type* enumeration, Interned_
 Type_Handle lookup_type_by_reference(const File* file, Type_Reference_Handle reference_handle, bool print_error_if_reference_is_undefined);
 Type_Handle lookup_tuple_type_by_signature(Type_Handle signature_handle);
 
-#define DECLARE_DEFAULT_ARENA(TYPE, LOWER_CASE_TYPE, LOWER_CASE_TYPE_PLURAL, UINT_X)                       \
-extern TYPE LOWER_CASE_TYPE_PLURAL[];                                                                      \
-extern UINT_X LOWER_CASE_TYPE_PLURAL##_length;                                                             \
-                                                                                                           \
-extern const TYPE##_Handle invalid_##LOWER_CASE_TYPE##_handle;                                             \
-extern TYPE##_Handle LOWER_CASE_TYPE##_handles[];                                                          \
-extern UINT_X LOWER_CASE_TYPE##_handles_length;                                                            \
-                                                                                                           \
-TYPE##_Handle add_##LOWER_CASE_TYPE(void);                                                                 \
-TYPE* lookup_##LOWER_CASE_TYPE(TYPE##_Handle handle);                                                      \
-bool is_invalid_##LOWER_CASE_TYPE##_handle(TYPE##_Handle handle);                                          \
-bool compare_##LOWER_CASE_TYPE_PLURAL(TYPE##_Handle a, TYPE##_Handle b);                                   \
-void add_to_##LOWER_CASE_TYPE##_array(TYPE##_Handle_Array* array, TYPE##_Handle handle);                   \
-void insert_##LOWER_CASE_TYPE##_in_array(TYPE##_Handle_Array* array, TYPE##_Handle handle, uint8_t index); \
-void remove_##LOWER_CASE_TYPE##_from_array(TYPE##_Handle_Array* array, uint8_t index);                     \
-void reserve_##LOWER_CASE_TYPE##_handles(TYPE##_Handle_Array* array, uint8_t amount);
+#define DECLARE_DEFAULT_ARENA(TYPE, LOWER_CASE_TYPE, LOWER_CASE_TYPE_PLURAL, UINT_X)                          \
+extern TYPE LOWER_CASE_TYPE_PLURAL[];                                                                         \
+extern UINT_X LOWER_CASE_TYPE_PLURAL##_length;                                                                \
+                                                                                                              \
+extern const TYPE##_Handle invalid_##LOWER_CASE_TYPE##_handle;                                                \
+extern TYPE##_Handle LOWER_CASE_TYPE##_handles[];                                                             \
+extern UINT_X LOWER_CASE_TYPE##_handles_length;                                                               \
+                                                                                                              \
+TYPE##_Handle add_##LOWER_CASE_TYPE(void);                                                                    \
+TYPE* lookup_##LOWER_CASE_TYPE(TYPE##_Handle handle);                                                         \
+bool is_invalid_##LOWER_CASE_TYPE##_handle(TYPE##_Handle handle);                                             \
+bool compare_##LOWER_CASE_TYPE_PLURAL(TYPE##_Handle a, TYPE##_Handle b);                                      \
+void add_to_##LOWER_CASE_TYPE##_array(TYPE##_Handle_Array* array, TYPE##_Handle handle);                      \
+void insert_##LOWER_CASE_TYPE##_in_array(TYPE##_Handle_Array* array, TYPE##_Handle handle, Array_Size index); \
+void remove_##LOWER_CASE_TYPE##_from_array(TYPE##_Handle_Array* array, Array_Size index);                     \
+void reserve_##LOWER_CASE_TYPE##_handles(TYPE##_Handle_Array* array, Array_Size amount);                      \
+TYPE##_Handle LOWER_CASE_TYPE##_at(const TYPE##_Handle_Array* array, Array_Size index);                       \
+void replace_##LOWER_CASE_TYPE(TYPE##_Handle_Array* array, Array_Size index, TYPE##_Handle handle);
 
 DECLARE_DEFAULT_ARENA(File,                file,                files,                uint8_t )
 DECLARE_DEFAULT_ARENA(Type,                type,                types,                uint16_t)

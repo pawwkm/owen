@@ -27,7 +27,7 @@ static bool operator_is_defined(Type_Handle expected, uint8_t operator_tag, Type
 
 static void type_check_tuple_assignment_statement(const File* file, Assignment_Statement* assignment_statement)
 {
-    Expression* expression = lookup_expression(assignment_statement->rhs.handles[0]);
+    Expression* expression = lookup_expression(expression_at(&assignment_statement->rhs, 0));
     type_check_expression(file, expression, invalid_type_handle, Expression_Check_Flags_rhs_value);
 
     for (Type_Handle handle = { 0 }; handle.index < types_length; handle.index++)
@@ -37,14 +37,14 @@ static void type_check_tuple_assignment_statement(const File* file, Assignment_S
             continue;
 
         bool is_match = true;
-        for (uint8_t b = 0; b < assignment_statement->lhs.handles_length; b++)
+        for (Array_Size b = 0; b < assignment_statement->lhs.handles_length; b++)
         {
-            Expression* lhs = lookup_expression(assignment_statement->lhs.handles[b]);
-            Type_Handle rhs_type = tuple->types.handles[b];
+            Expression* lhs = lookup_expression(expression_at(&assignment_statement->lhs, b));
+            Type_Handle rhs_type = type_at(&tuple->types, b);
 
             if (lhs->tag == Expression_Tag_blank_identifier)
             {
-                lhs->type = tuple->types.handles[b];
+                lhs->type = type_at(&tuple->types, b);
                 if (assignment_statement->operator != Assignment_Operator_equal)
                     print_span_error(file, assignment_statement->operator_span, "Operator not defined for _.");
             }
@@ -63,9 +63,9 @@ static void type_check_tuple_assignment_statement(const File* file, Assignment_S
         variable_tuple->tag = Type_Tag_tuple;
 
         reserve_type_handles(&variable_tuple->tuple.types, assignment_statement->lhs.handles_length);
-        for (uint8_t i = 0; i < assignment_statement->lhs.handles_length; i++)
+        for (Array_Size i = 0; i < assignment_statement->lhs.handles_length; i++)
         {
-            Expression* lhs = lookup_expression(assignment_statement->lhs.handles[i]);
+            Expression* lhs = lookup_expression(expression_at(&assignment_statement->lhs, i));
             add_to_type_array(&variable_tuple->tuple.types, lhs->type);
         }
 
@@ -75,10 +75,10 @@ static void type_check_tuple_assignment_statement(const File* file, Assignment_S
 
 static void type_check_ballanced_assignment_statement(const File* file, Assignment_Statement* assignment_statement)
 {
-    for (uint8_t i = 0; i < assignment_statement->lhs.handles_length; i++)
+    for (Array_Size i = 0; i < assignment_statement->lhs.handles_length; i++)
     {
-        Expression* lhs = lookup_expression(assignment_statement->lhs.handles[i]);
-        Expression* rhs = lookup_expression(assignment_statement->rhs.handles[i]);
+        Expression* lhs = lookup_expression(expression_at(&assignment_statement->lhs, i));
+        Expression* rhs = lookup_expression(expression_at(&assignment_statement->rhs, i));
 
         if (lhs->tag == Expression_Tag_blank_identifier)
             print_span_error(file, lhs->span, "_ only allowed in tuple declarations and assignments.");
@@ -97,9 +97,9 @@ static void type_check_ballanced_assignment_statement(const File* file, Assignme
 
 void type_check_assignment_statement(const File* file, Assignment_Statement* assignment_statement)
 {
-    for (uint8_t i = 0; i < assignment_statement->lhs.handles_length; i++)
+    for (Array_Size i = 0; i < assignment_statement->lhs.handles_length; i++)
     {
-        Expression* lhs = lookup_expression(assignment_statement->lhs.handles[i]);
+        Expression* lhs = lookup_expression(expression_at(&assignment_statement->lhs, i));
 
         type_check_expression(file, lhs, invalid_type_handle, Expression_Check_Flags_lhs_value);
         if (!is_addressable(lhs->tag))
@@ -114,9 +114,9 @@ void type_check_assignment_statement(const File* file, Assignment_Statement* ass
     {
         Expression_Handle last;
         if (assignment_statement->lhs.handles_length > assignment_statement->rhs.handles_length)
-            last = assignment_statement->rhs.handles[assignment_statement->rhs.handles_length - 1];
+            last = expression_at(&assignment_statement->rhs, assignment_statement->rhs.handles_length - 1);
         else
-            last = assignment_statement->lhs.handles[assignment_statement->lhs.handles_length - 1];
+            last = expression_at(&assignment_statement->lhs, assignment_statement->lhs.handles_length - 1);
 
         print_span_error(file, lookup_expression(last)->span, "%u %s expected but found %u.", 
                                                               assignment_statement->lhs.handles_length,

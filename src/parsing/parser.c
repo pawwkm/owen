@@ -956,7 +956,7 @@ static Statement_Handle parse_return_statement(void)
 
     if (statement->return_statement.values.handles_length)
     {
-        Expression_Handle last_handle = statement->return_statement.values.handles[statement->return_statement.values.handles_length - 1];
+        Expression_Handle last_handle = expression_at(&statement->return_statement.values, statement->return_statement.values.handles_length - 1);
         statement->return_statement.span.end = lookup_expression(last_handle)->span.end;
     }
 
@@ -1309,7 +1309,7 @@ void parse_uses(void)
         bool already_used = false;
         for (uint8_t i = 0; i < file->uses.handles_length; i++)
         {
-            Namespace* use = lookup_namespace(file->uses.handles[i]);
+            Namespace* use = lookup_namespace(namespace_at(&file->uses, i));
             if (compare_interned_strings(lexer.token.interned, use->name))
             {
                 already_used = true;

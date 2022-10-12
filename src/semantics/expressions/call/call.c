@@ -8,7 +8,7 @@ void resolve_type_of_call(Call* call, Type_Handle signature_handle)
     if (signature->return_types.handles_length > 1)
         call->type = lookup_tuple_type_by_signature(signature_handle);
     else if (signature->return_types.handles_length)
-        call->type = signature->return_types.handles[0];
+        call->type = type_at(&signature->return_types, 0);
     else
         call->type = none_handle;
 }
@@ -20,9 +20,9 @@ bool signature_matches_actual_parameter_types(const Function* function, const Ex
         return false;
     
     Function_Type* signature = &lookup_type(function->signature)->function;
-    for (uint8_t i = 0; i < actual_parameters->handles_length; i++)
+    for (Array_Size i = 0; i < actual_parameters->handles_length; i++)
     {
-        if (!expression_types_match(signature->formal_parameters.handles[i], lookup_expression(actual_parameters->handles[i])->type))
+        if (!expression_types_match(type_at(&signature->formal_parameters, i), lookup_expression(expression_at(actual_parameters, i))->type))
             return false;
     }
     
@@ -57,8 +57,8 @@ void type_check_call_expression(const File* file, Call* call, Expression_Check_F
     if (flags & Expression_Check_Flags_constant)
         print_span_error(file, call->span, "Calls are not constant.");
 
-    for (uint8_t i = 0; i < call->actual_parameters.handles_length; i++)
-        type_check_expression(file, lookup_expression(call->actual_parameters.handles[i]), invalid_type_handle, flags & ~Expression_Check_Flags_retain);
+    for (Array_Size i = 0; i < call->actual_parameters.handles_length; i++)
+        type_check_expression(file, lookup_expression(expression_at(&call->actual_parameters, i)), invalid_type_handle, flags & ~Expression_Check_Flags_retain);
 
     Expression* callee = lookup_expression(call->callee);
     if (callee->tag == Expression_Tag_reference)
@@ -74,13 +74,13 @@ void type_check_call_expression(const File* file, Call* call, Expression_Check_F
         call_to_function_typed_expression(file, call, flags);
 
     Function_Type* signature = &lookup_type(callee->type)->function;
-    for (uint8_t i = 0; i < call->actual_parameters.handles_length; i++)
+    for (Array_Size i = 0; i < call->actual_parameters.handles_length; i++)
     {
-        Type* formal_parameter_type = lookup_type(signature->formal_parameters.handles[i]);
+        Type* formal_parameter_type = lookup_type(type_at(&signature->formal_parameters, i));
         if (formal_parameter_type->tag != Type_Tag_pointer || !(formal_parameter_type->pointer.privileges & Pointer_Type_Privilege_retained))
             continue;
 
-        Address_Of* address_of = find_address_of(call->actual_parameters.handles[i]); 
+        Address_Of* address_of = find_address_of(expression_at(&call->actual_parameters, i)); 
         if (address_of)
             type_check_address_of(file, address_of, flags & Expression_Check_Flags_retain);
     }

@@ -59,6 +59,6 @@ Ir_Operand_Handle lower_expression(Ir_Basic_Block* block, Expression_Handle hand
 
 void lower_expressions(Ir_Basic_Block* block, Ir_Operand_Handle_Array* destination, const Expression_Handle_Array* source)
 {
-    for (uint8_t i = 0; i < source->handles_length; i++)
-        add_to_ir_operand_array(destination, lower_expression(block, source->handles[i]));
+    for (Array_Size i = 0; i < source->handles_length; i++)
+        add_to_ir_operand_array(destination, lower_expression(block, expression_at(source, i)));
 }

@@ -2,12 +2,12 @@
 
 static void lower_instructions(Ir_Function* function)
 {   
-    for (uint8_t a = 0; a < function->blocks.handles_length; a++)
+    for (Array_Size a = 0; a < function->blocks.handles_length; a++)
     {
-        Ir_Basic_Block* block = lookup_ir_basic_block(function->blocks.handles[a]);
-        for (uint8_t b = 0; b < block->ir.handles_length; b++)
+        Ir_Basic_Block* block = lookup_ir_basic_block(ir_basic_block_at(&function->blocks, a));
+        for (Array_Size b = 0; b < block->ir.handles_length; b++)
         {
-            Ir_Instruction* inst = lookup_ir_instruction(block->ir.handles[b]);
+            Ir_Instruction* inst = lookup_ir_instruction(ir_instruction_at(&block->ir, b));
             if (inst->tag == Ir_Tag_call)
             {
                 if (is_invalid_function_handle(inst->call.callee_declaration))
@@ -33,11 +33,11 @@ static void lower_instructions(Ir_Function* function)
 
 static void find_function_size(Ir_Function* function)
 {
-    for (uint8_t a = 0; a < function->blocks.handles_length; a++)
+    for (Array_Size a = 0; a < function->blocks.handles_length; a++)
     {
-        Ir_Basic_Block* block = lookup_ir_basic_block(function->blocks.handles[a]);
-        for (uint8_t b = 0; b < block->ir.handles_length; b++)
-            block->size_of_ir_in_bytes += size_of_x64_ir(lookup_ir_instruction(block->ir.handles[b]));
+        Ir_Basic_Block* block = lookup_ir_basic_block(ir_basic_block_at(&function->blocks, a));
+        for (Array_Size b = 0; b < block->ir.handles_length; b++)
+            block->size_of_ir_in_bytes += size_of_x64_ir(lookup_ir_instruction(ir_instruction_at(&block->ir, b)));
 
         function->size_of_blocks_in_bytes += block->size_of_ir_in_bytes;
     }
@@ -53,12 +53,12 @@ static void find_function_offset(Ir_Function* function)
 
 static void set_call_address(Ir_Function* function)
 {
-    for (uint8_t a = 0; a < function->blocks.handles_length; a++)
+    for (Array_Size a = 0; a < function->blocks.handles_length; a++)
     {
-        Ir_Basic_Block* block = lookup_ir_basic_block(function->blocks.handles[a]);
-        for (uint8_t b = 0; b < block->ir.handles_length; b++)
+        Ir_Basic_Block* block = lookup_ir_basic_block(ir_basic_block_at(&function->blocks, a));
+        for (Array_Size b = 0; b < block->ir.handles_length; b++)
         {
-            Ir_X64_Call* call = &lookup_ir_instruction(block->ir.handles[b])->x64_call;
+            Ir_X64_Call* call = &lookup_ir_instruction(ir_instruction_at(&block->ir, b))->x64_call;
             if (call->tag != Ir_Tag_x64_call)
                 continue;
             

@@ -12,9 +12,9 @@ void type_check_array_literal(const File* file, Array_Literal* literal, Type_Han
         print_span_error(file, literal->span, "Cannot infer literal as %t.", inferred_type_handle);
 
     uint32_t next_element_index = 0;
-    for (uint32_t a = 0; a < literal->elements.handles_length; a++)
+    for (Array_Size a = 0; a < literal->elements.handles_length; a++)
     {
-        Element_Initializer* a_element = lookup_element_initializer(literal->elements.handles[a]);
+        Element_Initializer* a_element = lookup_element_initializer(element_initializer_at(&literal->elements, a));
         if (is_invalid_expression_handle(a_element->explicit_index))
         {
             if (next_element_index >= inferred_type->size)
@@ -76,9 +76,9 @@ void type_check_array_literal(const File* file, Array_Literal* literal, Type_Han
                 ice(__FILE__, __LINE__, "Enumeration constant or integer literal expected.");
         }
 
-        for (uint32_t b = 0; b < a; b++)
+        for (Array_Size b = 0; b < a; b++)
         {
-            Element_Initializer* b_element = lookup_element_initializer(literal->elements.handles[b]);
+            Element_Initializer* b_element = lookup_element_initializer(element_initializer_at(&literal->elements, b));
             if (a_element->index == b_element->index)
                 print_span_error(file, lookup_expression(b_element->expression)->span, "Element at index %u already initialized.", a_element->index);
         }
@@ -91,7 +91,7 @@ void type_check_array_literal(const File* file, Array_Literal* literal, Type_Han
         next_element_index = a_element->index + 1;
         if (next_element_index < a_element->index && a != (uint32_t)literal->elements.handles_length - 1)
         {
-            Element_Initializer* next_element = lookup_element_initializer(literal->elements.handles[a + 1]);
+            Element_Initializer* next_element = lookup_element_initializer(element_initializer_at(&literal->elements, a + 1));
             if (is_invalid_expression_handle(next_element->explicit_index))
                 print_span_error(file, lookup_expression(next_element->expression)->span, "%" PRIu64 " overflows U32.", (uint64_t)a_element->index + 1);
         }
@@ -117,10 +117,10 @@ static void deep_copy_element_initializer(Element_Initializer* restrict destinat
 static void deep_copy_element_initializers(Element_Initializer_Handle_Array* restrict destination, const Element_Initializer_Handle_Array* restrict source)
 {
     reserve_element_initializer_handles(destination, source->handles_length);
-    for (uint8_t i = 0; i < source->handles_length; i++)
+    for (Array_Size i = 0; i < source->handles_length; i++)
     {
         add_to_element_initializer_array(destination, add_element_initializer());
-        deep_copy_element_initializer(lookup_element_initializer(destination->handles[i]), lookup_element_initializer(source->handles[i]));
+        deep_copy_element_initializer(lookup_element_initializer(element_initializer_at(destination, i)), lookup_element_initializer(element_initializer_at(source, i)));
     }
 }
 

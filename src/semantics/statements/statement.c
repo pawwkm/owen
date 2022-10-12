@@ -5,9 +5,9 @@ bool type_check_statements(const File* file, Statement_Handle_Array* body, const
     bool terminated = false;
 
     uint8_t initial_symbol_length = current_symbol_table->symbols_length;
-    for (uint16_t i = 0; i < body->handles_length; i++)
+    for (Array_Size i = 0; i < body->handles_length; i++)
     {
-        Statement* statement = lookup_statement(body->handles[i]);
+        Statement* statement = lookup_statement(statement_at(body, i));
         if (statement->tag == Statement_Tag_declaration)
             type_check_declaration_statement(file, &statement->declaration_statement);
         else if (statement->tag == Statement_Tag_assignment)
@@ -62,10 +62,10 @@ static void deep_copy_statement(Statement* restrict destination, const Statement
 void deep_copy_statements(Statement_Handle_Array* destination, const Statement_Handle_Array* source)
 {
     reserve_statement_handles(destination, source->handles_length);
-    for (uint8_t i = 0; i < source->handles_length; i++)
+    for (Array_Size i = 0; i < source->handles_length; i++)
     {
         add_to_statement_array(destination, add_statement());
-        deep_copy_statement(lookup_statement(destination->handles[i]), lookup_statement(source->handles[i]));
+        deep_copy_statement(lookup_statement(statement_at(destination, i)), lookup_statement(statement_at(source, i)));
     }
 }
 

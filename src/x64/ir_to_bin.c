@@ -3,9 +3,9 @@
 static void assemble_block(Ir_Basic_Block_Handle block_handle)
 {
     Ir_Basic_Block* block = lookup_ir_basic_block(block_handle);
-    for (uint8_t i = 0; i < block->ir.handles_length; i++)
+    for (Array_Size i = 0; i < block->ir.handles_length; i++)
     {
-        Ir_Instruction* inst = lookup_ir_instruction(block->ir.handles[i]);
+        Ir_Instruction* inst = lookup_ir_instruction(ir_instruction_at(&block->ir, i));
         if (inst->tag == Ir_Tag_x64_call)
             x64_call(&inst->x64_call);
         else if (inst->tag == Ir_Tag_x64_ret)
@@ -22,5 +22,5 @@ static void assemble_block(Ir_Basic_Block_Handle block_handle)
 void assemble_function(Ir_Function* function)
 {
     assert(function->blocks.handles_length == 1);
-    assemble_block(function->blocks.handles[0]);
+    assemble_block(ir_basic_block_at(&function->blocks, 0));
 }

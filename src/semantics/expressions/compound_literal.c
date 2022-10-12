@@ -2,12 +2,12 @@
 
 static void each_field_is_initialized_at_most_once(const File* file, const Compound_Literal* literal)
 {
-    for (uint8_t a = 0; a < literal->field_initializers.handles_length; a++)
+    for (Array_Size a = 0; a < literal->field_initializers.handles_length; a++)
     {
-        Field_Initializer* a_initializer = lookup_field_initializer(literal->field_initializers.handles[a]);
-        for (uint8_t b = a + 1; b < literal->field_initializers.handles_length; b++)
+        Field_Initializer* a_initializer = lookup_field_initializer(field_initializer_at(&literal->field_initializers, a));
+        for (Array_Size b = a + 1; b < literal->field_initializers.handles_length; b++)
         {
-            Field_Initializer* b_initializer = lookup_field_initializer(literal->field_initializers.handles[b]);
+            Field_Initializer* b_initializer = lookup_field_initializer(field_initializer_at(&literal->field_initializers, b));
             if (compare_interned_strings(a_initializer->field, b_initializer->field))
                 print_span_error(file, b_initializer->field_span, "%I is initialized multiple times.", b_initializer->field);
         }
@@ -16,9 +16,9 @@ static void each_field_is_initialized_at_most_once(const File* file, const Compo
 
 static void type_check_field_initializers(const File* file, const Compound_Type* type, const Compound_Literal* compound_literal, Expression_Check_Flags flags)
 {
-    for (uint8_t i = 0; i < compound_literal->field_initializers.handles_length; i++)
+    for (Array_Size i = 0; i < compound_literal->field_initializers.handles_length; i++)
     {
-        Field_Initializer* initializer = lookup_field_initializer(compound_literal->field_initializers.handles[i]);
+        Field_Initializer* initializer = lookup_field_initializer(field_initializer_at(&compound_literal->field_initializers, i));
         Field* field = lookup_field_by_name(type, initializer->field, initializer->field_span);
         Expression* expression = lookup_expression(initializer->expression);
 
@@ -56,10 +56,10 @@ static void deep_copy_field_initializer(Field_Initializer* destination, const Fi
 static void deep_copy_field_initializers(Field_Initializer_Handle_Array* restrict destination, const Field_Initializer_Handle_Array* restrict source)
 {
     reserve_field_initializer_handles(destination, source->handles_length);
-    for (uint8_t i = 0; i < source->handles_length; i++)
+    for (Array_Size i = 0; i < source->handles_length; i++)
     {
         add_to_field_initializer_array(destination, add_field_initializer());
-        deep_copy_field_initializer(lookup_field_initializer(destination->handles[i]), lookup_field_initializer(source->handles[i]));
+        deep_copy_field_initializer(lookup_field_initializer(field_initializer_at(destination, i)), lookup_field_initializer(field_initializer_at(source, i)));
     }
 }
 

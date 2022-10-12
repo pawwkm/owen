@@ -2,7 +2,7 @@
 
 static void type_check_tuple_declaration_statement(const File* file, Declaration_Statement* declaration_statement)
 {
-    Expression* expression = lookup_expression(declaration_statement->expressions.handles[0]);
+    Expression* expression = lookup_expression(expression_at(&declaration_statement->expressions, 0));
     type_check_expression(file, expression, invalid_type_handle, Expression_Check_Flags_rhs_value);
 
     for (Type_Handle handle = { 0 }; handle.index < types_length; handle.index++)
@@ -12,10 +12,10 @@ static void type_check_tuple_declaration_statement(const File* file, Declaration
             continue;
 
         bool is_match = true;
-        for (uint8_t b = 0; b < declaration_statement->variables.handles_length; b++)
+        for (Array_Size b = 0; b < declaration_statement->variables.handles_length; b++)
         {
-            Variable* variable = lookup_variable(declaration_statement->variables.handles[b]);
-            if (!expression_types_match(variable->type, type->tuple.types.handles[b]))
+            Variable* variable = lookup_variable(variable_at(&declaration_statement->variables, b));
+            if (!expression_types_match(variable->type, type_at(&type->tuple.types, b)))
             {
                 is_match = false;
                 break;
@@ -29,18 +29,18 @@ static void type_check_tuple_declaration_statement(const File* file, Declaration
         Type* variable_tuple = lookup_type(type_handle);
         variable_tuple->tag = Type_Tag_tuple;
 
-        for (uint8_t i = 0; i < type->tuple.types.handles_length; i++)
+        for (Array_Size i = 0; i < type->tuple.types.handles_length; i++)
         {
-            Variable* lhs = lookup_variable(declaration_statement->variables.handles[i]);
+            Variable* lhs = lookup_variable(variable_at(&declaration_statement->variables, i));
             add_to_type_array(&variable_tuple->tuple.types, lhs->type);
         }
 
         print_span_error(file, expression->span, "%t expected but found %t.", type_handle, expression->type);
     }
 
-    for (uint8_t i = 0; i < declaration_statement->variables.handles_length; i++)
+    for (Array_Size i = 0; i < declaration_statement->variables.handles_length; i++)
     {
-        Variable* variable = lookup_variable(declaration_statement->variables.handles[i]);
+        Variable* variable = lookup_variable(variable_at(&declaration_statement->variables, i));
         if (!variable->is_blank)
         {
             check_that_identifier_is_undefined(file, variable->name, variable->name_span);
@@ -51,16 +51,16 @@ static void type_check_tuple_declaration_statement(const File* file, Declaration
 
 static void type_check_ballanced_declaration_statement(const File* file, Declaration_Statement* declaration_statement)
 {
-    for (uint8_t i = 0; i < declaration_statement->variables.handles_length; i++)
+    for (Array_Size i = 0; i < declaration_statement->variables.handles_length; i++)
     {
-        Variable* variable = lookup_variable(declaration_statement->variables.handles[i]);
+        Variable* variable = lookup_variable(variable_at(&declaration_statement->variables, i));
         if (variable->is_blank)
             print_span_error(file, variable->name_span, "_ only allowed in tuple declarations and assignments.");
 
         check_that_identifier_is_undefined(file, variable->name, variable->name_span);
 
         Type* variable_type = lookup_type(variable->type);
-        Expression* expression = lookup_expression(declaration_statement->expressions.handles[i]);
+        Expression* expression = lookup_expression(expression_at(&declaration_statement->expressions, i));
         
         Expression_Check_Flags flags = Expression_Check_Flags_allow_unitialized_literals | Expression_Check_Flags_rhs_value;
         if (variable_type->tag == Type_Tag_pointer && variable_type->pointer.privileges & Pointer_Type_Privilege_retained)
@@ -76,17 +76,17 @@ static void type_check_ballanced_declaration_statement(const File* file, Declara
 
 void type_check_declaration_statement(const File* file, Declaration_Statement* declaration_statement)
 {
-    for (uint8_t i = 0; i < declaration_statement->variables.handles_length; i++)
+    for (Array_Size i = 0; i < declaration_statement->variables.handles_length; i++)
     {
-        Variable* variable = lookup_variable(declaration_statement->variables.handles[i]);
+        Variable* variable = lookup_variable(variable_at(&declaration_statement->variables, i));
         variable->type = lookup_type_by_reference(file, variable->type_reference, true);
     }
 
     if (!declaration_statement->expressions.handles_length)
     {
-        for (uint8_t i = 0; i < declaration_statement->variables.handles_length; i++)
+        for (Array_Size i = 0; i < declaration_statement->variables.handles_length; i++)
         {
-            Variable* variable = lookup_variable(declaration_statement->variables.handles[i]);
+            Variable* variable = lookup_variable(variable_at(&declaration_statement->variables, i));
             if (variable->is_blank)
                 print_span_error(file, variable->name_span, "_ cannot be zeroed.");
 
@@ -100,13 +100,13 @@ void type_check_declaration_statement(const File* file, Declaration_Statement* d
         type_check_ballanced_declaration_statement(file, declaration_statement);
     else
     {
-        uint32_t i;
+        Array_Size i;
         if (declaration_statement->expressions.handles_length >= declaration_statement->variables.handles_length)
             i = declaration_statement->expressions.handles_length - declaration_statement->variables.handles_length - 1;
         else
             i = declaration_statement->expressions.handles_length - 1;
         
-        Expression_Handle last_handle = declaration_statement->expressions.handles[i];
+        Expression_Handle last_handle = expression_at(&declaration_statement->expressions, i);
         Expression* last = lookup_expression(last_handle);
 
         print_span_error(file, last->span, "%u %s expected but found %u.", 
@@ -127,10 +127,10 @@ static void deep_copy_variable(Variable* restrict destination, const Variable* r
 static void deep_copy_variables(Variable_Handle_Array* restrict destination, const Variable_Handle_Array* restrict source)
 {
     reserve_variable_handles(destination, source->handles_length);
-    for (uint8_t i = 0; i < source->handles_length; i++)
+    for (Array_Size i = 0; i < source->handles_length; i++)
     {
         add_to_variable_array(destination, add_variable());
-        deep_copy_variable(lookup_variable(destination->handles[i]), lookup_variable(source->handles[i]));
+        deep_copy_variable(lookup_variable(variable_at(destination, i)), lookup_variable(variable_at(source, i)));
     }
 }
 

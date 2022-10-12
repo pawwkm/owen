@@ -13,7 +13,7 @@ static void lower_parameter(Ir_Operand* parameter, uint8_t parameter_index, cons
     if (parameter_index > 3)
         not_implemented(__FILE__, __LINE__, "passing parameters by the stack");
     
-    Type* parameter_type = lookup_type(signature->formal_parameters.handles[parameter_index]);
+    Type* parameter_type = lookup_type(type_at(&signature->formal_parameters, parameter_index));
     if (parameter_type->tag > Type_Tag_u64)
         not_implemented(__FILE__, __LINE__, "non-integer parameters");
     
@@ -31,7 +31,7 @@ static void lower_return_value(Ir_Operand* value, uint8_t value_index, const Fun
 {
     if (value_index)
         not_implemented(__FILE__, __LINE__, "Subsequent return values");
-    else if (lookup_type(signature->return_types.handles[value_index])->tag > Type_Tag_u64)
+    else if (lookup_type(type_at(&signature->return_types, value_index))->tag > Type_Tag_u64)
         not_implemented(__FILE__, __LINE__, "Non-integer return types");
     
     value->tag = Ir_Operand_Tag_x64_rax;
@@ -39,9 +39,9 @@ static void lower_return_value(Ir_Operand* value, uint8_t value_index, const Fun
 
 static void do_block(Ir_Basic_Block* block, const Function_Type* signature)
 {
-    for (uint8_t a = 0; a < block->ir.handles_length; a++)
+    for (Array_Size a = 0; a < block->ir.handles_length; a++)
     {
-        Ir_Instruction* inst = lookup_ir_instruction(block->ir.handles[a]);
+        Ir_Instruction* inst = lookup_ir_instruction(ir_instruction_at(&block->ir, a));
         const Function_Type* callee_signature;
         Type_Handle_Array str;
 
@@ -55,14 +55,14 @@ static void do_block(Ir_Basic_Block* block, const Function_Type* signature)
         else
             continue;
 
-        for (uint8_t b = 0; b < inst->sources.handles_length; b++)
+        for (Array_Size b = 0; b < inst->sources.handles_length; b++)
         {
             Ir_Instruction_Handle mov_handle = add_ir_instruction();
             Ir_Instruction* mov = lookup_ir_instruction(mov_handle);
             mov->tag = Ir_Tag_x64_mov;
-            mov->type = str.handles[b];
+            mov->type = type_at(&str, b);
             
-            add_to_ir_operand_array(&mov->sources, inst->sources.handles[b]);
+            add_to_ir_operand_array(&mov->sources, ir_operand_at(&inst->sources, b));
             mov->destination = add_ir_operand();
             
             insert_ir_instruction_in_array(&block->ir, mov_handle, a++);
@@ -78,16 +78,16 @@ static void do_block(Ir_Basic_Block* block, const Function_Type* signature)
 
 static void correct_return_values(Ir_Basic_Block* block)
 {
-    for (uint8_t a = 0; a < block->ir.handles_length; a++)
+    for (Array_Size a = 0; a < block->ir.handles_length; a++)
     {
         // Modify the references to the return types.
         // if I can do this here then I don't have to go through every node that could refer to these values...
         
         // I need to do this at the references to the call and not at the call site.
-        Ir_Instruction* inst = lookup_ir_instruction(block->ir.handles[a]);
-        for (uint8_t b = 0; b < inst->sources.handles_length; b++)
+        Ir_Instruction* inst = lookup_ir_instruction(ir_instruction_at(&block->ir, a));
+        for (Array_Size b = 0; b < inst->sources.handles_length; b++)
         {
-            Ir_Operand* source = lookup_ir_operand(inst->sources.handles[b]);
+            Ir_Operand* source = lookup_ir_operand(ir_operand_at(&inst->sources, b));
             if (source->tag != Ir_Operand_Tag_vreg)
                 continue;
 
@@ -119,10 +119,10 @@ static void do_function(const Ir_Function* function, const Function_Type* functi
     else if (!function->blocks.handles_length)
         return;
     
-    lower_formal_parameters(lookup_ir_basic_block(function->blocks.handles[0]), function_type);
-    for (uint8_t i = 0; i < function->blocks.handles_length; i++)
+    lower_formal_parameters(lookup_ir_basic_block(ir_basic_block_at(&function->blocks, 0)), function_type);
+    for (Array_Size i = 0; i < function->blocks.handles_length; i++)
     {
-        Ir_Basic_Block* block = lookup_ir_basic_block(function->blocks.handles[i]);
+        Ir_Basic_Block* block = lookup_ir_basic_block(ir_basic_block_at(&function->blocks, i));
         do_block(block, function_type);
         correct_return_values(block);
     }

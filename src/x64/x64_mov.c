@@ -97,7 +97,7 @@ static void mov_reg_reg(uint8_t destination, uint8_t source, Type_Handle type)
 
 void x64_mov(const Ir_Instruction* mov)
 {
-    Ir_Operand* source = lookup_ir_operand(mov->sources.handles[0]);
+    Ir_Operand* source = lookup_ir_operand(ir_operand_at(&mov->sources, 0));
     Ir_Operand* destination = lookup_ir_operand(mov->destination);
     
     if (IS_X64_REG(destination->tag) && source->tag == Ir_Operand_Tag_immediate)
@@ -110,7 +110,7 @@ void x64_mov(const Ir_Instruction* mov)
 
 uint16_t size_of_x64_mov(const Ir_Instruction* mov)
 {
-    Ir_Operand* source = lookup_ir_operand(mov->sources.handles[0]);
+    Ir_Operand* source = lookup_ir_operand(ir_operand_at(&mov->sources, 0));
     Ir_Operand* destination = lookup_ir_operand(mov->destination);
         
     if (IS_X64_REG(destination->tag) && source->tag == Ir_Operand_Tag_immediate)
