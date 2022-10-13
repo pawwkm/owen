@@ -9,14 +9,14 @@ static Expression* is_referencing_variable_or_parameter(const File* file, Expres
                 return expression;
 
         case Expression_Tag_array_access:
-            return is_referencing_variable_or_parameter(file, lookup_expression(expression->array_access.array));
+            return is_referencing_variable_or_parameter(file, lookup(expression->array_access.array));
 
         case Expression_Tag_field_access:
         case Expression_Tag_fixed_array_length:
         case Expression_Tag_dynamic_array_length:
         case Expression_Tag_dynamic_array_capacity:
         case Expression_Tag_dynamic_array_elements:
-            return is_referencing_variable_or_parameter(file, lookup_expression(expression->field_access.compound));
+            return is_referencing_variable_or_parameter(file, lookup(expression->field_access.compound));
 
         default:
             return NULL;
@@ -31,9 +31,9 @@ void type_check_address_of(const File* file, Address_Of* address_of, Expression_
     // In situations like overload resolution it cannot be determined whether or not an address_of
     // expression needs to be retained. Therefore this function is called a second time when that
     // is known. Be aware this is an exceptional case.
-    if (is_invalid_type_handle(address_of->type))
+    if (invalid(address_of->type))
     {
-        Expression* sub_expression = lookup_expression(address_of->expression);
+        Expression* sub_expression = lookup(address_of->expression);
 
         type_check_expression(file, sub_expression, invalid_type_handle, flags);
         if (!is_addressable(sub_expression->tag))
@@ -44,7 +44,7 @@ void type_check_address_of(const File* file, Address_Of* address_of, Expression_
     
     if (flags & Expression_Check_Flags_retain)
     {        
-        Expression* reference = is_referencing_variable_or_parameter(file, lookup_expression(address_of->expression));
+        Expression* reference = is_referencing_variable_or_parameter(file, lookup(address_of->expression));
         if (reference)
             print_span_error(file, reference->span, "Parameters and variables cannot be retained.");
     }
@@ -53,5 +53,5 @@ void type_check_address_of(const File* file, Address_Of* address_of, Expression_
 void deep_copy_address_of(Address_Of* restrict destination, const Address_Of* restrict source)
 {
     destination->expression = add_expression();
-    deep_copy_expression(lookup_expression(destination->expression), lookup_expression(source->expression));
-} 
+    deep_copy_expression(lookup(destination->expression), lookup(source->expression));
+}

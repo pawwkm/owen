@@ -4,13 +4,13 @@ static void lower_instructions(Ir_Function* function)
 {   
     for (Array_Size a = 0; a < function->blocks.handles_length; a++)
     {
-        Ir_Basic_Block* block = lookup_ir_basic_block(ir_basic_block_at(&function->blocks, a));
+        Ir_Basic_Block* block = lookup_in(&function->blocks, a);
         for (Array_Size b = 0; b < block->ir.handles_length; b++)
         {
-            Ir_Instruction* inst = lookup_ir_instruction(ir_instruction_at(&block->ir, b));
+            Ir_Instruction* inst = lookup_in(&block->ir, b);
             if (inst->tag == Ir_Tag_call)
             {
-                if (is_invalid_function_handle(inst->call.callee_declaration))
+                if (invalid(inst->call.callee_declaration))
                     not_implemented(__FILE__, __LINE__, "calling function expressions");
 
                 inst->x64_call = (Ir_X64_Call)
@@ -35,9 +35,9 @@ static void find_function_size(Ir_Function* function)
 {
     for (Array_Size a = 0; a < function->blocks.handles_length; a++)
     {
-        Ir_Basic_Block* block = lookup_ir_basic_block(ir_basic_block_at(&function->blocks, a));
+        Ir_Basic_Block* block = lookup_in(&function->blocks, a);
         for (Array_Size b = 0; b < block->ir.handles_length; b++)
-            block->size_of_ir_in_bytes += size_of_x64_ir(lookup_ir_instruction(ir_instruction_at(&block->ir, b)));
+            block->size_of_ir_in_bytes += size_of_x64_ir(lookup_in(&block->ir, b));
 
         function->size_of_blocks_in_bytes += block->size_of_ir_in_bytes;
     }
@@ -55,14 +55,14 @@ static void set_call_address(Ir_Function* function)
 {
     for (Array_Size a = 0; a < function->blocks.handles_length; a++)
     {
-        Ir_Basic_Block* block = lookup_ir_basic_block(ir_basic_block_at(&function->blocks, a));
+        Ir_Basic_Block* block = lookup_in(&function->blocks, a);
         for (Array_Size b = 0; b < block->ir.handles_length; b++)
         {
-            Ir_X64_Call* call = &lookup_ir_instruction(ir_instruction_at(&block->ir, b))->x64_call;
+            Ir_X64_Call* call = &lookup_in(&block->ir, b)->x64_call;
             if (call->tag != Ir_Tag_x64_call)
                 continue;
             
-            call->absolute_address = lookup_ir_function(lookup_function(call->callee_declaration)->ir)->absolute_address;
+            call->absolute_address = lookup(lookup(call->callee_declaration)->ir)->absolute_address;
         }
     }
 }
@@ -70,49 +70,49 @@ static void set_call_address(Ir_Function* function)
 void ir_x64_pass(void)
 {
     x64_reg_rax = add_ir_operand();
-    lookup_ir_operand(x64_reg_rax)->tag = Ir_Operand_Tag_x64_rax;
+    lookup(x64_reg_rax)->tag = Ir_Operand_Tag_x64_rax;
     
     x64_reg_rcx = add_ir_operand();
-    lookup_ir_operand(x64_reg_rcx)->tag = Ir_Operand_Tag_x64_rcx;
+    lookup(x64_reg_rcx)->tag = Ir_Operand_Tag_x64_rcx;
     
     x64_reg_rdx = add_ir_operand();
-    lookup_ir_operand(x64_reg_rdx)->tag = Ir_Operand_Tag_x64_rdx;
+    lookup(x64_reg_rdx)->tag = Ir_Operand_Tag_x64_rdx;
     
     x64_reg_rbx = add_ir_operand();
-    lookup_ir_operand(x64_reg_rbx)->tag = Ir_Operand_Tag_x64_rbx;
+    lookup(x64_reg_rbx)->tag = Ir_Operand_Tag_x64_rbx;
     
     x64_reg_sp = add_ir_operand();
-    lookup_ir_operand(x64_reg_sp)->tag = Ir_Operand_Tag_x64_sp;
+    lookup(x64_reg_sp)->tag = Ir_Operand_Tag_x64_sp;
     
     x64_reg_bp = add_ir_operand();
-    lookup_ir_operand(x64_reg_bp)->tag = Ir_Operand_Tag_x64_bp;
+    lookup(x64_reg_bp)->tag = Ir_Operand_Tag_x64_bp;
     
     x64_reg_si = add_ir_operand();
-    lookup_ir_operand(x64_reg_si)->tag = Ir_Operand_Tag_x64_si;
+    lookup(x64_reg_si)->tag = Ir_Operand_Tag_x64_si;
     
     x64_reg_r8 = add_ir_operand();
-    lookup_ir_operand(x64_reg_r8)->tag = Ir_Operand_Tag_x64_r8;
+    lookup(x64_reg_r8)->tag = Ir_Operand_Tag_x64_r8;
     
     x64_reg_r9 = add_ir_operand();
-    lookup_ir_operand(x64_reg_r9)->tag = Ir_Operand_Tag_x64_r9;
+    lookup(x64_reg_r9)->tag = Ir_Operand_Tag_x64_r9;
     
     x64_reg_r10 = add_ir_operand();
-    lookup_ir_operand(x64_reg_r10)->tag = Ir_Operand_Tag_x64_r10;
+    lookup(x64_reg_r10)->tag = Ir_Operand_Tag_x64_r10;
     
     x64_reg_r11 = add_ir_operand();
-    lookup_ir_operand(x64_reg_r11)->tag = Ir_Operand_Tag_x64_r11;
+    lookup(x64_reg_r11)->tag = Ir_Operand_Tag_x64_r11;
     
     x64_reg_r12 = add_ir_operand();
-    lookup_ir_operand(x64_reg_r12)->tag = Ir_Operand_Tag_x64_r12;
+    lookup(x64_reg_r12)->tag = Ir_Operand_Tag_x64_r12;
     
     x64_reg_r13 = add_ir_operand();
-    lookup_ir_operand(x64_reg_r13)->tag = Ir_Operand_Tag_x64_r13;
+    lookup(x64_reg_r13)->tag = Ir_Operand_Tag_x64_r13;
     
     x64_reg_r14 = add_ir_operand();
-    lookup_ir_operand(x64_reg_r14)->tag = Ir_Operand_Tag_x64_r14;
+    lookup(x64_reg_r14)->tag = Ir_Operand_Tag_x64_r14;
     
     x64_reg_r15 = add_ir_operand();
-    lookup_ir_operand(x64_reg_r15)->tag = Ir_Operand_Tag_x64_r15;
+    lookup(x64_reg_r15)->tag = Ir_Operand_Tag_x64_r15;
     
     ordered_ir_function_iteration(lower_instructions);
 

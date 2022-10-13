@@ -3,23 +3,23 @@
 
 void type_check_negate(const File* file, Negate* negate, Type_Handle inferred_type_handle, Expression_Check_Flags flags)
 {
-    Expression* sub_expression = lookup_expression(negate->expression);
+    Expression* sub_expression = lookup(negate->expression);
     flags |= Expression_Check_Flags_is_nested;
 
-    if (is_invalid_type_handle(inferred_type_handle))
+    if (invalid(inferred_type_handle))
     {
         if (sub_expression->tag == Expression_Tag_integer || sub_expression->tag == Expression_Tag_float)
             print_span_error(file, sub_expression->span, "Type cannot be inferred.");
 
         negate->type = type_check_expression(file, sub_expression, inferred_type_handle, flags);
 
-        Type_Tag type_tag = lookup_type(negate->type)->tag;
+        Type_Tag type_tag = lookup(negate->type)->tag;
         if (!(type_tag <= Type_Tag_i64 || type_tag == Type_Tag_f32 || type_tag == Type_Tag_f64))
             print_span_error(file, sub_expression->span, "Operator not defined for %t.", sub_expression->type);
     }
     else
     {
-        Type_Tag type_tag = lookup_type(inferred_type_handle)->tag;
+        Type_Tag type_tag = lookup(inferred_type_handle)->tag;
         if (type_tag <= Type_Tag_i64 && sub_expression->tag == Expression_Tag_integer)
         {
             negate->type = type_check_expression(file, sub_expression, u64_handle, flags);

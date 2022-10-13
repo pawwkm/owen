@@ -2,13 +2,13 @@
 
 void resolve_type_of_call(Call* call, Type_Handle signature_handle)
 {
-    lookup_expression(call->callee)->type = signature_handle;
+    lookup(call->callee)->type = signature_handle;
 
-    Function_Type* signature = &lookup_type(signature_handle)->function;
+    Function_Type* signature = &lookup(signature_handle)->function;
     if (signature->return_types.handles_length > 1)
         call->type = lookup_tuple_type_by_signature(signature_handle);
     else if (signature->return_types.handles_length)
-        call->type = type_at(&signature->return_types, 0);
+        call->type = handle_at(&signature->return_types, 0);
     else
         call->type = none_handle;
 }
@@ -19,10 +19,10 @@ bool signature_matches_actual_parameter_types(const Function* function, const Ex
     if (function->formal_parameters.handles_length != actual_parameters->handles_length)
         return false;
     
-    Function_Type* signature = &lookup_type(function->signature)->function;
+    Function_Type* signature = &lookup(function->signature)->function;
     for (Array_Size i = 0; i < actual_parameters->handles_length; i++)
     {
-        if (!expression_types_match(type_at(&signature->formal_parameters, i), lookup_expression(expression_at(actual_parameters, i))->type))
+        if (!expression_types_match(handle_at(&signature->formal_parameters, i), lookup_in(actual_parameters, i)->type))
             return false;
     }
     
@@ -31,7 +31,7 @@ bool signature_matches_actual_parameter_types(const Function* function, const Ex
 
 static Address_Of* find_address_of(Expression_Handle expression_handle)
 {
-    Expression* expression = lookup_expression(expression_handle);
+    Expression* expression = lookup(expression_handle);
     switch (expression->tag)
     {
         case Expression_Tag_array_access:
@@ -58,9 +58,9 @@ void type_check_call_expression(const File* file, Call* call, Expression_Check_F
         print_span_error(file, call->span, "Calls are not constant.");
 
     for (Array_Size i = 0; i < call->actual_parameters.handles_length; i++)
-        type_check_expression(file, lookup_expression(expression_at(&call->actual_parameters, i)), invalid_type_handle, flags & ~Expression_Check_Flags_retain);
+        type_check_expression(file, lookup_in(&call->actual_parameters, i), invalid_type_handle, flags & ~Expression_Check_Flags_retain);
 
-    Expression* callee = lookup_expression(call->callee);
+    Expression* callee = lookup(call->callee);
     if (callee->tag == Expression_Tag_reference)
     {
         if (callee->reference.actual_type_parameters.handles_length)
@@ -73,14 +73,14 @@ void type_check_call_expression(const File* file, Call* call, Expression_Check_F
     else
         call_to_function_typed_expression(file, call, flags);
 
-    Function_Type* signature = &lookup_type(callee->type)->function;
+    Function_Type* signature = &lookup(callee->type)->function;
     for (Array_Size i = 0; i < call->actual_parameters.handles_length; i++)
     {
-        Type* formal_parameter_type = lookup_type(type_at(&signature->formal_parameters, i));
+        Type* formal_parameter_type = lookup_in(&signature->formal_parameters, i);
         if (formal_parameter_type->tag != Type_Tag_pointer || !(formal_parameter_type->pointer.privileges & Pointer_Type_Privilege_retained))
             continue;
 
-        Address_Of* address_of = find_address_of(expression_at(&call->actual_parameters, i)); 
+        Address_Of* address_of = find_address_of(handle_at(&call->actual_parameters, i)); 
         if (address_of)
             type_check_address_of(file, address_of, flags & Expression_Check_Flags_retain);
     }
@@ -89,7 +89,7 @@ void type_check_call_expression(const File* file, Call* call, Expression_Check_F
 void deep_copy_call(Call* restrict destination, const Call* restrict source)
 {
     destination->callee = add_expression();
-    deep_copy_expression(lookup_expression(destination->callee), lookup_expression(source->callee));
+    deep_copy_expression(lookup(destination->callee), lookup(source->callee));
 
     deep_copy_expressions(&destination->actual_parameters, &source->actual_parameters); 
 }

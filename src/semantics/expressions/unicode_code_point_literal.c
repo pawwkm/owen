@@ -2,10 +2,10 @@
 
 void type_check_unicode_code_point_literal(const File* file, Unicode_Code_Point_Literal* literal, Type_Handle inferred_type_handle)
 {
-    if (is_invalid_type_handle(inferred_type_handle))
+    if (invalid(inferred_type_handle))
         print_span_error(file, literal->span, "Integer type cannot be inferred.");
     
-    Type_Tag inferred_type_tag = lookup_type(inferred_type_handle)->tag;
+    Type_Tag inferred_type_tag = lookup(inferred_type_handle)->tag;
     if (inferred_type_tag > Type_Tag_u64)
         print_span_error(file, literal->span, "Cannot infer literal as %t.", inferred_type_handle);
     

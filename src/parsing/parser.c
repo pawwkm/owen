@@ -104,7 +104,7 @@ static void parse_types(Type_Reference_Handle_Array* array, const char* type_of_
         if (!parse_type(&type_reference))
             print_span_error(file, lexer.token.span, "%s type expected.", type_of_types);
 
-        add_to_type_reference_array(array, type_reference);
+        add_to(array, type_reference);
     } while (advance_if(Token_Tag_comma));
 }
 
@@ -125,7 +125,7 @@ static bool parse_type(Type_Reference_Handle* reference_handle)
 
         if (lexer.token.tag == Token_Tag_integer)
         {
-            Fixed_Array_Type_Reference* array = &lookup_type_reference(*reference_handle)->fixed_array;
+            Fixed_Array_Type_Reference* array = &lookup(*reference_handle)->fixed_array;
             array->size = lexer.token.string;
             array->size_span = lexer.token.span;
             array->tag = Type_Reference_Tag_fixed_array;
@@ -135,25 +135,25 @@ static bool parse_type(Type_Reference_Handle* reference_handle)
             parse_base_type(&array->base_type);
 
             array->span.start = start;
-            array->span.end = lookup_type_reference(array->base_type)->span.end;
+            array->span.end = lookup(array->base_type)->span.end;
         }
         else 
         {
-            Dynamic_Array_Type_Reference* array = &lookup_type_reference(*reference_handle)->dynamic_array;
+            Dynamic_Array_Type_Reference* array = &lookup(*reference_handle)->dynamic_array;
 
             expect(Token_Tag_right_square_bracket, "] expected.");
             parse_base_type(&array->base_type);
 
             array->tag = Type_Reference_Tag_dynamic_array;
             array->span.start = start;
-            array->span.end = lookup_type_reference(array->base_type)->span.end;
+            array->span.end = lookup(array->base_type)->span.end;
         }
     }
     else if (lexer.token.tag == Token_Tag_pound_sign)
     {
         *reference_handle = add_type_reference();
 
-        Pointer_Type_Reference* pointer = &lookup_type_reference(*reference_handle)->pointer;
+        Pointer_Type_Reference* pointer = &lookup(*reference_handle)->pointer;
         pointer->span.start = lexer.token.span.start;
         pointer->tag = Type_Reference_Tag_pointer;
 
@@ -171,13 +171,13 @@ static bool parse_type(Type_Reference_Handle* reference_handle)
             pointer->privileges |= Pointer_Type_Privilege_writable;
 
         parse_base_type(&pointer->base_type);
-        pointer->span.end = lookup_type_reference(pointer->base_type)->span.end;
+        pointer->span.end = lookup(pointer->base_type)->span.end;
     }
     else if (lexer.token.tag == Token_Tag_upper_case_identifier)
     {
         *reference_handle = add_type_reference();
 
-        Type_Reference* reference = lookup_type_reference(*reference_handle);
+        Type_Reference* reference = lookup(*reference_handle);
         
         Interned_String_Handle name = lexer.token.interned;
         reference->span = lexer.token.span;
@@ -227,7 +227,7 @@ static bool parse_type(Type_Reference_Handle* reference_handle)
                         if (!parse_type(&handle))
                             print_span_error(file, lexer.token.span, "Type expected.");
 
-                        add_to_type_reference_array(&reference->polymorphic_compound.actual_type_parameters, handle);
+                        add_to(&reference->polymorphic_compound.actual_type_parameters, handle);
                     } while (advance_if(Token_Tag_comma));
 
                     reference->span.end = lexer.token.span.end;
@@ -267,15 +267,15 @@ static bool parse_field_initializer(Compound_Literal* literal)
     }
 
     Field_Initializer_Handle handle = add_field_initializer();
-    Field_Initializer* initializer = lookup_field_initializer(handle);
+    Field_Initializer* initializer = lookup(handle);
     initializer->field = field_name;
     initializer->field_span = field_span;
     
     initializer->expression = parse_expression(0);
-    if (is_invalid_expression_handle(initializer->expression))
+    if (invalid(initializer->expression))
         print_span_error(file, lexer.token.span, "Expression expected.");
 
-    add_to_field_initializer_array(&literal->field_initializers, handle);
+    add_to(&literal->field_initializers, handle);
 
     return true;
 }
@@ -285,33 +285,33 @@ static bool parse_element_initializer(Array_Literal* array_literal)
     if (advance_if(Token_Tag_left_square_bracket))
     {
         Element_Initializer_Handle initializer_handle = add_element_initializer();
-        Element_Initializer* initializer = lookup_element_initializer(initializer_handle);
+        Element_Initializer* initializer = lookup(initializer_handle);
 
         initializer->explicit_index = parse_expression(0);
-        if (is_invalid_expression_handle(initializer->explicit_index))
+        if (invalid(initializer->explicit_index))
             print_span_error(file, lexer.token.span, "Expression expected.");
 
         expect(Token_Tag_right_square_bracket, "] expected.");
         expect(Token_Tag_equal, "= expected in element initializer.");
 
         initializer->expression = parse_expression(0);
-        if (is_invalid_expression_handle(initializer->expression))
+        if (invalid(initializer->expression))
             print_span_error(file, lexer.token.span, "Expression expected.");
     
-        add_to_element_initializer_array(&array_literal->elements, initializer_handle);
+        add_to(&array_literal->elements, initializer_handle);
     }
     else
     {
         Expression_Handle expression_handle = parse_expression(0);
-        if (is_invalid_expression_handle(expression_handle))
+        if (invalid(expression_handle))
             return false;
 
         Element_Initializer_Handle initializer_handle = add_element_initializer();
-        Element_Initializer* initializer = lookup_element_initializer(initializer_handle);
+        Element_Initializer* initializer = lookup(initializer_handle);
 
         initializer->explicit_index = invalid_expression_handle;
         initializer->expression = expression_handle;
-        add_to_element_initializer_array(&array_literal->elements, initializer_handle);
+        add_to(&array_literal->elements, initializer_handle);
     }
 
     return true;
@@ -324,7 +324,7 @@ static Expression_Handle parse_primary_expression(void)
     {
         expression_handle = add_expression();
 
-        Unchecked_Number* literal = &lookup_expression(expression_handle)->unchecked_number;
+        Unchecked_Number* literal = &lookup(expression_handle)->unchecked_number;
         literal->string = lexer.token.string;
         literal->tag = Expression_Tag_integer;
         literal->type = invalid_type_handle;
@@ -336,7 +336,7 @@ static Expression_Handle parse_primary_expression(void)
     {
         expression_handle = add_expression();
 
-        Unchecked_Number* literal = &lookup_expression(expression_handle)->unchecked_number;
+        Unchecked_Number* literal = &lookup(expression_handle)->unchecked_number;
         literal->string = lexer.token.string;
         literal->tag = Expression_Tag_float;
         literal->type = invalid_type_handle;
@@ -348,7 +348,7 @@ static Expression_Handle parse_primary_expression(void)
     {
         expression_handle = add_expression();
 
-        Reference* reference = &lookup_expression(expression_handle)->reference;
+        Reference* reference = &lookup(expression_handle)->reference;
         reference->name = lexer.token.interned;
         reference->tag = Expression_Tag_reference;
         reference->type = invalid_type_handle;
@@ -367,7 +367,7 @@ static Expression_Handle parse_primary_expression(void)
                     if (!parse_type(&type_reference_handle))
                         print_span_error(file, lexer.token.span, "Type expected.");
 
-                    add_to_type_reference_array(&reference->actual_type_parameters, type_reference_handle);
+                    add_to(&reference->actual_type_parameters, type_reference_handle);
                 } while (advance_if(Token_Tag_comma));
 
                 reference->span.end = lexer.token.span.end;
@@ -381,7 +381,7 @@ static Expression_Handle parse_primary_expression(void)
     {
         expression_handle = add_expression();
 
-        Expression* literal = lookup_expression(expression_handle);
+        Expression* literal = lookup(expression_handle);
         literal->tag = Expression_Tag_true;
         literal->type = invalid_type_handle;
         literal->span = lexer.token.span;
@@ -392,7 +392,7 @@ static Expression_Handle parse_primary_expression(void)
     {
         expression_handle = add_expression();
 
-        Expression* literal = lookup_expression(expression_handle);
+        Expression* literal = lookup(expression_handle);
         literal->tag = Expression_Tag_false;
         literal->type = invalid_type_handle;
         literal->span = lexer.token.span;
@@ -403,7 +403,7 @@ static Expression_Handle parse_primary_expression(void)
     {
         expression_handle = add_expression();
 
-        Unicode_Code_Point_Literal* literal = &lookup_expression(expression_handle)->code_point;
+        Unicode_Code_Point_Literal* literal = &lookup(expression_handle)->code_point;
         literal->code_point = lexer.token.code_point;
         literal->tag = Expression_Tag_unicode_code_point;
         literal->type = invalid_type_handle;
@@ -415,7 +415,7 @@ static Expression_Handle parse_primary_expression(void)
     {
         expression_handle = add_expression();
 
-        Utf8_String_Literal* literal = &lookup_expression(expression_handle)->string_literal;
+        Utf8_String_Literal* literal = &lookup(expression_handle)->string_literal;
         literal->string = lexer.token.interned;
         literal->tag = Expression_Tag_utf8_string_literal;
         literal->type = invalid_type_handle;
@@ -426,7 +426,7 @@ static Expression_Handle parse_primary_expression(void)
     else if (lexer.token.tag == Token_Tag_left_curly_bracket)
     {
         expression_handle = add_expression();
-        Expression* expression = lookup_expression(expression_handle);
+        Expression* expression = lookup(expression_handle);
         expression->type = invalid_type_handle;
         expression->span.start = lexer.token.span.start;
 
@@ -459,7 +459,7 @@ static Expression_Handle parse_primary_expression(void)
     {
         expression_handle = add_expression();
 
-        Expression* literal = lookup_expression(expression_handle);
+        Expression* literal = lookup(expression_handle);
         literal->tag = Expression_Tag_null;
         literal->type = invalid_type_handle;
         literal->span = lexer.token.span;
@@ -470,7 +470,7 @@ static Expression_Handle parse_primary_expression(void)
     {
         expression_handle = add_expression();
 
-        Expression* literal = lookup_expression(expression_handle);
+        Expression* literal = lookup(expression_handle);
         literal->tag = Expression_Tag_uninitialized_literal;
         literal->type = invalid_type_handle;
         literal->span = lexer.token.span;
@@ -481,7 +481,7 @@ static Expression_Handle parse_primary_expression(void)
     {
         expression_handle = add_expression();
 
-        Size_Of* size_of = &lookup_expression(expression_handle)->size_of;
+        Size_Of* size_of = &lookup(expression_handle)->size_of;
         size_of->tag = Expression_Tag_sizeof;
         size_of->type = invalid_type_handle;
         size_of->span.start = lexer.token.span.start;
@@ -494,7 +494,7 @@ static Expression_Handle parse_primary_expression(void)
         else 
         {
             size_of->expression = parse_expression(0);
-            if (is_invalid_expression_handle(size_of->expression))
+            if (invalid(size_of->expression))
                 print_span_error(file, lexer.token.span, "Type or expression expected.");
 
             size_of->t = invalid_type_reference_handle;
@@ -507,7 +507,7 @@ static Expression_Handle parse_primary_expression(void)
     {
         expression_handle = add_expression();
 
-        Parenthesized* parenthesized = &lookup_expression(expression_handle)->parenthesized;
+        Parenthesized* parenthesized = &lookup(expression_handle)->parenthesized;
         parenthesized->tag = Expression_Tag_parenthesized;
         parenthesized->type = invalid_type_handle;
         parenthesized->span.start = lexer.token.span.start;
@@ -522,7 +522,7 @@ static Expression_Handle parse_primary_expression(void)
     {
         expression_handle = add_expression();
 
-        Expression* expression = lookup_expression(expression_handle);
+        Expression* expression = lookup(expression_handle);
         expression->tag = Expression_Tag_blank_identifier;
         expression->type = invalid_type_handle;
         expression->span = lexer.token.span;
@@ -539,7 +539,7 @@ static Expression_Handle parse_primary_expression(void)
 
         if (advance_if(Token_Tag_dot))
         {
-            Enumeration_Constant_Access* access = &lookup_expression(expression_handle)->enumeration_constant_access;
+            Enumeration_Constant_Access* access = &lookup(expression_handle)->enumeration_constant_access;
             access->span.start = start;
             access->enumeration = type;
             access->constant = lexer.token.interned;
@@ -551,13 +551,13 @@ static Expression_Handle parse_primary_expression(void)
         }
         else if (advance_if(Token_Tag_left_parentheses))
         {
-            Cast* cast = &lookup_expression(expression_handle)->cast;
+            Cast* cast = &lookup(expression_handle)->cast;
             cast->span.start = start;
             cast->type = invalid_type_handle;
             cast->target = type;
             cast->source = parse_expression(0);
             
-            if (is_invalid_expression_handle(cast->source))
+            if (invalid(cast->source))
                 print_span_error(file, lexer.token.span, "Expression expected.");
 
             cast->tag = Expression_Tag_cast;
@@ -570,7 +570,7 @@ static Expression_Handle parse_primary_expression(void)
     else if (is_type_ahead())
     {
         expression_handle = add_expression();
-        Cast* cast = &lookup_expression(expression_handle)->cast;
+        Cast* cast = &lookup(expression_handle)->cast;
         cast->type = invalid_type_handle;
         cast->span.start = lexer.token.span.start;
 
@@ -578,7 +578,7 @@ static Expression_Handle parse_primary_expression(void)
         expect(Token_Tag_left_parentheses, "( expected.");
 
         cast->source = parse_expression(0);
-        if (is_invalid_expression_handle(cast->source))
+        if (invalid(cast->source))
             print_span_error(file, lexer.token.span, "Expression expected.");
 
         cast->tag = Expression_Tag_cast;
@@ -592,18 +592,18 @@ static Expression_Handle parse_primary_expression(void)
 static Expression_Handle parse_postfix_expression(void)
 {
     Expression_Handle expression_handle = parse_primary_expression();
-    while (!is_invalid_expression_handle(expression_handle))
+    while (!invalid(expression_handle))
     {
         if (advance_if(Token_Tag_dot))
         {
             Expression_Handle field_access_handle = add_expression();
-            Field_Access* field_access = &lookup_expression(field_access_handle)->field_access;
+            Field_Access* field_access = &lookup(field_access_handle)->field_access;
 
             field_access->compound = expression_handle;
             field_access->field = lexer.token.interned;
             field_access->field_span = lexer.token.span;
 
-            field_access->span.start = lookup_expression(expression_handle)->span.start;
+            field_access->span.start = lookup(expression_handle)->span.start;
             field_access->span.end = lexer.token.span.end;
             field_access->type = invalid_type_handle;
             field_access->tag = Expression_Tag_field_access;
@@ -614,7 +614,7 @@ static Expression_Handle parse_postfix_expression(void)
         else if (lexer.token.tag == Token_Tag_left_parentheses)
         {
             Expression_Handle call_handle = add_expression();
-            Call* call = &lookup_expression(call_handle)->call;
+            Call* call = &lookup(call_handle)->call;
 
             call->span.start = lexer.token.span.start;
             call->callee = expression_handle;
@@ -632,14 +632,14 @@ static Expression_Handle parse_postfix_expression(void)
         else if (lexer.token.tag == Token_Tag_left_square_bracket && !look_ahead_1(Token_Tag_right_square_bracket))
         {
             Expression_Handle array_access_handle = add_expression();
-            Array_Access* array_access = &lookup_expression(array_access_handle)->array_access;
+            Array_Access* array_access = &lookup(array_access_handle)->array_access;
             array_access->span.start = lexer.token.span.start;
 
             next_token();
 
             array_access->array = expression_handle;
             array_access->index = parse_expression(0);
-            if (is_invalid_expression_handle(array_access->index))
+            if (invalid(array_access->index))
                 print_span_error(file, lexer.token.span, "Expression expected.");
 
             array_access->span.end = lexer.token.span.end;
@@ -661,7 +661,7 @@ static Expression_Handle parse_prefix_expression(void)
     if (lexer.token.tag == Token_Tag_exclamation_mark)
     {
         Expression_Handle expression_handle = add_expression();
-        Not* not = &lookup_expression(expression_handle)->not;
+        Not* not = &lookup(expression_handle)->not;
         not->span.start = lexer.token.span.start;
         not->tag = Expression_Tag_not;
         not->type = invalid_type_handle;
@@ -675,7 +675,7 @@ static Expression_Handle parse_prefix_expression(void)
     else if (lexer.token.tag == Token_Tag_minus)
     {
         Expression_Handle expression_handle = add_expression();
-        Negate* negate = &lookup_expression(expression_handle)->negate;
+        Negate* negate = &lookup(expression_handle)->negate;
         negate->span.start = lexer.token.span.start;
         negate->tag = Expression_Tag_negate;
         negate->type = invalid_type_handle;
@@ -689,7 +689,7 @@ static Expression_Handle parse_prefix_expression(void)
     else if (lexer.token.tag == Token_Tag_dereference)
     {
         Expression_Handle expression_handle = add_expression();
-        Dereference* dereference = &lookup_expression(expression_handle)->dereference;
+        Dereference* dereference = &lookup(expression_handle)->dereference;
         dereference->span.start = lexer.token.span.start;
         dereference->tag = Expression_Tag_dereference;
         dereference->type = invalid_type_handle;
@@ -703,7 +703,7 @@ static Expression_Handle parse_prefix_expression(void)
     else if (lexer.token.tag == Token_Tag_pound_sign && !is_type_ahead())
     {
         Expression_Handle expression_handle = add_expression();
-        Address_Of* address_of = &lookup_expression(expression_handle)->address_of;
+        Address_Of* address_of = &lookup(expression_handle)->address_of;
         address_of->span.start = lexer.token.span.start;
         address_of->tag = Expression_Tag_address_of;
         address_of->type = invalid_type_handle;
@@ -739,7 +739,7 @@ static int8_t precedence_of_operator(void)
 static Expression_Handle parse_expression(int8_t minimum_precedence)
 {
     Expression_Handle expression_handle = parse_prefix_expression();
-    if (is_invalid_expression_handle(expression_handle))
+    if (invalid(expression_handle))
         return expression_handle;
 
     while (true)
@@ -750,8 +750,8 @@ static Expression_Handle parse_expression(int8_t minimum_precedence)
 
         Expression_Handle binary_handle = add_expression();
 
-        Binary* binary = &lookup_expression(binary_handle)->binary;
-        binary->span.start = lookup_expression(expression_handle)->span.start;
+        Binary* binary = &lookup(binary_handle)->binary;
+        binary->span.start = lookup(expression_handle)->span.start;
         binary->lhs = expression_handle;
         expression_handle = binary_handle;
 
@@ -764,10 +764,10 @@ static Expression_Handle parse_expression(int8_t minimum_precedence)
         next_token();
 
         binary->rhs = parse_expression(current_precedence + 1);
-        if (is_invalid_expression_handle(binary->rhs))
+        if (invalid(binary->rhs))
             print_span_error(file, lexer.token.span, "Expression expected.");
 
-        binary->span.end = lookup_expression(binary->rhs)->span.end;
+        binary->span.end = lookup(binary->rhs)->span.end;
     }
 
     return expression_handle;
@@ -776,17 +776,17 @@ static Expression_Handle parse_expression(int8_t minimum_precedence)
 static void parse_expressions(Expression_Handle_Array* array)
 {
     Expression_Handle expression = parse_expression(0);
-    if (is_invalid_expression_handle(expression))
+    if (invalid(expression))
         return;
 
-    add_to_expression_array(array, expression);
+    add_to(array, expression);
     while (advance_if(Token_Tag_comma))
     {
         expression = parse_expression(0);
-        if (is_invalid_expression_handle(expression))
+        if (invalid(expression))
             print_span_error(file, lexer.token.span, "Expression expected.");
 
-        add_to_expression_array(array, expression);
+        add_to(array, expression);
     }
 }
 
@@ -815,41 +815,41 @@ static void parse_assignment_statement(Assignment_Statement* assignment_statemen
 static Statement_Handle parse_if_statement(void)
 {
     Statement_Handle statement_handle = add_statement();
-    Statement* statement = lookup_statement(statement_handle);
+    Statement* statement = lookup(statement_handle);
 
     do
     {
         Branch_Handle branch_handle = add_branch();
-        Branch* branch = lookup_branch(branch_handle);
+        Branch* branch = lookup(branch_handle);
 
         branch->declaration_statement = parse_declaration_statement();
-        if (!is_invalid_statement_handle(branch->declaration_statement))
+        if (!invalid(branch->declaration_statement))
             expect(Token_Tag_semicolon, "; expected after declaration statement.");
 
         branch->condition = parse_expression(0);
-        if (is_invalid_expression_handle(branch->condition))
+        if (invalid(branch->condition))
         {
-            if (is_invalid_statement_handle(branch->declaration_statement))
+            if (invalid(branch->declaration_statement))
                 print_span_error(file, lexer.token.span, "Declaration or condition expected.");
             else
                 print_span_error(file, lexer.token.span, "Condition expected.");
         }
 
         parse_statements(&branch->body);
-        add_to_branch_array(&statement->if_statement.branches, branch_handle);
+        add_to(&statement->if_statement.branches, branch_handle);
     }
     while (advance_if(Token_Tag_elif));
     
     if (advance_if(Token_Tag_else))
     {
         Branch_Handle branch_handle = add_branch();
-        Branch* branch = lookup_branch(branch_handle);
+        Branch* branch = lookup(branch_handle);
 
         branch->condition = invalid_expression_handle;
         branch->declaration_statement = invalid_statement_handle;
 
         parse_statements(&branch->body);
-        add_to_branch_array(&statement->if_statement.branches, branch_handle);
+        add_to(&statement->if_statement.branches, branch_handle);
     }
 
     expect(Token_Tag_end, "Missing end keyword in branch.");
@@ -861,26 +861,26 @@ static Statement_Handle parse_if_statement(void)
 static Statement_Handle parse_for_statement(void)
 {
     Statement_Handle statement_handle = add_statement();
-    Statement* statement = lookup_statement(statement_handle);
+    Statement* statement = lookup(statement_handle);
 
     statement->loop_statement.declaration_statement = parse_declaration_statement();
-    if (!is_invalid_statement_handle(statement->loop_statement.declaration_statement))
+    if (!invalid(statement->loop_statement.declaration_statement))
         expect(Token_Tag_semicolon, "; expected after declaration statement.");
 
     statement->loop_statement.condition = parse_expression(0);
-    if (is_invalid_expression_handle(statement->loop_statement.condition))
+    if (invalid(statement->loop_statement.condition))
         print_span_error(file, lexer.token.span, "Condition expected.");
 
     expect(Token_Tag_semicolon, "; expected after condition.");
 
     Expression_Handle first = parse_expression(0);
-    if (is_invalid_expression_handle(first))
+    if (invalid(first))
         print_span_error(file, lexer.token.span, "Expression expected.");
 
     statement->loop_statement.assignment_statement = add_statement();
-    Assignment_Statement* assignment = &lookup_statement(statement->loop_statement.assignment_statement)->assignment_statement;
+    Assignment_Statement* assignment = &lookup(statement->loop_statement.assignment_statement)->assignment_statement;
 
-    add_to_expression_array(&assignment->lhs, first);
+    add_to(&assignment->lhs, first);
     parse_assignment_statement(assignment);
 
     parse_statements(&statement->loop_statement.body);
@@ -894,16 +894,16 @@ static Statement_Handle parse_for_statement(void)
 static Statement_Handle parse_while_statement(void)
 {
     Statement_Handle statement_handle = add_statement();
-    Statement* statement = lookup_statement(statement_handle);
+    Statement* statement = lookup(statement_handle);
 
     statement->loop_statement.declaration_statement = parse_declaration_statement();
-    if (!is_invalid_statement_handle(statement->loop_statement.declaration_statement))
+    if (!invalid(statement->loop_statement.declaration_statement))
         expect(Token_Tag_semicolon, "; expected after declaration statement.");
 
     statement->loop_statement.condition = parse_expression(0);
-    if (is_invalid_expression_handle(statement->loop_statement.condition))
+    if (invalid(statement->loop_statement.condition))
     {
-        if (is_invalid_statement_handle(statement->loop_statement.declaration_statement))
+        if (invalid(statement->loop_statement.declaration_statement))
             print_span_error(file, lexer.token.span, "Declaration or condition expected.");
         else
             print_span_error(file, lexer.token.span, "Condition expected.");
@@ -922,7 +922,7 @@ static Statement_Handle parse_break_statement(void)
 {
     Statement_Handle statement_handle = add_statement();
     
-    Statement* statement = lookup_statement(statement_handle);
+    Statement* statement = lookup(statement_handle);
     statement->tag = Statement_Tag_break;
     statement->break_statement.span = lexer.token.span;
 
@@ -935,7 +935,7 @@ static Statement_Handle parse_continue_statement(void)
 {
     Statement_Handle statement_handle = add_statement();
     
-    Statement* statement = lookup_statement(statement_handle);
+    Statement* statement = lookup(statement_handle);
     statement->tag = Statement_Tag_continue;
     statement->continue_statement.span = lexer.token.span;
 
@@ -948,7 +948,7 @@ static Statement_Handle parse_return_statement(void)
 {
     Statement_Handle statement_handle = add_statement();
     
-    Statement* statement = lookup_statement(statement_handle);
+    Statement* statement = lookup(statement_handle);
     statement->return_statement.span = lexer.token.span;
 
     next_token();
@@ -956,8 +956,8 @@ static Statement_Handle parse_return_statement(void)
 
     if (statement->return_statement.values.handles_length)
     {
-        Expression_Handle last_handle = expression_at(&statement->return_statement.values, statement->return_statement.values.handles_length - 1);
-        statement->return_statement.span.end = lookup_expression(last_handle)->span.end;
+        Expression_Handle last_handle = handle_at(&statement->return_statement.values, statement->return_statement.values.handles_length - 1);
+        statement->return_statement.span.end = lookup(last_handle)->span.end;
     }
 
     statement->tag = Statement_Tag_return;
@@ -977,7 +977,7 @@ static Variable_Handle parse_variable(bool first_variable)
     }
 
     Variable_Handle variable_handle = add_variable();
-    Variable* variable = lookup_variable(variable_handle);
+    Variable* variable = lookup(variable_handle);
 
     variable->type_reference = type_reference;
     variable->name = lexer.token.interned;
@@ -995,16 +995,16 @@ static Variable_Handle parse_variable(bool first_variable)
 static Statement_Handle parse_declaration_statement(void)
 {
     Variable_Handle first = parse_variable(true);
-    if (is_invalid_variable_handle(first))
+    if (invalid(first))
         return invalid_statement_handle;
 
     Statement_Handle statement_handle = add_statement();
-    Statement* statement = lookup_statement(statement_handle);
+    Statement* statement = lookup(statement_handle);
     statement->tag = Statement_Tag_declaration;
 
-    add_to_variable_array(&statement->declaration_statement.variables, first);
+    add_to(&statement->declaration_statement.variables, first);
     while (advance_if(Token_Tag_comma))
-        add_to_variable_array(&statement->declaration_statement.variables, parse_variable(false));
+        add_to(&statement->declaration_statement.variables, parse_variable(false));
         
     if (advance_if(Token_Tag_equal))
     {
@@ -1028,7 +1028,7 @@ static void parse_statements(Statement_Handle_Array* body)
         else
         {
             Expression_Handle expression_handle = parse_expression(0);
-            if (is_invalid_expression_handle(expression_handle))
+            if (invalid(expression_handle))
             {
                 if (advance_if(Token_Tag_if))
                     statement_handle = parse_if_statement();
@@ -1059,11 +1059,11 @@ static void parse_statements(Statement_Handle_Array* body)
             else
             {
                 statement_handle = add_statement();
-                Statement* statement = lookup_statement(statement_handle);
+                Statement* statement = lookup(statement_handle);
 
                 if (lexer.token.tag == Token_Tag_comma || token_is_assignment_operator())
                 {
-                    add_to_expression_array(&statement->assignment_statement.lhs, expression_handle);
+                    add_to(&statement->assignment_statement.lhs, expression_handle);
                     parse_assignment_statement(&statement->assignment_statement);
                     statement->tag = Statement_Tag_assignment;
                 }
@@ -1075,7 +1075,7 @@ static void parse_statements(Statement_Handle_Array* body)
             }
         }
 
-        add_to_statement_array(body, statement_handle);
+        add_to(body, statement_handle);
         if (last_statement)
             return;
     }
@@ -1087,7 +1087,7 @@ static bool parse_function_declaration(bool is_public)
         return false;
 
     Function_Handle function_handle = add_function();
-    Function* function = lookup_function(function_handle);
+    Function* function = lookup(function_handle);
     function->file = file_handle;
     function->name = lexer.token.interned;
     function->name_span = lexer.token.span;
@@ -1106,11 +1106,11 @@ static bool parse_function_declaration(bool is_public)
             if (!parse_type(&type_reference_handle))
                 print_span_error(file, lexer.token.span, "Formal type parameter expected.");
 
-            Type_Reference* type_reference = lookup_type_reference(type_reference_handle);
+            Type_Reference* type_reference = lookup(type_reference_handle);
             if (type_reference->tag != Type_Reference_Tag_name)
                 print_span_error(file, type_reference->span, "Formal type parameter expected.");
 
-            add_to_type_reference_array(&function->formal_type_parameters, type_reference_handle);
+            add_to(&function->formal_type_parameters, type_reference_handle);
         } while (advance_if(Token_Tag_comma));
 
         expect(Token_Tag_right_square_bracket, "] expected.");
@@ -1123,7 +1123,7 @@ static bool parse_function_declaration(bool is_public)
         do
         {
             Formal_Parameter_Handle parameter_handle = add_formal_parameter();
-            Formal_Parameter* parameter = lookup_formal_parameter(parameter_handle);
+            Formal_Parameter* parameter = lookup(parameter_handle);
             if (!parse_type(&parameter->type))
                 print_span_error(file, lexer.token.span, "Formal parameter type expected.");
 
@@ -1131,7 +1131,7 @@ static bool parse_function_declaration(bool is_public)
             parameter->name_span = lexer.token.span;
             expect(Token_Tag_lower_case_identifier, "Formal parameter name expected.");
 
-            add_to_formal_parameter_array(&function->formal_parameters, parameter_handle);
+            add_to(&function->formal_parameters, parameter_handle);
         } while (advance_if(Token_Tag_comma));
     }
 
@@ -1142,7 +1142,7 @@ static bool parse_function_declaration(bool is_public)
     parse_statements(&function->body);
     expect(Token_Tag_end, "Missing end keyword in function.");
 
-    add_to_function_array(&file->function_declarations, function_handle);
+    add_to(&file->function_declarations, function_handle);
 
     return true;
 }
@@ -1150,7 +1150,7 @@ static bool parse_function_declaration(bool is_public)
 static void parse_field(Compound_Type* compound)
 {
     Field_Handle field_handle = add_field(); 
-    Field* field = lookup_field(field_handle);
+    Field* field = lookup(field_handle);
 
     if (!parse_type(&field->type_reference))
         print_span_error(file, lexer.token.span, "Field type expected.");
@@ -1160,7 +1160,7 @@ static void parse_field(Compound_Type* compound)
     field->name_span = lexer.token.span;
     expect(Token_Tag_lower_case_identifier, "Field name expected.");
 
-    add_to_field_array(&compound->fields, field_handle);
+    add_to(&compound->fields, field_handle);
 }
 
 static bool parse_compound_declaration(bool is_public)
@@ -1169,7 +1169,7 @@ static bool parse_compound_declaration(bool is_public)
         return false;
     
     Type_Handle handle = add_type();
-    Compound_Type* compound = &lookup_type(handle)->compound;
+    Compound_Type* compound = &lookup(handle)->compound;
 
     compound->tag = Type_Tag_compound;
     compound->file = file_handle;
@@ -1201,11 +1201,11 @@ static bool parse_compound_declaration(bool is_public)
                 if (!parse_type(&type_reference_handle))
                     print_span_error(file, lexer.token.span, "Formal type parameter expected.");
 
-                Type_Reference* type_reference = lookup_type_reference(type_reference_handle);
+                Type_Reference* type_reference = lookup(type_reference_handle);
                 if (type_reference->tag != Type_Reference_Tag_name)
                     print_span_error(file, type_reference->span, "Formal type parameter expected.");
 
-                add_to_type_reference_array(&compound->formal_type_parameters, type_reference_handle);
+                add_to(&compound->formal_type_parameters, type_reference_handle);
             } while (advance_if(Token_Tag_comma));
 
             expect(Token_Tag_right_square_bracket, "] expected.");
@@ -1218,7 +1218,7 @@ static bool parse_compound_declaration(bool is_public)
     while (lexer.token.tag == Token_Tag_upper_case_identifier);
 
     expect(Token_Tag_end, "Missing end keyword in compound.");
-    add_to_type_array(&file->type_declarations, handle);
+    add_to(&file->type_declarations, handle);
 
     return true;
 }
@@ -1229,7 +1229,7 @@ static bool parse_enumeration_declaration(bool is_public)
         return false;
 
     Type_Handle handle = add_type();
-    Enumeration_Type* enumeration = &lookup_type(handle)->enumeration;
+    Enumeration_Type* enumeration = &lookup(handle)->enumeration;
 
     enumeration->tag = Type_Tag_enumeration;
     enumeration->file = file_handle;
@@ -1243,14 +1243,14 @@ static bool parse_enumeration_declaration(bool is_public)
     if (!parse_type(&enumeration->underlying_type_reference))
         print_span_error(file, lexer.token.span, "Type expected.");
    
-    Type_Reference* underlying_type_reference = lookup_type_reference(enumeration->underlying_type_reference);
+    Type_Reference* underlying_type_reference = lookup(enumeration->underlying_type_reference);
     if (underlying_type_reference->tag != Type_Reference_Tag_name)
         print_span_error(file, underlying_type_reference->span, "Type expected.");
 
     while (lexer.token.tag == Token_Tag_lower_case_identifier)
     {
         Constant_Handle constant_handle = add_constant();
-        Constant* constant = lookup_constant(constant_handle);
+        Constant* constant = lookup(constant_handle);
         constant->name = lexer.token.interned;
         constant->name_span = lexer.token.span;
         constant->explicit_value = invalid_expression_handle;
@@ -1259,15 +1259,15 @@ static bool parse_enumeration_declaration(bool is_public)
         if (advance_if(Token_Tag_equal))
         {
             constant->explicit_value = parse_expression(0);
-            if (is_invalid_expression_handle(constant->explicit_value))
+            if (invalid(constant->explicit_value))
                 print_span_error(file, lexer.token.span, "Expression expected.");
         }
 
-        add_to_constant_array(&enumeration->constants, constant_handle);
+        add_to(&enumeration->constants, constant_handle);
     }
 
     expect(Token_Tag_end, "Missing end keyword in enumeration.");
-    add_to_type_array(&file->type_declarations, handle);
+    add_to(&file->type_declarations, handle);
 
     return true;
 }
@@ -1309,8 +1309,8 @@ void parse_uses(void)
         bool already_used = false;
         for (uint8_t i = 0; i < file->uses.handles_length; i++)
         {
-            Namespace* use = lookup_namespace(namespace_at(&file->uses, i));
-            if (compare_interned_strings(lexer.token.interned, use->name))
+            Namespace* use = lookup_in(&file->uses, i);
+            if (compare(lexer.token.interned, use->name))
             {
                 already_used = true;
                 break;
@@ -1320,11 +1320,11 @@ void parse_uses(void)
         if (!already_used)
         {
             Namespace_Handle handle = add_namespace();
-            Namespace* use = lookup_namespace(handle);
+            Namespace* use = lookup(handle);
             use->name_span = lexer.token.span;
             use->name = lexer.token.interned;
 
-            add_to_namespace_array(&file->uses, handle);
+            add_to(&file->uses, handle);
         }
 
         next_token();
@@ -1338,7 +1338,7 @@ static void parse_namespace(void)
     Namespace_Handle handle = add_namespace();
     file->namespace = handle;
 
-    Namespace* namespace = lookup_namespace(handle);
+    Namespace* namespace = lookup(handle);
     namespace->name = lexer.token.interned;
     namespace->name_span = lexer.token.span;
 
@@ -1348,7 +1348,7 @@ static void parse_namespace(void)
 void parse_file(char* path)
 {
     file_handle = add_file();
-    file = lookup_file(file_handle);
+    file = lookup(file_handle);
     file->path = path;
 
     init_lexer(path);

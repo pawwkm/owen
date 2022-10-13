@@ -7,13 +7,13 @@ bool type_check_statements(const File* file, Statement_Handle_Array* body, const
     uint8_t initial_symbol_length = current_symbol_table->symbols_length;
     for (Array_Size i = 0; i < body->handles_length; i++)
     {
-        Statement* statement = lookup_statement(statement_at(body, i));
+        Statement* statement = lookup_in(body, i);
         if (statement->tag == Statement_Tag_declaration)
             type_check_declaration_statement(file, &statement->declaration_statement);
         else if (statement->tag == Statement_Tag_assignment)
             type_check_assignment_statement(file, &statement->assignment_statement);
         else if (statement->tag == Statement_Tag_expression)
-            type_check_expression_statement(file, lookup_expression(statement->expression_statement));
+            type_check_expression_statement(file, lookup(statement->expression_statement));
         else if (statement->tag == Statement_Tag_if)
             terminated = type_check_if_statement(file, &statement->if_statement, function, is_inside_loop) && i == body->handles_length - 1;
         else if (statement->tag == Statement_Tag_loop)
@@ -45,7 +45,7 @@ static void deep_copy_statement(Statement* restrict destination, const Statement
     else if (source->tag == Statement_Tag_expression)
     {
         destination->expression_statement = add_expression();
-        deep_copy_expression(lookup_expression(destination->expression_statement), lookup_expression(source->expression_statement));
+        deep_copy_expression(lookup(destination->expression_statement), lookup(source->expression_statement));
     }
     else if (source->tag == Statement_Tag_if)
         deep_copy_if_statement(&destination->if_statement, &source->if_statement);
@@ -61,11 +61,11 @@ static void deep_copy_statement(Statement* restrict destination, const Statement
 
 void deep_copy_statements(Statement_Handle_Array* destination, const Statement_Handle_Array* source)
 {
-    reserve_statement_handles(destination, source->handles_length);
+    reserve(destination, source->handles_length);
     for (Array_Size i = 0; i < source->handles_length; i++)
     {
-        add_to_statement_array(destination, add_statement());
-        deep_copy_statement(lookup_statement(statement_at(destination, i)), lookup_statement(statement_at(source, i)));
+        add_to(destination, add_statement());
+        deep_copy_statement(lookup_in(destination, i), lookup_in(source, i));
     }
 }
 

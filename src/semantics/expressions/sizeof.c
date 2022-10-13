@@ -5,18 +5,18 @@ void type_check_sizeof(const File* file, Size_Of* size_of, Type_Handle inferred_
     if (flags & Expression_Check_Flags_constant)
         print_span_error(file, size_of->span, "sizeof is not constant.");
 
-    if (is_invalid_type_handle(inferred_type_handle))
+    if (invalid(inferred_type_handle))
         print_span_error(file, size_of->span, "sizeof type cannot be inferred.");
 
-    Type_Tag inferred_type_tag = lookup_type(inferred_type_handle)->tag;
+    Type_Tag inferred_type_tag = lookup(inferred_type_handle)->tag;
     if (inferred_type_tag > Type_Tag_u64)
         print_span_error(file, size_of->span, "Cannot infer sizeof as %t.", inferred_type_handle);
 
     Type* t;
-    if (is_invalid_type_reference_handle(size_of->t))
-        t = lookup_type(type_check_expression(file, lookup_expression(size_of->expression), invalid_type_handle, flags | Expression_Check_Flags_is_nested));
+    if (invalid(size_of->t))
+        t = lookup(type_check_expression(file, lookup(size_of->expression), invalid_type_handle, flags | Expression_Check_Flags_is_nested));
     else
-        t = lookup_type(lookup_type_by_reference(file, size_of->t, true));
+        t = lookup(lookup_type_by_reference(file, size_of->t, true));
 
     if (!t->size_of)
         ice(__FILE__, __LINE__, "Zero sized type.");
@@ -71,10 +71,10 @@ void type_check_sizeof(const File* file, Size_Of* size_of, Type_Handle inferred_
 
 void deep_copy_sizeof(Size_Of* restrict destination, const Size_Of* restrict source)
 {
-    if (is_invalid_type_reference_handle(source->t))
+    if (invalid(source->t))
     {
         destination->expression = add_expression();
-        deep_copy_expression(lookup_expression(destination->expression), lookup_expression(source->expression));
+        deep_copy_expression(lookup(destination->expression), lookup(source->expression));
     }
     else
     {

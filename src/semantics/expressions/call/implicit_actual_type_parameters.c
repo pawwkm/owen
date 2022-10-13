@@ -2,9 +2,9 @@
 
 bool is_formal_type_parameter_specified_by_a_formal_parameter(Type_Reference_Handle formal_parameter_handle, Interned_String_Handle t)
 {
-    Type_Reference* formal_parameter = lookup_type_reference(formal_parameter_handle);
+    Type_Reference* formal_parameter = lookup(formal_parameter_handle);
     if (formal_parameter->tag == Type_Reference_Tag_name)
-        return compare_interned_strings(formal_parameter->named.name, t);
+        return compare(formal_parameter->named.name, t);
     else if (formal_parameter->tag == Type_Reference_Tag_pointer)
         return is_formal_type_parameter_specified_by_a_formal_parameter(formal_parameter->pointer.base_type, t);
     else if (formal_parameter->tag == Type_Reference_Tag_fixed_array)
@@ -15,12 +15,12 @@ bool is_formal_type_parameter_specified_by_a_formal_parameter(Type_Reference_Han
         not_implemented(__FILE__, __LINE__, "Type_Reference_Tag_function");
     else if (formal_parameter->tag == Type_Reference_Tag_polymorphic_compound)
     {
-        if (compare_interned_strings(formal_parameter->named.name, t))
+        if (compare(formal_parameter->named.name, t))
             return true;
 
         for (Array_Size i = 0; i < formal_parameter->polymorphic_compound.actual_type_parameters.handles_length; i++)
         {
-            Type_Reference_Handle handle = type_reference_at(&formal_parameter->polymorphic_compound.actual_type_parameters, i);
+            Type_Reference_Handle handle = handle_at(&formal_parameter->polymorphic_compound.actual_type_parameters, i);
             if (is_formal_type_parameter_specified_by_a_formal_parameter(handle, t))
                 return true;
         }
@@ -35,18 +35,18 @@ void map_formal_type_parameter(const File* file, const Function* function, Type_
     {
         for (Array_Size i = 0; i < function->formal_type_parameters.handles_length; i++)
         {
-            if (compare_interned_strings(lookup_type_reference(type_reference_at(&function->formal_type_parameters, i))->named.name, formal_type_parameter->named.name))
+            if (compare(lookup_in(&function->formal_type_parameters, i)->named.name, formal_type_parameter->named.name))
             {
-                if (is_invalid_type_handle(current_polymorphic_type_mapping->monomorphic_types[i]))
+                if (invalid(current_polymorphic_type_mapping->monomorphic_types[i]))
                 {
-                    current_polymorphic_type_mapping->polymorphic_types[i] = type_reference_at(&function->formal_type_parameters, i);
+                    current_polymorphic_type_mapping->polymorphic_types[i] = handle_at(&function->formal_type_parameters, i);
                     current_polymorphic_type_mapping->monomorphic_types[i] = actual_parameter_type;
                 }
                 else if (!expression_types_match(current_polymorphic_type_mapping->monomorphic_types[i], actual_parameter_type))
                 {
                     // current_polymorphic_type_mapping->monomorphisized_function is not yet set and will 
                     // cause an error if the polymorphic stack is printed.
-                    Named_Type_Reference* polymorphic_type = &lookup_type_reference(current_polymorphic_type_mapping->polymorphic_types[i])->named;
+                    Named_Type_Reference* polymorphic_type = &lookup(current_polymorphic_type_mapping->polymorphic_types[i])->named;
                     Type_Handle original_type = current_polymorphic_type_mapping->monomorphic_types[i];
 
                     release_polymorphic_type_mapping();
@@ -63,20 +63,20 @@ void map_formal_type_parameter(const File* file, const Function* function, Type_
     }
     else if (formal_type_parameter->tag == Type_Reference_Tag_pointer)
     {
-        Type_Handle actual_base_type = lookup_type(actual_parameter_type)->pointer.base_type;
-        Type_Reference* formal_base_type = lookup_type_reference(formal_type_parameter->pointer.base_type);
+        Type_Handle actual_base_type = lookup(actual_parameter_type)->pointer.base_type;
+        Type_Reference* formal_base_type = lookup(formal_type_parameter->pointer.base_type);
         map_formal_type_parameter(file, function, actual_base_type, formal_base_type, span_of_type_definition);
     }
     else if (formal_type_parameter->tag == Type_Reference_Tag_fixed_array)
     {
-        Type_Handle actual_base_type = lookup_type(actual_parameter_type)->fixed_array.base_type;
-        Type_Reference* formal_base_type = lookup_type_reference(formal_type_parameter->fixed_array.base_type);
+        Type_Handle actual_base_type = lookup(actual_parameter_type)->fixed_array.base_type;
+        Type_Reference* formal_base_type = lookup(formal_type_parameter->fixed_array.base_type);
         map_formal_type_parameter(file, function, actual_base_type, formal_base_type, span_of_type_definition);
     }
     else if (formal_type_parameter->tag == Type_Reference_Tag_dynamic_array)
     {
-        Type_Handle actual_base_type = lookup_type(actual_parameter_type)->dynamic_array.base_type;
-        Type_Reference* formal_base_type = lookup_type_reference(formal_type_parameter->dynamic_array.base_type);
+        Type_Handle actual_base_type = lookup(actual_parameter_type)->dynamic_array.base_type;
+        Type_Reference* formal_base_type = lookup(formal_type_parameter->dynamic_array.base_type);
         map_formal_type_parameter(file, function, actual_base_type, formal_base_type, span_of_type_definition);
     }
     else if (formal_type_parameter->tag == Type_Reference_Tag_function)
@@ -85,8 +85,8 @@ void map_formal_type_parameter(const File* file, const Function* function, Type_
     {
         for (Array_Size i = 0; i < formal_type_parameter->polymorphic_compound.actual_type_parameters.handles_length; i++)
         {
-            Type_Handle actual = type_at(&lookup_type(actual_parameter_type)->compound.actual_type_parameters, i);
-            Type_Reference* formal = lookup_type_reference(type_reference_at(&formal_type_parameter->polymorphic_compound.actual_type_parameters, i));
+            Type_Handle actual = handle_at(&lookup(actual_parameter_type)->compound.actual_type_parameters, i);
+            Type_Reference* formal = lookup_in(&formal_type_parameter->polymorphic_compound.actual_type_parameters, i);
             map_formal_type_parameter(file, function, actual, formal, span_of_type_definition);
         }
     }
@@ -94,14 +94,14 @@ void map_formal_type_parameter(const File* file, const Function* function, Type_
 
 bool formal_parameter_type_matches_actual_parameter_type(const File* file, const Function* function, Type_Reference_Handle formal_parameter_type_handle, Type_Handle actual_type_handle)
 {
-    Type_Reference* formal_parameter_type = lookup_type_reference(formal_parameter_type_handle);
-    Type* actual_type = lookup_type(actual_type_handle);
+    Type_Reference* formal_parameter_type = lookup(formal_parameter_type_handle);
+    Type* actual_type = lookup(actual_type_handle);
 
     if (formal_parameter_type->tag == Type_Reference_Tag_name)
     {
         for (Array_Size i = 0; i < function->formal_type_parameters.handles_length; i++)
         {
-            if (compare_interned_strings(formal_parameter_type->named.name, lookup_type_reference(type_reference_at(&function->formal_type_parameters, i))->named.name))
+            if (compare(formal_parameter_type->named.name, lookup_in(&function->formal_type_parameters, i)->named.name))
                 return true;
         }
 
@@ -119,13 +119,14 @@ bool formal_parameter_type_matches_actual_parameter_type(const File* file, const
     else if (formal_parameter_type->tag == Type_Reference_Tag_polymorphic_compound)
     {
         if (actual_type->tag != Type_Tag_compound ||
-            is_invalid_type_handle(actual_type->compound.template) ||
+            invalid(actual_type->compound.template) ||
             actual_type->compound.actual_type_parameters.handles_length != formal_parameter_type->polymorphic_compound.actual_type_parameters.handles_length)
             return false;
 
         for (Array_Size i = 0; i < actual_type->compound.actual_type_parameters.handles_length; i++)
         {
-            if (!formal_parameter_type_matches_actual_parameter_type(file, function, type_reference_at(&formal_parameter_type->polymorphic_compound.actual_type_parameters, i), type_at(&actual_type->compound.actual_type_parameters, i)))
+            if (!formal_parameter_type_matches_actual_parameter_type(file, function, handle_at(&formal_parameter_type->polymorphic_compound.actual_type_parameters, i), 
+                                                                                     handle_at(&actual_type->compound.actual_type_parameters, i)))
                 return false;
         }
 
@@ -140,8 +141,8 @@ void resolve_call_to_function_overload_by_actual_parameters(const File* file, In
     bool function_with_the_same_name_exists = false;
     for (Array_Size a = 0; a < file->functions_in_scope.handles_length; a++)
     {
-        Function* function = lookup_function(function_at(&file->functions_in_scope, a));
-        if (!compare_interned_strings(function->name, function_name) || function->attributes & Function_Attribute_is_polymorphic)
+        Function* function = lookup_in(&file->functions_in_scope, a);
+        if (!compare(function->name, function_name) || function->attributes & Function_Attribute_is_polymorphic)
             continue;
 
         function_with_the_same_name_exists = true;
@@ -157,8 +158,8 @@ void resolve_call_to_function_overload_by_actual_parameters(const File* file, In
 
     for (Array_Size a = 0; a < file->functions_in_scope.handles_length; a++)
     {
-        Function* function = lookup_function(function_at(&file->functions_in_scope, a));
-        if (!compare_interned_strings(function->name, function_name) || !(function->attributes & Function_Attribute_is_polymorphic))
+        Function* function = lookup_in(&file->functions_in_scope, a);
+        if (!compare(function->name, function_name) || !(function->attributes & Function_Attribute_is_polymorphic))
             continue;
 
         // Since polymorphic functions do not have a signature Type_Handle we must verify 
@@ -170,8 +171,8 @@ void resolve_call_to_function_overload_by_actual_parameters(const File* file, In
         bool is_match = true;
         for (Array_Size b = 0; b < call->actual_parameters.handles_length; b++)
         {
-            Type_Reference_Handle formal_type_parameter = lookup_formal_parameter(formal_parameter_at(&function->formal_parameters, b))->type;
-            Type_Handle actual_type = lookup_expression(expression_at(&call->actual_parameters, b))->type;
+            Type_Reference_Handle formal_type_parameter = lookup_in(&function->formal_parameters, b)->type;
+            Type_Handle actual_type = lookup_in(&call->actual_parameters, b)->type;
 
             if (!formal_parameter_type_matches_actual_parameter_type(file, function, formal_type_parameter, actual_type))
             {
@@ -188,12 +189,12 @@ void resolve_call_to_function_overload_by_actual_parameters(const File* file, In
         // always the same... This should be a flag.
         for (Array_Size b = 0; b < function->formal_type_parameters.handles_length; b++)
         {
-            Named_Type_Reference* formal_type_parameter = &lookup_type_reference(type_reference_at(&function->formal_type_parameters, b))->named;
+            Named_Type_Reference* formal_type_parameter = &lookup_in(&function->formal_type_parameters, b)->named;
             bool specified_by_formal_parameter = false;
 
             for (Array_Size c = 0; c < function->formal_parameters.handles_length; c++)
             {
-                Formal_Parameter* formal_parameter = lookup_formal_parameter(formal_parameter_at(&function->formal_parameters, c));
+                Formal_Parameter* formal_parameter = lookup_in(&function->formal_parameters, c);
                 if (is_formal_type_parameter_specified_by_a_formal_parameter(formal_parameter->type, formal_type_parameter->name))
                 {
                     specified_by_formal_parameter = true;
@@ -209,7 +210,7 @@ void resolve_call_to_function_overload_by_actual_parameters(const File* file, In
         for (uint16_t b = 0; b < functions_length; b++)
         {
             Function* monomorphic_function = &functions[b];
-            if (!compare_functions(monomorphic_function->template, (Function_Handle) { .index = b }))
+            if (!compare(monomorphic_function->template, (Function_Handle) { .index = b }))
                 continue;
 
             if (signature_matches_actual_parameter_types(monomorphic_function, &call->actual_parameters))
@@ -226,15 +227,15 @@ void resolve_call_to_function_overload_by_actual_parameters(const File* file, In
 
         for (Array_Size b = 0; b < function->formal_parameters.handles_length; b++)
         {
-            Type_Reference* formal_parameter_type = lookup_type_reference(lookup_formal_parameter(formal_parameter_at(&function->formal_parameters, b))->type);
+            Type_Reference* formal_parameter_type = lookup(lookup_in(&function->formal_parameters, b)->type);
             for (Array_Size c = 0; c < call->actual_parameters.handles_length; c++)
             {
-                Expression* actual_parameter = lookup_expression(expression_at(&call->actual_parameters, c));
+                Expression* actual_parameter = lookup_in(&call->actual_parameters, c);
                 map_formal_type_parameter(file, function, actual_parameter->type, formal_parameter_type, actual_parameter->span);
             }
         }
 
-        resolve_type_of_call(call, monomorphisize_function(function_at(&file->functions_in_scope, a)));
+        resolve_type_of_call(call, monomorphisize_function(handle_at(&file->functions_in_scope, a)));
         release_polymorphic_type_mapping();
 
         return;
@@ -245,8 +246,8 @@ void resolve_call_to_function_overload_by_actual_parameters(const File* file, In
         print_declaration_header(file, function_name_span.start, "No matching signature for %I.", function_name);
         for (Array_Size a = 0; a < file->functions_in_scope.handles_length; a++)
         {
-            Function* function = lookup_function(function_at(&file->functions_in_scope, a));
-            if (compare_interned_strings(function->name, function_name))
+            Function* function = lookup_in(&file->functions_in_scope, a);
+            if (compare(function->name, function_name))
                 print_function_declaration(function);
         }
 

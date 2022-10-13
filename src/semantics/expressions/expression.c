@@ -2,7 +2,7 @@
 
 Type_Handle type_check_expression(const File* file, Expression* expression, Type_Handle inferred_type_handle, Expression_Check_Flags flags)
 {
-    assert(is_invalid_type_handle(expression->type));
+    assert(invalid(expression->type));
     if (expression->tag == Expression_Tag_binary)
         type_check_binary(file, &expression->binary, inferred_type_handle, flags | Expression_Check_Flags_is_nested);
     else if (expression->tag == Expression_Tag_compound_literal)
@@ -60,8 +60,8 @@ Type_Handle type_check_expression(const File* file, Expression* expression, Type
 
 bool expression_types_match(Type_Handle expected_type_handle, Type_Handle actual_type_handle)
 {
-    Type* expected_type = lookup_type(expected_type_handle);
-    Type* actual_type = lookup_type(actual_type_handle);
+    Type* expected_type = lookup(expected_type_handle);
+    Type* actual_type = lookup(actual_type_handle);
 
     return expected_type == actual_type || 
            expected_type->tag == actual_type->tag &&
@@ -72,11 +72,11 @@ bool expression_types_match(Type_Handle expected_type_handle, Type_Handle actual
 
 void deep_copy_expressions(Expression_Handle_Array* destination, const Expression_Handle_Array* source)
 {
-    reserve_expression_handles(destination, source->handles_length);
+    reserve(destination, source->handles_length);
     for (Array_Size i = 0; i < source->handles_length; i++)
     {
-        add_to_expression_array(destination, add_expression());
-        deep_copy_expression(lookup_expression(expression_at(destination, i)), lookup_expression(expression_at(source, i)));
+        add_to(destination, add_expression());
+        deep_copy_expression(lookup_in(destination, i), lookup_in(source, i));
     }
 }
 

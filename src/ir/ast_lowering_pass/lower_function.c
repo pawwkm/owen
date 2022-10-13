@@ -2,25 +2,25 @@
 
 Ir_Function_Handle lower_function(Function* function)
 {
-    if (is_invalid_ir_function_handle(function->ir))
+    if (invalid(function->ir))
     {
         function->ir = add_ir_function();
-        Function_Type* signature = &lookup_type(function->signature)->function;
-        Ir_Function* ir_function = lookup_ir_function(function->ir);
+        Function_Type* signature = &lookup(function->signature)->function;
+        Ir_Function* ir_function = lookup(function->ir);
      
-        add_to_ir_basic_block_array(&ir_function->blocks, add_ir_basic_block());
-        Ir_Basic_Block* block = lookup_ir_basic_block(ir_basic_block_at(&ir_function->blocks, ir_function->blocks.handles_length - 1));   
+        add_to(&ir_function->blocks, add_ir_basic_block());
+        Ir_Basic_Block* block = lookup_in(&ir_function->blocks, ir_function->blocks.handles_length - 1);   
         
         for (Array_Size i = 0; i < signature->formal_parameters.handles_length; i++)
         {
             Ir_Operand_Handle parameter_handle = add_ir_operand();
-            Ir_Parameter* parameter = &lookup_ir_operand(parameter_handle)->parameter;
+            Ir_Parameter* parameter = &lookup(parameter_handle)->parameter;
             parameter->tag = Ir_Operand_Tag_parameter;
             parameter->index = i;
             
             write_definition(block, (Ir_Definition)
             {
-                .name = lookup_formal_parameter(formal_parameter_at(&function->formal_parameters, i))->name, 
+                .name = lookup_in(&function->formal_parameters, i)->name, 
                 .value = parameter_handle
             });
         }

@@ -2,13 +2,13 @@
 
 void ordered_ir_function_iteration(void (*func)(Ir_Function*))
 {
-    Ir_Function_Handle ir_main = lookup_function(main_function)->ir;
-    func(lookup_ir_function(ir_main));
+    Ir_Function_Handle ir_main = lookup(main_function)->ir;
+    func(lookup(ir_main));
     
     for (Ir_Function_Handle handle = { 0 }; handle.index < ir_functions_length; handle.index++)
     {
-        if (!compare_ir_functions(ir_main, handle))
-            func(lookup_ir_function(handle));
+        if (!compare(ir_main, handle))
+            func(lookup(handle));
     }
 }
 
@@ -25,3 +25,4 @@ bool imm_is_zero(const Ir_Immediate* value, uint8_t tag)
            tag == Type_Tag_f32 && value->value.f32 == 0 ||
            tag == Type_Tag_f64 && value->value.f64 == 0;
 }
+

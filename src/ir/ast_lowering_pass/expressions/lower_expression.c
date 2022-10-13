@@ -2,7 +2,7 @@
 
 Ir_Operand_Handle lower_expression(Ir_Basic_Block* block, Expression_Handle handle)
 {
-    Expression* expression = lookup_expression(handle);
+    Expression* expression = lookup(handle);
     if (expression->tag == Expression_Tag_reference)
         return lower_reference(block, &expression->reference);
     else if (expression->tag == Expression_Tag_integer || expression->tag == Expression_Tag_float)
@@ -60,5 +60,5 @@ Ir_Operand_Handle lower_expression(Ir_Basic_Block* block, Expression_Handle hand
 void lower_expressions(Ir_Basic_Block* block, Ir_Operand_Handle_Array* destination, const Expression_Handle_Array* source)
 {
     for (Array_Size i = 0; i < source->handles_length; i++)
-        add_to_ir_operand_array(destination, lower_expression(block, expression_at(source, i)));
+        add_to(destination, lower_expression(block, handle_at(source, i)));
 }

@@ -3,8 +3,8 @@
 static bool operator_is_defined(Type_Handle expected, uint8_t operator_tag, Type_Handle actual)
 {
     bool types_match     = expression_types_match(expected, actual);
-    uint8_t expected_tag = lookup_type(expected)->tag;
-    uint8_t actual_tag   = lookup_type(actual)->tag;
+    uint8_t expected_tag = lookup(expected)->tag;
+    uint8_t actual_tag   = lookup(actual)->tag;
 
     if (operator_tag == Assignment_Operator_plus_equal || operator_tag == Assignment_Operator_minus_equal)
         return types_match && actual_tag <= Type_Tag_f64 || 
@@ -27,24 +27,24 @@ static bool operator_is_defined(Type_Handle expected, uint8_t operator_tag, Type
 
 static void type_check_tuple_assignment_statement(const File* file, Assignment_Statement* assignment_statement)
 {
-    Expression* expression = lookup_expression(expression_at(&assignment_statement->rhs, 0));
+    Expression* expression = lookup_in(&assignment_statement->rhs, 0);
     type_check_expression(file, expression, invalid_type_handle, Expression_Check_Flags_rhs_value);
 
     for (Type_Handle handle = { 0 }; handle.index < types_length; handle.index++)
     {
-        Tuple_Type* tuple = &lookup_type(handle)->tuple;
+        Tuple_Type* tuple = &lookup(handle)->tuple;
         if (tuple->tag != Type_Tag_tuple || tuple->types.handles_length != assignment_statement->lhs.handles_length)
             continue;
 
         bool is_match = true;
         for (Array_Size b = 0; b < assignment_statement->lhs.handles_length; b++)
         {
-            Expression* lhs = lookup_expression(expression_at(&assignment_statement->lhs, b));
-            Type_Handle rhs_type = type_at(&tuple->types, b);
+            Expression* lhs = lookup_in(&assignment_statement->lhs, b);
+            Type_Handle rhs_type = handle_at(&tuple->types, b);
 
             if (lhs->tag == Expression_Tag_blank_identifier)
             {
-                lhs->type = type_at(&tuple->types, b);
+                lhs->type = handle_at(&tuple->types, b);
                 if (assignment_statement->operator != Assignment_Operator_equal)
                     print_span_error(file, assignment_statement->operator_span, "Operator not defined for _.");
             }
@@ -59,14 +59,14 @@ static void type_check_tuple_assignment_statement(const File* file, Assignment_S
             break;
         
         Type_Handle type_handle = add_type();
-        Type* variable_tuple = lookup_type(type_handle);
+        Type* variable_tuple = lookup(type_handle);
         variable_tuple->tag = Type_Tag_tuple;
 
-        reserve_type_handles(&variable_tuple->tuple.types, assignment_statement->lhs.handles_length);
+        reserve(&variable_tuple->tuple.types, assignment_statement->lhs.handles_length);
         for (Array_Size i = 0; i < assignment_statement->lhs.handles_length; i++)
         {
-            Expression* lhs = lookup_expression(expression_at(&assignment_statement->lhs, i));
-            add_to_type_array(&variable_tuple->tuple.types, lhs->type);
+            Expression* lhs = lookup_in(&assignment_statement->lhs, i);
+            add_to(&variable_tuple->tuple.types, lhs->type);
         }
 
         print_span_error(file, expression->span, "%t expected but found %t.", type_handle, expression->type);
@@ -77,13 +77,13 @@ static void type_check_ballanced_assignment_statement(const File* file, Assignme
 {
     for (Array_Size i = 0; i < assignment_statement->lhs.handles_length; i++)
     {
-        Expression* lhs = lookup_expression(expression_at(&assignment_statement->lhs, i));
-        Expression* rhs = lookup_expression(expression_at(&assignment_statement->rhs, i));
+        Expression* lhs = lookup_in(&assignment_statement->lhs, i);
+        Expression* rhs = lookup_in(&assignment_statement->rhs, i);
 
         if (lhs->tag == Expression_Tag_blank_identifier)
             print_span_error(file, lhs->span, "_ only allowed in tuple declarations and assignments.");
 
-        Type* lhs_type = lookup_type(lhs->type);
+        Type* lhs_type = lookup(lhs->type);
         Expression_Check_Flags flags = Expression_Check_Flags_rhs_value; 
         if (lhs_type->tag == Type_Tag_pointer && lhs_type->pointer.privileges & Pointer_Type_Privilege_retained)
             flags |= Expression_Check_Flags_retain;
@@ -99,7 +99,7 @@ void type_check_assignment_statement(const File* file, Assignment_Statement* ass
 {
     for (Array_Size i = 0; i < assignment_statement->lhs.handles_length; i++)
     {
-        Expression* lhs = lookup_expression(expression_at(&assignment_statement->lhs, i));
+        Expression* lhs = lookup_in(&assignment_statement->lhs, i);
 
         type_check_expression(file, lhs, invalid_type_handle, Expression_Check_Flags_lhs_value);
         if (!is_addressable(lhs->tag))
@@ -114,14 +114,14 @@ void type_check_assignment_statement(const File* file, Assignment_Statement* ass
     {
         Expression_Handle last;
         if (assignment_statement->lhs.handles_length > assignment_statement->rhs.handles_length)
-            last = expression_at(&assignment_statement->rhs, assignment_statement->rhs.handles_length - 1);
+            last = handle_at(&assignment_statement->rhs, assignment_statement->rhs.handles_length - 1);
         else
-            last = expression_at(&assignment_statement->lhs, assignment_statement->lhs.handles_length - 1);
+            last = handle_at(&assignment_statement->lhs, assignment_statement->lhs.handles_length - 1);
 
-        print_span_error(file, lookup_expression(last)->span, "%u %s expected but found %u.", 
-                                                              assignment_statement->lhs.handles_length,
-                                                              assignment_statement->lhs.handles_length == 1 ? "expression" : "expressions",
-                                                              assignment_statement->rhs.handles_length);
+        print_span_error(file, lookup(last)->span, "%u %s expected but found %u.", 
+                                                   assignment_statement->lhs.handles_length,
+                                                   assignment_statement->lhs.handles_length == 1 ? "expression" : "expressions",
+                                                   assignment_statement->rhs.handles_length);
     }
 }
 

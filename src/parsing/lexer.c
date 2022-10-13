@@ -216,7 +216,7 @@ void next_token(void)
 
         for (uint8_t i = 0; i < sizeof(keywords) / sizeof(keywords[0]); i++)
         {
-            if (compare_strings(keywords[i].string, lexer.token.string))
+            if (compare(keywords[i].string, lexer.token.string))
             {
                 lexer.token.tag = keywords[i].tag;
                 break;

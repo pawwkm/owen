@@ -11,25 +11,25 @@ void print_type_reference_for_compound(const Compound_Type* compound, FILE* file
     if (compound->attributes & Compound_Attribute_is_polymorphic)
     {
         fputc('[', file);
-        print_string_by_handle(lookup_type_reference(type_reference_at(&compound->formal_type_parameters, 0))->named.name, file);
+        print_string_by_handle(lookup_in(&compound->formal_type_parameters, 0)->named.name, file);
 
         for (Array_Size i = 1; i < compound->formal_type_parameters.handles_length; i++)
         {
             fputs(", ", file);
-            print_string_by_handle(lookup_type_reference(type_reference_at(&compound->formal_type_parameters, i))->named.name, file);
+            print_string_by_handle(lookup_in(&compound->formal_type_parameters, i)->named.name, file);
         }
 
         fputc(']', file);
     }
-    else if (!is_invalid_type_handle(compound->template))
+    else if (!invalid(compound->template))
     {
         fputc('[', file);
-        print_type_reference_for_type(type_at(&compound->actual_type_parameters, 0), file);
+        print_type_reference_for_type(handle_at(&compound->actual_type_parameters, 0), file);
 
         for (Array_Size i = 1; i < compound->actual_type_parameters.handles_length; i++)
         {
             fputs(", ", file);
-            print_type_reference_for_type(type_at(&compound->actual_type_parameters, i), file);
+            print_type_reference_for_type(handle_at(&compound->actual_type_parameters, i), file);
         }
 
         fputc(']', file);
@@ -41,11 +41,11 @@ static void print_type_reference_for_function(const Function_Type* function, FIL
     fputs("Function(", file);
     if (function->formal_parameters.handles_length)
     {
-        print_type_reference_for_type(type_at(&function->formal_parameters, 0), file);
+        print_type_reference_for_type(handle_at(&function->formal_parameters, 0), file);
         for (Array_Size i = 1; i < function->formal_parameters.handles_length; i++)
         {
             fputs(", ", file);
-            print_type_reference_for_type(type_at(&function->formal_parameters, i), file);
+            print_type_reference_for_type(handle_at(&function->formal_parameters, i), file);
         }
     }
 
@@ -53,29 +53,29 @@ static void print_type_reference_for_function(const Function_Type* function, FIL
     if (function->return_types.handles_length)
     {
         fputs(" : ", file);
-        print_type_reference_for_type(type_at(&function->return_types, 0), file);
+        print_type_reference_for_type(handle_at(&function->return_types, 0), file);
 
         for (Array_Size i = 1; i < function->return_types.handles_length; i++)
         {
             fputs(", ", file);
-            print_type_reference_for_type(type_at(&function->return_types, i), file);
+            print_type_reference_for_type(handle_at(&function->return_types, i), file);
         }
     }
 }
 
 void print_type_reference_for_tuple(const Tuple_Type* tuple, FILE* file)
 {
-    print_type_reference_for_type(type_at(&tuple->types, 0), file);
+    print_type_reference_for_type(handle_at(&tuple->types, 0), file);
     for (Array_Size i = 1; i < tuple->types.handles_length; i++)
     {
         fputs(", ", file);
-        print_type_reference_for_type(type_at(&tuple->types, i), file);
+        print_type_reference_for_type(handle_at(&tuple->types, i), file);
     }
 }
 
 void print_type_reference_for_type(const Type_Handle type_handle, FILE* file)
 {
-    Type* type = lookup_type(type_handle);
+    Type* type = lookup(type_handle);
     if (type->tag <= Type_Tag_bool || type->tag == Type_Tag_none)
         print_string_by_handle(type->primitive.name, file);
     else if (type->tag == Type_Tag_enumeration)
@@ -150,7 +150,7 @@ void print_string(String string, FILE* file)
 
 void print_string_by_handle(Interned_String_Handle handle, FILE* file)
 {
-    Interned_String* string = lookup_interned_string(handle);
+    Interned_String* string = lookup(handle);
     fprintf(file, "%.*s", string->length, string->text);
 }
 
@@ -167,7 +167,7 @@ static void print_indentation(void)
 
 static void print_type_reference(Type_Reference_Handle type_reference_handle, FILE* file)
 {
-    Type_Reference* type_reference = lookup_type_reference(type_reference_handle);
+    Type_Reference* type_reference = lookup(type_reference_handle);
     if (type_reference->tag == Type_Reference_Tag_name)
         print_string_by_handle(type_reference->named.name, file);
     else if (type_reference->tag == Type_Reference_Tag_pointer)
@@ -205,11 +205,11 @@ static void print_type_reference(Type_Reference_Handle type_reference_handle, FI
         fprintf(file, "Function(");
         if (type_reference->function.formal_parameters.handles_length)
         {
-            print_type_reference(type_reference_at(&type_reference->function.formal_parameters, 0), file);
+            print_type_reference(handle_at(&type_reference->function.formal_parameters, 0), file);
             for (Array_Size i = 1; i < type_reference->function.formal_parameters.handles_length; i++)
             {
                 fprintf(file, ", ");
-                print_type_reference(type_reference_at(&type_reference->function.formal_parameters, i), file);
+                print_type_reference(handle_at(&type_reference->function.formal_parameters, i), file);
             }
         }
 
@@ -217,11 +217,11 @@ static void print_type_reference(Type_Reference_Handle type_reference_handle, FI
         if (type_reference->function.return_types.handles_length)
         {
             fprintf(file, " : ");
-            print_type_reference(type_reference_at(&type_reference->function.return_types, 0), file);
+            print_type_reference(handle_at(&type_reference->function.return_types, 0), file);
             for (Array_Size i = 1; i < type_reference->function.return_types.handles_length; i++)
             {
                 fprintf(file, ", ");
-                print_type_reference(type_reference_at(&type_reference->function.return_types, i), file);
+                print_type_reference(handle_at(&type_reference->function.return_types, i), file);
             }
         }
     }
@@ -230,11 +230,11 @@ static void print_type_reference(Type_Reference_Handle type_reference_handle, FI
         print_string_by_handle(type_reference->polymorphic_compound.name, file);
 
         fprintf(file, "[");
-        print_type_reference(type_reference_at(&type_reference->polymorphic_compound.actual_type_parameters, 0), file);
+        print_type_reference(handle_at(&type_reference->polymorphic_compound.actual_type_parameters, 0), file);
         for (Array_Size i = 1; i < type_reference->polymorphic_compound.actual_type_parameters.handles_length; i++)
         {
             fprintf(file, ", ");
-            print_type_reference(type_reference_at(&type_reference->polymorphic_compound.actual_type_parameters, i), file);
+            print_type_reference(handle_at(&type_reference->polymorphic_compound.actual_type_parameters, i), file);
         }
 
         fprintf(file, "]");
@@ -263,17 +263,17 @@ static void print_compound_declaration(const Compound_Type* compound)
         {
             print_indentation();
             printf("formal_type_parameter: ");
-            print_type_reference(type_reference_at(&compound->formal_type_parameters, i), stdout);
+            print_type_reference(handle_at(&compound->formal_type_parameters, i), stdout);
             putchar('\n');
         }
     }
-    else if (!is_invalid_type_handle(compound->template))
+    else if (!invalid(compound->template))
     {
         for (Array_Size i = 0; i < compound->actual_type_parameters.handles_length; i++)
         {
             print_indentation();
             printf("actual_type_parameter: ");
-            print_type_reference_for_type(type_at(&compound->actual_type_parameters, i), stdout);
+            print_type_reference_for_type(handle_at(&compound->actual_type_parameters, i), stdout);
             putchar('\n');
         }
     }
@@ -287,7 +287,7 @@ static void print_compound_declaration(const Compound_Type* compound)
 
         print_indentation();
 
-        Field* field = lookup_field(field_at(&compound->fields, i));
+        Field* field = lookup_in(&compound->fields, i);
         if (compound->attributes & Compound_Attribute_is_polymorphic)
         {
             printf("type_reference: ");
@@ -332,7 +332,7 @@ static void print_enumeration_declaration(const Enumeration_Type* enumeration)
 
     for (Array_Size i = 0; i < enumeration->constants.handles_length; i++)
     {
-        Constant* constant = lookup_constant(constant_at(&enumeration->constants, i));
+        Constant* constant = lookup_in(&enumeration->constants, i);
         
         print_indentation();
         printf("constant\n");
@@ -346,21 +346,21 @@ static void print_enumeration_declaration(const Enumeration_Type* enumeration)
         print_indentation();
         printf("value: ");
 
-        if (compare_types(enumeration->underlying_type, i8_handle))
+        if (compare(enumeration->underlying_type, i8_handle))
             printf("%" PRId8 "\n", constant->value.i8);
-        else if (compare_types(enumeration->underlying_type, i16_handle))
+        else if (compare(enumeration->underlying_type, i16_handle))
             printf("%" PRId16 "\n", constant->value.i16);
-        else if (compare_types(enumeration->underlying_type, i32_handle))
+        else if (compare(enumeration->underlying_type, i32_handle))
             printf("%" PRId32 "\n", constant->value.i32);
-        else if (compare_types(enumeration->underlying_type, i64_handle))
+        else if (compare(enumeration->underlying_type, i64_handle))
             printf("%" PRId64 "\n", constant->value.i64);
-        else if (compare_types(enumeration->underlying_type, u8_handle))
+        else if (compare(enumeration->underlying_type, u8_handle))
             printf("%" PRIu8 "\n", constant->value.u8);
-        else if (compare_types(enumeration->underlying_type, u16_handle))
+        else if (compare(enumeration->underlying_type, u16_handle))
             printf("%" PRIu16 "\n", constant->value.u16);
-        else if (compare_types(enumeration->underlying_type, u32_handle))
+        else if (compare(enumeration->underlying_type, u32_handle))
             printf("%" PRIu32 "\n", constant->value.u32);
-        else if (compare_types(enumeration->underlying_type, u64_handle))
+        else if (compare(enumeration->underlying_type, u64_handle))
             printf("%" PRIu64 "\n", constant->value.u64);
         else
             printf("?%%\n");
@@ -390,8 +390,8 @@ static void print_binary(Type_Handle type, const Binary* binary, bool is_not_pol
     print_operator(binary->operator, stdout);
     putchar('\n');
 
-    print_expression(lookup_expression(binary->lhs), is_not_polymorphic);
-    print_expression(lookup_expression(binary->rhs), is_not_polymorphic);
+    print_expression(lookup(binary->lhs), is_not_polymorphic);
+    print_expression(lookup(binary->rhs), is_not_polymorphic);
     
     indentation--;
 }
@@ -419,7 +419,7 @@ static void print_reference_expression(const Reference* reference, bool is_not_p
     {
         print_indentation();
         printf("actual_type_parameter: ");
-        print_type_reference(type_reference_at(&reference->actual_type_parameters, i), stdout);
+        print_type_reference(handle_at(&reference->actual_type_parameters, i), stdout);
         putchar('\n');
     }
 
@@ -443,26 +443,26 @@ static void print_integer_literal(const Expression* value, bool is_not_polymorph
     print_indentation();
     printf("value: ");
 
-    if (is_invalid_type_handle(value->type))
+    if (invalid(value->type))
     {
         print_string(value->unchecked_number.string, stdout);
         putchar('\n');
     }
-    else if (compare_types(value->type, i8_handle))
+    else if (compare(value->type, i8_handle))
         printf("%" PRId8 "\n", value->number.value.i8);
-    else if (compare_types(value->type, i16_handle))
+    else if (compare(value->type, i16_handle))
         printf("%" PRId16 "\n", value->number.value.i16);
-    else if (compare_types(value->type, i32_handle))
+    else if (compare(value->type, i32_handle))
         printf("%" PRId32 "\n", value->number.value.i32);
-    else if (compare_types(value->type, i64_handle))
+    else if (compare(value->type, i64_handle))
         printf("%" PRId64 "\n", value->number.value.i64);
-    else if (compare_types(value->type, u8_handle))
+    else if (compare(value->type, u8_handle))
         printf("%" PRIu8 "\n", value->number.value.u8);
-    else if (compare_types(value->type, u16_handle))
+    else if (compare(value->type, u16_handle))
         printf("%" PRIu16 "\n", value->number.value.u16);
-    else if (compare_types(value->type, u32_handle))
+    else if (compare(value->type, u32_handle))
         printf("%" PRIu32 "\n", value->number.value.u32);
-    else if (compare_types(value->type, u64_handle))
+    else if (compare(value->type, u64_handle))
         printf("%" PRIu64 "\n", value->number.value.u64);
     else
         printf("?\n");
@@ -487,14 +487,14 @@ static void print_float_literal(const Expression* value, bool is_not_polymorphic
     print_indentation();
     printf("value: ");
 
-    if (is_invalid_type_handle(value->type))
+    if (invalid(value->type))
     {
         print_string(value->unchecked_number.string, stdout);
         putchar('\n');
     }
-    else if (compare_types(value->type, f32_handle))
+    else if (compare(value->type, f32_handle))
         printf("%g\n", value->number.value.f32);
-    else if (compare_types(value->type, f64_handle))
+    else if (compare(value->type, f64_handle))
         printf("%g\n", value->number.value.f64);
     else
         printf("?\n");
@@ -560,11 +560,11 @@ static void print_compound_literal(const Compound_Literal* compound_literal, boo
 
     Type* type;
     if (is_not_polymorphic)
-        type = lookup_type(compound_literal->type);
+        type = lookup(compound_literal->type);
 
     for (Array_Size i = 0; i < compound_literal->field_initializers.handles_length; i++)
     {
-        Field_Initializer* initializer = lookup_field_initializer(field_initializer_at(&compound_literal->field_initializers, i));
+        Field_Initializer* initializer = lookup_in(&compound_literal->field_initializers, i);
 
         print_indentation();
         printf("field_initializer\n");
@@ -585,7 +585,7 @@ static void print_compound_literal(const Compound_Literal* compound_literal, boo
         print_string_by_handle(initializer->field, stdout);
         putchar('\n');
 
-        print_expression(lookup_expression(initializer->expression), is_not_polymorphic);
+        print_expression(lookup(initializer->expression), is_not_polymorphic);
 
         indentation--;
     }
@@ -609,7 +609,7 @@ static void print_array_literal(const Array_Literal* array_literal, bool is_not_
 
     for (Array_Size i = 0; i < array_literal->elements.handles_length; i++)
     {
-        Element_Initializer* initializer = lookup_element_initializer(element_initializer_at(&array_literal->elements, i));
+        Element_Initializer* initializer = lookup_in(&array_literal->elements, i);
 
         print_indentation();
         printf("element_initializer\n");
@@ -622,10 +622,10 @@ static void print_array_literal(const Array_Literal* array_literal, bool is_not_
             printf("index: %u\n", initializer->index);
         }
         
-        if (!is_invalid_expression_handle(initializer->explicit_index))
-            print_expression(lookup_expression(initializer->explicit_index), is_not_polymorphic);
+        if (!invalid(initializer->explicit_index))
+            print_expression(lookup(initializer->explicit_index), is_not_polymorphic);
 
-        print_expression(lookup_expression(initializer->expression), is_not_polymorphic);
+        print_expression(lookup(initializer->expression), is_not_polymorphic);
 
         indentation--;
 
@@ -648,9 +648,9 @@ static void print_call_expression(const Call* call, bool is_not_polymorphic)
         putchar('\n');
     }
 
-    print_expression(lookup_expression(call->callee), is_not_polymorphic);
+    print_expression(lookup(call->callee), is_not_polymorphic);
     for (Array_Size i = 0; i < call->actual_parameters.handles_length; i++)
-        print_expression(lookup_expression(expression_at(&call->actual_parameters, i)), is_not_polymorphic);
+        print_expression(lookup_in(&call->actual_parameters, i), is_not_polymorphic);
 
     indentation--;
 }
@@ -669,7 +669,7 @@ static void print_field_access(const Field_Access* field_access, bool is_not_pol
         putchar('\n');
     }
 
-    print_expression(lookup_expression(field_access->compound), is_not_polymorphic);
+    print_expression(lookup(field_access->compound), is_not_polymorphic);
 
     print_indentation();
     printf("field: ");
@@ -693,8 +693,8 @@ static void print_array_access(const Array_Access* array_access, bool is_not_pol
         putchar('\n');
     }
 
-    print_expression(lookup_expression(array_access->array), is_not_polymorphic);
-    print_expression(lookup_expression(array_access->index), is_not_polymorphic);
+    print_expression(lookup(array_access->array), is_not_polymorphic);
+    print_expression(lookup(array_access->index), is_not_polymorphic);
 
     indentation--;
 }
@@ -719,7 +719,7 @@ static void print_cast(const Cast* cast, bool is_not_polymorphic)
         putchar('\n');
     }
 
-    print_expression(lookup_expression(cast->source), is_not_polymorphic);
+    print_expression(lookup(cast->source), is_not_polymorphic);
 
     indentation--;
 }
@@ -769,7 +769,7 @@ static void print_node_with_sub_expression(Type_Handle expression_type, const ch
     print_indentation();
     printf("%s\n", node);
 
-    Expression* sub_expression = lookup_expression(sub_expression_handle);
+    Expression* sub_expression = lookup(sub_expression_handle);
 
     indentation++;
     if (is_not_polymorphic)
@@ -840,7 +840,7 @@ static void print_expression(const Expression* expression, bool is_not_polymorph
 static void print_expressions(const Expression_Handle_Array* array, bool is_not_polymorphic)
 {
     for (Array_Size i = 0; i < array->handles_length; i++)
-        print_expression(lookup_expression(expression_at(array, i)), is_not_polymorphic);
+        print_expression(lookup_in(array, i), is_not_polymorphic);
 }
 
 static void print_declaration_statement(const Declaration_Statement* declaration_statement, bool is_not_polymorphic)
@@ -850,7 +850,7 @@ static void print_declaration_statement(const Declaration_Statement* declaration
     indentation++;
     for (Array_Size i = 0; i < declaration_statement->variables.handles_length; i++)
     {
-        Variable*  variable = lookup_variable(variable_at(&declaration_statement->variables, i));
+        Variable*  variable = lookup_in(&declaration_statement->variables, i);
 
         print_indentation();
         printf("variable\n");
@@ -936,15 +936,15 @@ static void print_if_statement(const If_Statement* if_statement, bool is_not_pol
         printf("branch\n");
         indentation++;
 
-        Branch* branch = lookup_branch(branch_at(&if_statement->branches, i));
-        if (!is_invalid_statement_handle(branch->declaration_statement))
+        Branch* branch = lookup_in(&if_statement->branches, i);
+        if (!invalid(branch->declaration_statement))
         {
             print_indentation();
-            print_declaration_statement(&lookup_statement(branch->declaration_statement)->declaration_statement, is_not_polymorphic);
+            print_declaration_statement(&lookup(branch->declaration_statement)->declaration_statement, is_not_polymorphic);
         }
 
-        if (!is_invalid_expression_handle(branch->condition))
-            print_expression(lookup_expression(branch->condition), is_not_polymorphic);
+        if (!invalid(branch->condition))
+            print_expression(lookup(branch->condition), is_not_polymorphic);
 
         indentation--;
         print_statements(&branch->body, is_not_polymorphic);
@@ -958,19 +958,19 @@ static void print_loop_statement(const Loop_Statement* loop_statement, bool is_n
     printf("loop_statement\n");
     
     indentation++;
-    if (!is_invalid_statement_handle(loop_statement->declaration_statement))
+    if (!invalid(loop_statement->declaration_statement))
     {
         print_indentation();
-        print_declaration_statement(&lookup_statement(loop_statement->declaration_statement)->declaration_statement, is_not_polymorphic);
+        print_declaration_statement(&lookup(loop_statement->declaration_statement)->declaration_statement, is_not_polymorphic);
     }
 
-    if (!is_invalid_expression_handle(loop_statement->condition)) 
-        print_expression(lookup_expression(loop_statement->condition), is_not_polymorphic);
+    if (!invalid(loop_statement->condition)) 
+        print_expression(lookup(loop_statement->condition), is_not_polymorphic);
     
-    if (!is_invalid_statement_handle(loop_statement->assignment_statement))
+    if (!invalid(loop_statement->assignment_statement))
     {
         print_indentation();
-        print_assignment_statement(&lookup_statement(loop_statement->assignment_statement)->assignment_statement, is_not_polymorphic);
+        print_assignment_statement(&lookup(loop_statement->assignment_statement)->assignment_statement, is_not_polymorphic);
     }
 
     indentation--;
@@ -990,7 +990,7 @@ static void print_statements(const Statement_Handle_Array* body, bool is_not_pol
     indentation++;
     for (Array_Size i = 0; i < body->handles_length; i++)
     {
-        Statement* statement = lookup_statement(statement_at(body, i));
+        Statement* statement = lookup_in(body, i);
         
         // All expressions do indentation on their own, but that indents to far
         // if the statement is an expression statement. So skip indentation 
@@ -1004,7 +1004,7 @@ static void print_statements(const Statement_Handle_Array* body, bool is_not_pol
         else if (statement->tag == Statement_Tag_assignment)
             print_assignment_statement(&statement->assignment_statement, is_not_polymorphic);
         else if (statement->tag == Statement_Tag_expression)
-            print_expression(lookup_expression(statement->expression_statement), is_not_polymorphic);
+            print_expression(lookup(statement->expression_statement), is_not_polymorphic);
         else if (statement->tag == Statement_Tag_if)
             print_if_statement(&statement->if_statement, is_not_polymorphic);
         else if (statement->tag == Statement_Tag_loop)
@@ -1024,7 +1024,7 @@ static void print_statements(const Statement_Handle_Array* body, bool is_not_pol
 
 static void print_namespace(const File* file)
 {
-    Namespace* namespace = lookup_namespace(file->namespace);
+    Namespace* namespace = lookup(file->namespace);
 
     print_indentation();
     printf("namespace: ");
@@ -1040,7 +1040,7 @@ static void print_uses(const File* file)
     print_indentation();
     for (Array_Size i = 0; i < file->uses.handles_length; i++)
     {
-        Namespace* namespace = lookup_namespace(namespace_at(&file->uses, i));
+        Namespace* namespace = lookup_in(&file->uses, i);
 
         print_indentation();
         printf("use: ");
@@ -1055,8 +1055,8 @@ static void print_type_declarations(const File* file)
 {
     for (Array_Size a = 0; a < file->type_declarations.handles_length; a++)
     {
-        Type_Handle a_type_handle = type_at(&file->type_declarations, a);
-        Type* a_type = lookup_type(a_type_handle);
+        Type_Handle a_type_handle = handle_at(&file->type_declarations, a);
+        Type* a_type = lookup(a_type_handle);
         if (a_type->tag == Type_Tag_compound)
         {
             print_compound_declaration(&a_type->compound);
@@ -1065,7 +1065,7 @@ static void print_type_declarations(const File* file)
                 for (uint16_t b = 0; b < types_length; b++)
                 {
                     Type* b_type = &types[b];
-                    if (b_type->tag == Type_Tag_compound && compare_types(b_type->compound.template, a_type_handle))
+                    if (b_type->tag == Type_Tag_compound && compare(b_type->compound.template, a_type_handle))
                         print_compound_declaration(&b_type->compound);
                 }
             }
@@ -1077,7 +1077,7 @@ static void print_type_declarations(const File* file)
 
 static void print_function(Function_Handle function_handle)
 {
-    Function* function = lookup_function(function_handle);
+    Function* function = lookup(function_handle);
 
     print_indentation();
     printf("function\n");
@@ -1094,7 +1094,7 @@ static void print_function(Function_Handle function_handle)
         {
             print_indentation();
             printf("formal_type_parameter: ");
-            print_type_reference(type_reference_at(&function->formal_type_parameters, i), stdout);
+            print_type_reference(handle_at(&function->formal_type_parameters, i), stdout);
             putchar('\n');
         }
 
@@ -1103,7 +1103,7 @@ static void print_function(Function_Handle function_handle)
             print_indentation();
             printf("formal_parameter\n");
 
-            Formal_Parameter* formal_parameter = lookup_formal_parameter(formal_parameter_at(&function->formal_parameters, i));
+            Formal_Parameter* formal_parameter = lookup_in(&function->formal_parameters, i);
 
             indentation++;
             print_indentation();
@@ -1122,22 +1122,22 @@ static void print_function(Function_Handle function_handle)
         {
             print_indentation();
             printf("return_type_reference: ");
-            print_type_reference(type_reference_at(&function->return_types, i), stdout);
+            print_type_reference(handle_at(&function->return_types, i), stdout);
             putchar('\n');
         }
     }
     else
     {
-        //assert(!is_invalid_function_handle(function->template));
+        //assert(!invalid(function->template));
         for (Array_Size i = 0; i < function->actual_type_parameters.handles_length; i++)
         {
             print_indentation();
             printf("actual_type_parameter: ");
-            print_type_reference_for_type(type_at(&function->actual_type_parameters, i), stdout);
+            print_type_reference_for_type(handle_at(&function->actual_type_parameters, i), stdout);
             putchar('\n');
         }
 
-        Function_Type* function_type = &lookup_type(function->signature)->function;
+        Function_Type* function_type = &lookup(function->signature)->function;
         for (Array_Size i = 0; i < function_type->formal_parameters.handles_length; i++)
         {
             print_indentation();
@@ -1146,12 +1146,12 @@ static void print_function(Function_Handle function_handle)
             indentation++;
             print_indentation();
             printf("type: ");
-            print_type_reference_for_type(type_at(&function_type->formal_parameters, i), stdout);
+            print_type_reference_for_type(handle_at(&function_type->formal_parameters, i), stdout);
             putchar('\n');
 
             print_indentation();
             printf("name: ");
-            print_string_by_handle(lookup_formal_parameter(formal_parameter_at(&function->formal_parameters, i))->name, stdout);
+            print_string_by_handle(lookup_in(&function->formal_parameters, i)->name, stdout);
             putchar('\n');
             indentation--;
         }
@@ -1160,7 +1160,7 @@ static void print_function(Function_Handle function_handle)
         {
             print_indentation();
             printf("return_type: ");
-            print_type_reference_for_type(type_at(&function_type->return_types, i), stdout);
+            print_type_reference_for_type(handle_at(&function_type->return_types, i), stdout);
             putchar('\n');
         }
     }
@@ -1173,7 +1173,7 @@ static void print_function(Function_Handle function_handle)
         for (uint16_t i = 0; i < functions_length; i++)
         {
             Function* f = &functions[i];
-            if (compare_functions(f->template, function_handle))
+            if (compare(f->template, function_handle))
                 print_function((Function_Handle) { .index = i});
         }
     }
@@ -1182,7 +1182,7 @@ static void print_function(Function_Handle function_handle)
 static void print_functions(const File* file)
 {
     for (Array_Size i = 0; i < file->function_declarations.handles_length; i++)
-        print_function(function_at(&file->function_declarations, i));
+        print_function(handle_at(&file->function_declarations, i));
 }
 
 void print_semantics(void)
@@ -1530,19 +1530,19 @@ static void print_polymorphic_stack(void)
             }
 
             fprintf(stderr, "](");
-            Function_Type* signature = &lookup_type(map->monomorphisized_function->signature)->function;
+            Function_Type* signature = &lookup(map->monomorphisized_function->signature)->function;
             if (signature->formal_parameters.handles_length)
             {
-                print_type_reference_for_type(type_at(&signature->formal_parameters, 0), stderr);
+                print_type_reference_for_type(handle_at(&signature->formal_parameters, 0), stderr);
                 fputc(' ', stderr);
-                print_string_by_handle(lookup_formal_parameter(formal_parameter_at(&map->monomorphisized_function->formal_parameters, 0))->name, stderr);
+                print_string_by_handle(lookup_in(&map->monomorphisized_function->formal_parameters, 0)->name, stderr);
 
                 for (Array_Size b = 1; b < signature->formal_parameters.handles_length; b++)
                 {
                     fprintf(stderr, ", ");
-                    print_type_reference_for_type(type_at(&signature->formal_parameters, b), stderr);
+                    print_type_reference_for_type(handle_at(&signature->formal_parameters, b), stderr);
                     fputc(' ', stderr);
-                    print_string_by_handle(lookup_formal_parameter(formal_parameter_at(&map->monomorphisized_function->formal_parameters, b))->name, stderr);
+                    print_string_by_handle(lookup_in(&map->monomorphisized_function->formal_parameters, b)->name, stderr);
                 }
             }
 
@@ -1550,12 +1550,12 @@ static void print_polymorphic_stack(void)
             if (signature->return_types.handles_length)
             {
                 fprintf(stderr, " : ");
-                print_type_reference_for_type(type_at(&signature->return_types, 0), stderr);
+                print_type_reference_for_type(handle_at(&signature->return_types, 0), stderr);
 
                 for (Array_Size b = 1; b < signature->return_types.handles_length; b++)
                 {
                     fprintf(stderr, ", ");
-                    print_type_reference_for_type(type_at(&signature->return_types, b), stderr);
+                    print_type_reference_for_type(handle_at(&signature->return_types, b), stderr);
                 }
             }
         }
@@ -1582,21 +1582,21 @@ static void print_polymorphic_stack(void)
 
 static void print_number(Number value, Type_Handle type)
 {
-    if (compare_types(type, i8_handle))
+    if (compare(type, i8_handle))
         printf("%" PRIi8, value.i8);
-    else if (compare_types(type, i16_handle))
+    else if (compare(type, i16_handle))
         printf("%" PRIi16, value.i16);
-    else if (compare_types(type, i32_handle))
+    else if (compare(type, i32_handle))
         printf("%" PRIi32, value.i32);
-    else if (compare_types(type, i64_handle))
+    else if (compare(type, i64_handle))
         printf("%" PRIi64, value.i64);
-    else if (compare_types(type, u8_handle))
+    else if (compare(type, u8_handle))
         printf("%" PRIu8, value.u8);
-    else if (compare_types(type, u16_handle))
+    else if (compare(type, u16_handle))
         printf("%" PRIu16, value.u16);
-    else if (compare_types(type, u32_handle))
+    else if (compare(type, u32_handle))
         printf("%" PRIu32, value.u32);
-    else if (compare_types(type, u64_handle))
+    else if (compare(type, u64_handle))
         printf("%" PRIu64, value.u64);
 }
 
@@ -1608,7 +1608,7 @@ static const char* x64_register_as_string(uint8_t tag)
 
 static void print_ir_operand(Ir_Operand_Handle handle, Type_Handle type)
 {
-    Ir_Operand* operand = lookup_ir_operand(handle);
+    Ir_Operand* operand = lookup(handle);
     if (operand->tag == Ir_Operand_Tag_immediate)
         print_number(operand->imm.value, type);
     else if (operand->tag == Ir_Operand_Tag_vreg)
@@ -1634,9 +1634,9 @@ static void print_ir_instruction(const Ir_Instruction* inst)
     else if (inst->tag == Ir_Tag_call)
     {
         fprintf(stdout, "call ");
-        if (!is_invalid_function_handle(inst->call.callee_declaration))
+        if (!invalid(inst->call.callee_declaration))
         {
-            Function* function = lookup_function(inst->call.callee_declaration);
+            Function* function = lookup(inst->call.callee_declaration);
             print_string_by_handle(function->name, stdout);
             fputc(' ', stdout);
         
@@ -1654,9 +1654,9 @@ static void print_ir_instruction(const Ir_Instruction* inst)
     else if (inst->tag == Ir_Tag_x64_call)
     {
         fprintf(stdout, "call ");
-        if (!is_invalid_function_handle(inst->x64_call.callee_declaration))
+        if (!invalid(inst->x64_call.callee_declaration))
         {
-            Function* function = lookup_function(inst->x64_call.callee_declaration);
+            Function* function = lookup(inst->x64_call.callee_declaration);
             print_string_by_handle(function->name, stdout);
             fputc(' ', stdout);
 
@@ -1671,13 +1671,13 @@ static void print_ir_instruction(const Ir_Instruction* inst)
         unexpected_ir_instruction(__FILE__, __LINE__, inst->tag);
 
     Type_Handle_Array source_types = { 0 };
-    if (!is_invalid_type_handle(callee_type))
+    if (!invalid(callee_type))
     {
-        source_types = lookup_type(callee_type)->function.formal_parameters;
+        source_types = lookup(callee_type)->function.formal_parameters;
         print_type_reference_for_type(callee_type, stdout);
     }
 
-    if (!is_invalid_ir_operand_handle(inst->destination))
+    if (!invalid(inst->destination))
     {
         fputc(' ', stdout);
         print_ir_operand(inst->destination, inst->type);
@@ -1687,18 +1687,18 @@ static void print_ir_instruction(const Ir_Instruction* inst)
     {
         fputc(' ', stdout);
         
-        print_ir_operand(ir_operand_at(&inst->sources, 0), source_types.handles_length ? type_at(&source_types, 0) : inst->type);
+        print_ir_operand(handle_at(&inst->sources, 0), source_types.handles_length ? handle_at(&source_types, 0) : inst->type);
         for (Array_Size i = 1; i < inst->sources.handles_length; i++)
         {
             fprintf(stdout, ", ");
-            print_ir_operand(ir_operand_at(&inst->sources, i), source_types.handles_length ? type_at(&source_types, i) : inst->type);
+            print_ir_operand(handle_at(&inst->sources, i), source_types.handles_length ? handle_at(&source_types, i) : inst->type);
         }
     }
 }
 
 static void print_ir_function(const Function* function)
 {
-    Ir_Function* ir_function = lookup_ir_function(function->ir);
+    Ir_Function* ir_function = lookup(function->ir);
 
     print_string_by_handle(function->name, stdout);
     fputc(' ', stdout);  
@@ -1707,13 +1707,13 @@ static void print_ir_function(const Function* function)
 
     for (Array_Size a = 0; a < ir_function->blocks.handles_length; a++)
     {
-        Ir_Basic_Block* block = lookup_ir_basic_block(ir_basic_block_at(&ir_function->blocks, a));
+        Ir_Basic_Block* block = lookup_in(&ir_function->blocks, a);
         
-        fprintf(stdout, "b%u\n", ir_basic_block_at(&ir_function->blocks, a).index);
+        fprintf(stdout, "b%u\n", handle_at(&ir_function->blocks, a).index);
         for (Array_Size b = 0; b < block->ir.handles_length; b++)
         {
-            Ir_Instruction_Handle handle = ir_instruction_at(&block->ir, b);
-            Ir_Instruction* inst = lookup_ir_instruction(handle);
+            Ir_Instruction_Handle handle = handle_at(&block->ir, b);
+            Ir_Instruction* inst = lookup(handle);
             
             fprintf(stdout, "    ");
             if (inst->tag == Ir_Tag_call)
@@ -1734,8 +1734,8 @@ void print_ir(void)
         fprintf(stdout, "%s\n", file->path);
         for (Array_Size b = 0; b < file->function_declarations.handles_length; b++)
         {
-            Function* function = lookup_function(function_at(&file->function_declarations, b));
-            if (!is_invalid_ir_function_handle(function->ir))
+            Function* function = lookup_in(&file->function_declarations, b);
+            if (!invalid(function->ir))
                 print_ir_function(function);
         }
     }
@@ -1784,7 +1784,7 @@ void print_declaration_header(const File* file, Position position, const char* m
 void print_function_declaration(const Function* function)
 {
     fprintf(stderr, "    ");
-    print_file_position(lookup_file(function->file), function->name_span.start);
+    print_file_position(lookup(function->file), function->name_span.start);
     fprintf(stderr, ": ");
 
     print_string_by_handle(function->name, stderr);
@@ -1792,11 +1792,11 @@ void print_function_declaration(const Function* function)
     {
         fprintf(stderr, "[");
 
-        print_type_reference(type_reference_at(&function->formal_type_parameters, 0), stderr);
+        print_type_reference(handle_at(&function->formal_type_parameters, 0), stderr);
         for (Array_Size i = 1; i < function->formal_type_parameters.handles_length; i++)
         {
             fprintf(stderr, ", ");
-            print_type_reference(type_reference_at(&function->formal_type_parameters, i), stderr);
+            print_type_reference(handle_at(&function->formal_type_parameters, i), stderr);
         }
 
         fprintf(stderr, "]");
@@ -1805,7 +1805,7 @@ void print_function_declaration(const Function* function)
     fprintf(stderr, "(");
     if (function->formal_parameters.handles_length)
     {
-        Formal_Parameter* formal_parameter = lookup_formal_parameter(formal_parameter_at(&function->formal_parameters, 0));
+        Formal_Parameter* formal_parameter = lookup_in(&function->formal_parameters, 0);
         print_type_reference(formal_parameter->type, stderr);
         fprintf(stderr, " ");
         print_string_by_handle(formal_parameter->name, stderr);
@@ -1813,7 +1813,7 @@ void print_function_declaration(const Function* function)
         for (Array_Size i = 1; i < function->formal_parameters.handles_length; i++)
         {
             fprintf(stderr, ", ");
-            formal_parameter = lookup_formal_parameter(formal_parameter_at(&function->formal_parameters, i));
+            formal_parameter = lookup_in(&function->formal_parameters, i);
             print_type_reference(formal_parameter->type, stderr);
             fprintf(stderr, " ");
             print_string_by_handle(formal_parameter->name, stderr);
@@ -1824,11 +1824,11 @@ void print_function_declaration(const Function* function)
     if (function->return_types.handles_length)
     {
         fprintf(stderr, " : ");
-        print_type_reference(type_reference_at(&function->return_types, 0), stderr);
+        print_type_reference(handle_at(&function->return_types, 0), stderr);
         for (Array_Size i = 1; i < function->return_types.handles_length; i++)
         {
             fprintf(stderr, ", ");
-            print_type_reference(type_reference_at(&function->return_types, i), stderr);
+            print_type_reference(handle_at(&function->return_types, i), stderr);
         }
     }
 
@@ -1837,13 +1837,13 @@ void print_function_declaration(const Function* function)
 
 void print_type_declaration(Type_Handle type_handle)
 {
-    Type* type = lookup_type(type_handle);
+    Type* type = lookup(type_handle);
 
     fprintf(stderr, "    ");
     if (type->tag == Type_Tag_compound)
-        print_file_position(lookup_file(type->compound.file), type->compound.name_span.start);
+        print_file_position(lookup(type->compound.file), type->compound.name_span.start);
     else if (type->tag == Type_Tag_enumeration)
-        print_file_position(lookup_file(type->enumeration.file), type->enumeration.name_span.start);
+        print_file_position(lookup(type->enumeration.file), type->enumeration.name_span.start);
     else
         fprintf(stderr, "Primitive");
 

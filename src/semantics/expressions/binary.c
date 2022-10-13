@@ -3,11 +3,11 @@
 
 static void fold_binary(const File* file, Expression* expression)
 {
-    Type_Tag tag = lookup_type(expression->type)->tag;
+    Type_Tag tag = lookup(expression->type)->tag;
     uint8_t operator = expression->binary.operator;
 
-    Expression* lhs = lookup_expression(expression->binary.lhs);
-    Expression* rhs = lookup_expression(expression->binary.rhs);
+    Expression* lhs = lookup(expression->binary.lhs);
+    Expression* rhs = lookup(expression->binary.rhs);
 
     if (operator == Binary_Operator_logical_or)
         expression->tag = lhs->tag == Expression_Tag_true || rhs->tag == Expression_Tag_true ? Expression_Tag_true : Expression_Tag_false;
@@ -23,7 +23,7 @@ static void fold_binary(const File* file, Expression* expression)
             expression->tag = lhs->tag == rhs->tag ? Expression_Tag_true : Expression_Tag_false;
         else if (tag == Type_Tag_enumeration)
         {
-            Enumeration_Type* enumeration_type = &lookup_type(expression->type)->enumeration;
+            Enumeration_Type* enumeration_type = &lookup(expression->type)->enumeration;
             Number lhs_value = lookup_constant_by_name(enumeration_type, lhs->enumeration_constant_access.constant, lhs->enumeration_constant_access.constant_span)->value;
             Number rhs_value = lookup_constant_by_name(enumeration_type, rhs->enumeration_constant_access.constant, rhs->enumeration_constant_access.constant_span)->value;
 
@@ -42,7 +42,7 @@ static void fold_binary(const File* file, Expression* expression)
             expression->tag = lhs->tag != rhs->tag ? Expression_Tag_true : Expression_Tag_false;
         else if (tag == Type_Tag_enumeration)
         {
-            Enumeration_Type* enumeration_type = &lookup_type(expression->type)->enumeration;
+            Enumeration_Type* enumeration_type = &lookup(expression->type)->enumeration;
             Number lhs_value = lookup_constant_by_name(enumeration_type, lhs->enumeration_constant_access.constant, lhs->enumeration_constant_access.constant_span)->value;
             Number rhs_value = lookup_constant_by_name(enumeration_type, rhs->enumeration_constant_access.constant, rhs->enumeration_constant_access.constant_span)->value;
 
@@ -61,7 +61,7 @@ static void fold_binary(const File* file, Expression* expression)
             expression->tag = lhs->tag <= rhs->tag ? Expression_Tag_true : Expression_Tag_false;
         else if (tag == Type_Tag_enumeration)
         {
-            Enumeration_Type* enumeration_type = &lookup_type(expression->type)->enumeration;
+            Enumeration_Type* enumeration_type = &lookup(expression->type)->enumeration;
             Number lhs_value = lookup_constant_by_name(enumeration_type, lhs->enumeration_constant_access.constant, lhs->enumeration_constant_access.constant_span)->value;
             Number rhs_value = lookup_constant_by_name(enumeration_type, rhs->enumeration_constant_access.constant, rhs->enumeration_constant_access.constant_span)->value;
 
@@ -80,7 +80,7 @@ static void fold_binary(const File* file, Expression* expression)
             expression->tag = lhs->tag >= rhs->tag ? Expression_Tag_true : Expression_Tag_false;
         else if (tag == Type_Tag_enumeration)
         {
-            Enumeration_Type* enumeration_type = &lookup_type(expression->type)->enumeration;
+            Enumeration_Type* enumeration_type = &lookup(expression->type)->enumeration;
             Number lhs_value = lookup_constant_by_name(enumeration_type, lhs->enumeration_constant_access.constant, lhs->enumeration_constant_access.constant_span)->value;
             Number rhs_value = lookup_constant_by_name(enumeration_type, rhs->enumeration_constant_access.constant, rhs->enumeration_constant_access.constant_span)->value;
 
@@ -99,7 +99,7 @@ static void fold_binary(const File* file, Expression* expression)
             expression->tag = lhs->tag < rhs->tag ? Expression_Tag_true : Expression_Tag_false;
         else if (tag == Type_Tag_enumeration)
         {
-            Enumeration_Type* enumeration_type = &lookup_type(expression->type)->enumeration;
+            Enumeration_Type* enumeration_type = &lookup(expression->type)->enumeration;
             Number lhs_value = lookup_constant_by_name(enumeration_type, lhs->enumeration_constant_access.constant, lhs->enumeration_constant_access.constant_span)->value;
             Number rhs_value = lookup_constant_by_name(enumeration_type, rhs->enumeration_constant_access.constant, rhs->enumeration_constant_access.constant_span)->value;
 
@@ -118,7 +118,7 @@ static void fold_binary(const File* file, Expression* expression)
             expression->tag = lhs->tag > rhs->tag ? Expression_Tag_true : Expression_Tag_false;
         else if (tag == Type_Tag_enumeration)
         {
-            Enumeration_Type* enumeration_type = &lookup_type(expression->type)->enumeration;
+            Enumeration_Type* enumeration_type = &lookup(expression->type)->enumeration;
             Number lhs_value = lookup_constant_by_name(enumeration_type, lhs->enumeration_constant_access.constant, lhs->enumeration_constant_access.constant_span)->value;
             Number rhs_value = lookup_constant_by_name(enumeration_type, rhs->enumeration_constant_access.constant, rhs->enumeration_constant_access.constant_span)->value;
 
@@ -389,8 +389,8 @@ static void fold_binary(const File* file, Expression* expression)
 
 void type_check_binary(const File* file, Binary* binary, Type_Handle inferred_type_handle, Expression_Check_Flags flags)
 {
-    Expression* lhs = lookup_expression(binary->lhs);
-    Expression* rhs = lookup_expression(binary->rhs);
+    Expression* lhs = lookup(binary->lhs);
+    Expression* rhs = lookup(binary->rhs);
     
     bool lhs_is_inferable = lhs->tag == Expression_Tag_integer || lhs->tag == Expression_Tag_float;
     bool rhs_is_inferable = rhs->tag == Expression_Tag_integer || rhs->tag == Expression_Tag_float;
@@ -411,8 +411,8 @@ void type_check_binary(const File* file, Binary* binary, Type_Handle inferred_ty
         type_check_expression(file, rhs, inferred_type_handle, flags);
     }
 
-    Type* lhs_type = lookup_type(lhs->type);
-    Type* rhs_type = lookup_type(rhs->type);
+    Type* lhs_type = lookup(lhs->type);
+    Type* rhs_type = lookup(rhs->type);
     bool operator_is_defined = false;
     
     if (!expression_types_match(lhs->type, rhs->type))
@@ -492,8 +492,8 @@ void deep_copy_binary(Binary* restrict destination, const Binary* restrict sourc
     destination->operator_span = source->operator_span;
 
     destination->lhs = add_expression();
-    deep_copy_expression(lookup_expression(destination->lhs), lookup_expression(source->lhs));
+    deep_copy_expression(lookup(destination->lhs), lookup(source->lhs));
 
     destination->rhs = add_expression();
-    deep_copy_expression(lookup_expression(destination->rhs), lookup_expression(source->rhs));
+    deep_copy_expression(lookup(destination->rhs), lookup(source->rhs));
 }

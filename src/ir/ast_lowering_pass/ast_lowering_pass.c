@@ -2,5 +2,5 @@
 
 void lower_ast(void)
 {
-    lower_function(lookup_function(main_function));
+    lower_function(lookup(main_function));
 }

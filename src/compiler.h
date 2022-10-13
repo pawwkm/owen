@@ -60,7 +60,7 @@ typedef uint8_t Array_Size;
 #define DEFINE_HANDLE_ARRAY_TYPE(TYPE) \
 typedef struct                         \
 {                                      \
-    TYPE##_Handle* handless;            \
+    TYPE##_Handle* handles;            \
     Array_Size handles_length;         \
     Array_Size handles_capacity;       \
 } TYPE##_Handle_Array;
@@ -1162,8 +1162,9 @@ void add_to_##LOWER_CASE_TYPE##_array(TYPE##_Handle_Array* array, TYPE##_Handle 
 void insert_##LOWER_CASE_TYPE##_in_array(TYPE##_Handle_Array* array, TYPE##_Handle handle, Array_Size index); \
 void remove_##LOWER_CASE_TYPE##_from_array(TYPE##_Handle_Array* array, Array_Size index);                     \
 void reserve_##LOWER_CASE_TYPE##_handles(TYPE##_Handle_Array* array, Array_Size amount);                      \
-TYPE##_Handle LOWER_CASE_TYPE##_at(const TYPE##_Handle_Array* array, Array_Size index);                       \
-void replace_##LOWER_CASE_TYPE(TYPE##_Handle_Array* array, Array_Size index, TYPE##_Handle handle);
+TYPE##_Handle LOWER_CASE_TYPE##_handle_at(const TYPE##_Handle_Array* array, Array_Size index);                \
+void replace_##LOWER_CASE_TYPE(TYPE##_Handle_Array* array, TYPE##_Handle handle, Array_Size index);           \
+TYPE* lookup_##LOWER_CASE_TYPE##_in(const TYPE##_Handle_Array* array, Array_Size index);
 
 DECLARE_DEFAULT_ARENA(File,                file,                files,                uint8_t )
 DECLARE_DEFAULT_ARENA(Type,                type,                types,                uint16_t)
@@ -1218,6 +1219,236 @@ Interned_String* lookup_interned_string(Interned_String_Handle handle);
 bool compare_interned_strings(Interned_String_Handle a, Interned_String_Handle b);
 bool compare_strings(String a, String b);
 Interned_String_Handle add_interned_string(String string);
+
+#define lookup(HANDLE) _Generic((HANDLE),                   \
+    File_Handle:                lookup_file,                \
+    Type_Handle:                lookup_type,                \
+    Type_Reference_Handle:      lookup_type_reference,      \
+    Namespace_Handle:           lookup_namespace,           \
+    Function_Handle:            lookup_function,            \
+    Formal_Parameter_Handle:    lookup_formal_parameter,    \
+    Statement_Handle:           lookup_statement,           \
+    Variable_Handle:            lookup_variable,            \
+    Branch_Handle:              lookup_branch,              \
+    Expression_Handle:          lookup_expression,          \
+    Field_Handle:               lookup_field,               \
+    Field_Initializer_Handle:   lookup_field_initializer,   \
+    Constant_Handle:            lookup_constant,            \
+    Element_Initializer_Handle: lookup_element_initializer, \
+    Interned_String_Handle:     lookup_interned_string,     \
+    Ir_Function_Handle:         lookup_ir_function,         \
+    Ir_Basic_Block_Handle:      lookup_ir_basic_block,      \
+    Ir_Instruction_Handle:      lookup_ir_instruction,      \
+    Ir_Operand_Handle:          lookup_ir_operand)(HANDLE)
+
+#define invalid(HANDLE) _Generic((HANDLE),                              \
+    File_Handle:                is_invalid_file_handle,                \
+    Type_Handle:                is_invalid_type_handle,                \
+    Type_Reference_Handle:      is_invalid_type_reference_handle,      \
+    Namespace_Handle:           is_invalid_namespace_handle,           \
+    Function_Handle:            is_invalid_function_handle,            \
+    Formal_Parameter_Handle:    is_invalid_formal_parameter_handle,    \
+    Statement_Handle:           is_invalid_statement_handle,           \
+    Variable_Handle:            is_invalid_variable_handle,            \
+    Branch_Handle:              is_invalid_branch_handle,              \
+    Expression_Handle:          is_invalid_expression_handle,          \
+    Field_Handle:               is_invalid_field_handle,               \
+    Field_Initializer_Handle:   is_invalid_field_initializer_handle,   \
+    Constant_Handle:            is_invalid_constant_handle,            \
+    Element_Initializer_Handle: is_invalid_element_initializer_handle, \
+    Ir_Function_Handle:         is_invalid_ir_function_handle,         \
+    Ir_Basic_Block_Handle:      is_invalid_ir_basic_block_handle,      \
+    Ir_Instruction_Handle:      is_invalid_ir_instruction_handle,      \
+    Ir_Operand_Handle:          is_invalid_ir_operand_handle)(HANDLE)
+
+#define compare(A, B) _Generic((A),                            \
+    File_Handle:                compare_files,                \
+    Type_Handle:                compare_types,                \
+    Type_Reference_Handle:      compare_type_references,      \
+    Namespace_Handle:           compare_namespaces,           \
+    Function_Handle:            compare_functions,            \
+    Formal_Parameter_Handle:    compare_formal_parameters,    \
+    Statement_Handle:           compare_statements,           \
+    Variable_Handle:            compare_variables,            \
+    Branch_Handle:              compare_branches,             \
+    Expression_Handle:          compare_expressions,          \
+    Field_Handle:               compare_fields,               \
+    Field_Initializer_Handle:   compare_field_initializers,   \
+    Constant_Handle:            compare_constants,            \
+    Element_Initializer_Handle: compare_element_initializers, \
+    Interned_String_Handle:     compare_interned_strings,     \
+    String:                     compare_strings,              \
+    Ir_Function_Handle:         compare_ir_functions,         \
+    Ir_Basic_Block_Handle:      compare_ir_basic_blocks,      \
+    Ir_Instruction_Handle:      compare_ir_instructions,      \
+    Ir_Operand_Handle:          compare_ir_operands)(A, B)
+
+#define add_to(ARRAY, HANDLE) _Generic((ARRAY),                                \
+    File_Handle_Array*:                add_to_file_array,                      \
+    Type_Handle_Array*:                add_to_type_array,                      \
+    Type_Reference_Handle_Array*:      add_to_type_reference_array,            \
+    Namespace_Handle_Array*:           add_to_namespace_array,                 \
+    Function_Handle_Array*:            add_to_function_array,                  \
+    Formal_Parameter_Handle_Array*:    add_to_formal_parameter_array,          \
+    Statement_Handle_Array*:           add_to_statement_array,                 \
+    Variable_Handle_Array*:            add_to_variable_array,                  \
+    Branch_Handle_Array*:              add_to_branch_array,                    \
+    Expression_Handle_Array*:          add_to_expression_array,                \
+    Field_Handle_Array*:               add_to_field_array,                     \
+    Field_Initializer_Handle_Array*:   add_to_field_initializer_array,         \
+    Constant_Handle_Array*:            add_to_constant_array,                  \
+    Element_Initializer_Handle_Array*: add_to_element_initializer_array,       \
+    Ir_Basic_Block_Handle_Array*:      add_to_ir_basic_block_array,            \
+    Ir_Instruction_Handle_Array*:      add_to_ir_instruction_array,            \
+    Ir_Operand_Handle_Array*:          add_to_ir_operand_array)(ARRAY, HANDLE)
+
+#define insert(ARRAY, HANDLE, INDEX) _Generic((ARRAY),                                   \
+    File_Handle_Array*:                insert_file_in_array,                             \
+    Type_Handle_Array*:                insert_type_in_array,                             \
+    Type_Reference_Handle_Array*:      insert_type_reference_in_array,                   \
+    Namespace_Handle_Array*:           insert_namespace_in_array,                        \
+    Function_Handle_Array*:            insert_function_in_array,                         \
+    Formal_Parameter_Handle_Array*:    insert_formal_parameter_in_array,                 \
+    Statement_Handle_Array*:           insert_statement_in_array,                        \
+    Variable_Handle_Array*:            insert_variable_in_array,                         \
+    Branch_Handle_Array*:              insert_branch_in_array,                           \
+    Expression_Handle_Array*:          insert_expression_in_array,                       \
+    Field_Handle_Array*:               insert_field_in_array,                            \
+    Field_Initializer_Handle_Array*:   insert_field_initializer_in_array,                \
+    Constant_Handle_Array*:            insert_constant_in_array,                         \
+    Element_Initializer_Handle_Array*: insert_element_initializer_in_array,              \
+    Ir_Basic_Block_Handle_Array*:      insert_ir_basic_block_in_array,                   \
+    Ir_Instruction_Handle_Array*:      insert_ir_instruction_in_array,                   \
+    Ir_Operand_Handle_Array*:          insert_ir_operand_in_array)(ARRAY, HANDLE, INDEX)
+
+#define remove(ARRAY, INDEX) _Generic((ARRAY),                                     \
+    File_Handle_Array*:                remove_file_from_array,                     \
+    Type_Handle_Array*:                remove_type_from_array,                     \
+    Type_Reference_Handle_Array*:      remove_type_reference_from_array,           \
+    Namespace_Handle_Array*:           remove_namespace_from_array,                \
+    Function_Handle_Array*:            remove_function_from_array,                 \
+    Formal_Parameter_Handle_Array*:    remove_formal_parameter_from_array,         \
+    Statement_Handle_Array*:           remove_statement_from_array,                \
+    Variable_Handle_Array*:            remove_variable_from_array,                 \
+    Branch_Handle_Array*:              remove_branch_from_array,                   \
+    Expression_Handle_Array*:          remove_expression_from_array,               \
+    Field_Handle_Array*:               remove_field_from_array,                    \
+    Field_Initializer_Handle_Array*:   remove_field_initializer_from_array,        \
+    Constant_Handle_Array*:            remove_constant_from_array,                 \
+    Element_Initializer_Handle_Array*: remove_element_initializer_from_array,      \
+    Ir_Basic_Block_Handle_Array*:      remove_ir_basic_block_from_array,           \
+    Ir_Instruction_Handle_Array*:      remove_ir_instruction_from_array,           \
+    Ir_Operand_Handle_Array*:          remove_ir_operand_from_array)(ARRAY, INDEX)
+
+#define reserve(ARRAY, AMOUNT) _Generic((ARRAY),                                  \
+    File_Handle_Array*:                reserve_file_handles,                      \
+    Type_Handle_Array*:                reserve_type_handles,                      \
+    Type_Reference_Handle_Array*:      reserve_type_reference_handles,            \
+    Namespace_Handle_Array*:           reserve_namespace_handles,                 \
+    Function_Handle_Array*:            reserve_function_handles,                  \
+    Formal_Parameter_Handle_Array*:    reserve_formal_parameter_handles,          \
+    Statement_Handle_Array*:           reserve_statement_handles,                 \
+    Variable_Handle_Array*:            reserve_variable_handles,                  \
+    Branch_Handle_Array*:              reserve_branch_handles,                    \
+    Expression_Handle_Array*:          reserve_expression_handles,                \
+    Field_Handle_Array*:               reserve_field_handles,                     \
+    Field_Initializer_Handle_Array*:   reserve_field_initializer_handles,         \
+    Constant_Handle_Array*:            reserve_constant_handles,                  \
+    Element_Initializer_Handle_Array*: reserve_element_initializer_handles,       \
+    Ir_Basic_Block_Handle_Array*:      reserve_ir_basic_block_handles,            \
+    Ir_Instruction_Handle_Array*:      reserve_ir_instruction_handles,            \
+    Ir_Operand_Handle_Array*:          reserve_ir_operand_handles)(ARRAY, AMOUNT)
+
+#define handle_at(ARRAY, INDEX) _Generic((ARRAY),                                \
+    const File_Handle_Array*:                file_handle_at,                     \
+          File_Handle_Array*:                file_handle_at,                     \
+    const Type_Handle_Array*:                type_handle_at,                     \
+          Type_Handle_Array*:                type_handle_at,                     \
+    const Type_Reference_Handle_Array*:      type_reference_handle_at,           \
+          Type_Reference_Handle_Array*:      type_reference_handle_at,           \
+    const Namespace_Handle_Array*:           namespace_handle_at,                \
+          Namespace_Handle_Array*:           namespace_handle_at,                \
+    const Function_Handle_Array*:            function_handle_at,                 \
+          Function_Handle_Array*:            function_handle_at,                 \
+    const Formal_Parameter_Handle_Array*:    formal_parameter_handle_at,         \
+          Formal_Parameter_Handle_Array*:    formal_parameter_handle_at,         \
+    const Statement_Handle_Array*:           statement_handle_at,                \
+          Statement_Handle_Array*:           statement_handle_at,                \
+    const Variable_Handle_Array*:            variable_handle_at,                 \
+          Variable_Handle_Array*:            variable_handle_at,                 \
+    const Branch_Handle_Array*:              branch_handle_at,                   \
+          Branch_Handle_Array*:              branch_handle_at,                   \
+    const Expression_Handle_Array*:          expression_handle_at,               \
+          Expression_Handle_Array*:          expression_handle_at,               \
+    const Field_Handle_Array*:               field_handle_at,                    \
+          Field_Handle_Array*:               field_handle_at,                    \
+    const Field_Initializer_Handle_Array*:   field_initializer_handle_at,        \
+          Field_Initializer_Handle_Array*:   field_initializer_handle_at,        \
+    const Constant_Handle_Array*:            constant_handle_at,                 \
+          Constant_Handle_Array*:            constant_handle_at,                 \
+    const Element_Initializer_Handle_Array*: element_initializer_handle_at,      \
+          Element_Initializer_Handle_Array*: element_initializer_handle_at,      \
+    const Ir_Basic_Block_Handle_Array*:      ir_basic_block_handle_at,           \
+          Ir_Basic_Block_Handle_Array*:      ir_basic_block_handle_at,           \
+    const Ir_Instruction_Handle_Array*:      ir_instruction_handle_at,           \
+          Ir_Instruction_Handle_Array*:      ir_instruction_handle_at,           \
+    const Ir_Operand_Handle_Array*:          ir_operand_handle_at,               \
+          Ir_Operand_Handle_Array*:          ir_operand_handle_at)(ARRAY, INDEX)
+
+#define replace(ARRAY, HANDLE, INDEX) _Generic((ARRAY),                         \
+    File_Handle_Array*:                replace_file,                            \
+    Type_Handle_Array*:                replace_type,                            \
+    Type_Reference_Handle_Array*:      replace_type_reference,                  \
+    Namespace_Handle_Array*:           replace_namespace,                       \
+    Function_Handle_Array*:            replace_function,                        \
+    Formal_Parameter_Handle_Array*:    replace_formal_parameter,                \
+    Statement_Handle_Array*:           replace_statement,                       \
+    Variable_Handle_Array*:            replace_variable,                        \
+    Branch_Handle_Array*:              replace_branch,                          \
+    Expression_Handle_Array*:          replace_expression,                      \
+    Field_Handle_Array*:               replace_field,                           \
+    Field_Initializer_Handle_Array*:   replace_field_initializer,               \
+    Constant_Handle_Array*:            replace_constant,                        \
+    Element_Initializer_Handle_Array*: replace_element_initializer,             \
+    Ir_Basic_Block_Handle_Array*:      replace_ir_basic_block,                  \
+    Ir_Instruction_Handle_Array*:      replace_ir_instruction,                  \
+    Ir_Operand_Handle_Array*:          replace_ir_operand)(ARRAY, HANDLE, INDEX)
+
+#define lookup_in(ARRAY, INDEX) _Generic((ARRAY),                                \
+    const File_Handle_Array*:                lookup_file_in,                     \
+          File_Handle_Array*:                lookup_file_in,                     \
+    const Type_Handle_Array*:                lookup_type_in,                     \
+          Type_Handle_Array*:                lookup_type_in,                     \
+    const Type_Reference_Handle_Array*:      lookup_type_reference_in,           \
+          Type_Reference_Handle_Array*:      lookup_type_reference_in,           \
+    const Namespace_Handle_Array*:           lookup_namespace_in,                \
+          Namespace_Handle_Array*:           lookup_namespace_in,                \
+    const Function_Handle_Array*:            lookup_function_in,                 \
+          Function_Handle_Array*:            lookup_function_in,                 \
+    const Formal_Parameter_Handle_Array*:    lookup_formal_parameter_in,         \
+          Formal_Parameter_Handle_Array*:    lookup_formal_parameter_in,         \
+    const Statement_Handle_Array*:           lookup_statement_in,                \
+          Statement_Handle_Array*:           lookup_statement_in,                \
+    const Variable_Handle_Array*:            lookup_variable_in,                 \
+          Variable_Handle_Array*:            lookup_variable_in,                 \
+    const Branch_Handle_Array*:              lookup_branch_in,                   \
+          Branch_Handle_Array*:              lookup_branch_in,                   \
+    const Expression_Handle_Array*:          lookup_expression_in,               \
+          Expression_Handle_Array*:          lookup_expression_in,               \
+    const Field_Handle_Array*:               lookup_field_in,                    \
+          Field_Handle_Array*:               lookup_field_in,                    \
+    const Field_Initializer_Handle_Array*:   lookup_field_initializer_in,        \
+          Field_Initializer_Handle_Array*:   lookup_field_initializer_in,        \
+    const Constant_Handle_Array*:            lookup_constant_in,                 \
+          Constant_Handle_Array*:            lookup_constant_in,                 \
+    const Element_Initializer_Handle_Array*: lookup_element_initializer_in,      \
+          Element_Initializer_Handle_Array*: lookup_element_initializer_in,      \
+    const Ir_Basic_Block_Handle_Array*:      lookup_ir_basic_block_in,           \
+          Ir_Basic_Block_Handle_Array*:      lookup_ir_basic_block_in,           \
+    const Ir_Instruction_Handle_Array*:      lookup_ir_instruction_in,           \
+          Ir_Instruction_Handle_Array*:      lookup_ir_instruction_in,           \
+    const Ir_Operand_Handle_Array*:          lookup_ir_operand_in,               \
+          Ir_Operand_Handle_Array*:          lookup_ir_operand_in)(ARRAY, INDEX)
 
 const char* expression_tag_as_string(uint8_t tag);
 const char* type_reference_tag_as_string(uint8_t tag);

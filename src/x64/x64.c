@@ -64,21 +64,21 @@ void write_text_u64(uint64_t value)
 
 void write_number(Number value, Type_Handle type)
 {
-    if (compare_types(type, u8_handle))
+    if (compare(type, u8_handle))
         write_text_u8(value.u8);
-    else if (compare_types(type, i8_handle))
+    else if (compare(type, i8_handle))
         write_text_i8(value.i8);
-    else if (compare_types(type, u16_handle))
+    else if (compare(type, u16_handle))
         write_text_u16(value.u16);
-    else if (compare_types(type, i16_handle))
+    else if (compare(type, i16_handle))
         write_text_i16(value.i16);
-    else if (compare_types(type, u32_handle))
+    else if (compare(type, u32_handle))
         write_text_u32(value.u32);
-    else if (compare_types(type, i32_handle))
+    else if (compare(type, i32_handle))
         write_text_i32(value.i32);
-    else if (compare_types(type, u64_handle))
+    else if (compare(type, u64_handle))
         write_text_u64(value.u64);
-    else if (compare_types(type, i64_handle))
+    else if (compare(type, i64_handle))
         write_text_i64(value.i64);
     else
         assert(false);    

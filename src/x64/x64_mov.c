@@ -2,7 +2,7 @@
 
 static void mov_reg_imm(uint8_t destination, Number source, Type_Handle type)
 {
-    if (compare_types(type, u8_handle) || compare_types(type, i8_handle))
+    if (compare(type, u8_handle) || compare(type, i8_handle))
     {
         // MOV r8, imm8.
         if (destination >= Ir_Operand_Tag_x64_r8)
@@ -16,7 +16,7 @@ static void mov_reg_imm(uint8_t destination, Number source, Type_Handle type)
             write_text_u8(0xB0 + destination);
         }
     }
-    else if (compare_types(type, u16_handle) || compare_types(type, i16_handle))
+    else if (compare(type, u16_handle) || compare(type, i16_handle))
     {
         // MOV r16, imm16.
         write_text_u8(OPERAND_SIZE_PREFIX);
@@ -28,7 +28,7 @@ static void mov_reg_imm(uint8_t destination, Number source, Type_Handle type)
         else
             write_text_u8(0xB8 + destination);
     }
-    else if (compare_types(type, u32_handle) || compare_types(type, i32_handle))
+    else if (compare(type, u32_handle) || compare(type, i32_handle))
     {
         // MOV r32, imm32.
         if (destination >= Ir_Operand_Tag_x64_r8)
@@ -39,7 +39,7 @@ static void mov_reg_imm(uint8_t destination, Number source, Type_Handle type)
         else
             write_text_u8(0xB8 + destination);
     }
-    else if (compare_types(type, u64_handle) || compare_types(type, i64_handle))
+    else if (compare(type, u64_handle) || compare(type, i64_handle))
     {
         // MOV r64, imm64.
         if (destination >= Ir_Operand_Tag_x64_r8)
@@ -54,24 +54,24 @@ static void mov_reg_imm(uint8_t destination, Number source, Type_Handle type)
         }
     }
     else
-        unexpected_type(__FILE__, __LINE__, lookup_type(type)->tag);
+        unexpected_type(__FILE__, __LINE__, lookup(type)->tag);
     
     write_number(source, type);
 }
 
 static void mov_reg_reg(uint8_t destination, uint8_t source, Type_Handle type)
 {
-    if (compare_types(type, u8_handle) || compare_types(type, i8_handle))
+    if (compare(type, u8_handle) || compare(type, i8_handle))
     {
         // MOV r8, r8.
         not_implemented(__FILE__, __LINE__, "MOV r8, r8");
     }
-    else if (compare_types(type, u16_handle) || compare_types(type, i16_handle))
+    else if (compare(type, u16_handle) || compare(type, i16_handle))
     {
         // MOV r16, r16.
         not_implemented(__FILE__, __LINE__, "MOV r16, r16");
     }
-    else if (compare_types(type, u32_handle) || compare_types(type, i32_handle))
+    else if (compare(type, u32_handle) || compare(type, i32_handle))
     {
         // MOV r32, r32.
         if (destination >= Ir_Operand_Tag_x64_r8 && source >= Ir_Operand_Tag_x64_r8)
@@ -86,19 +86,19 @@ static void mov_reg_reg(uint8_t destination, uint8_t source, Type_Handle type)
         write_text_u8(0x89);
         write_text_u8(MOD_RM(MOD_REGISTER_ADDRESSING, source, destination));
     }
-    else if (compare_types(type, u64_handle) || compare_types(type, i64_handle))
+    else if (compare(type, u64_handle) || compare(type, i64_handle))
     {
         // MOV r64, r64.
         not_implemented(__FILE__, __LINE__, "MOV r64, r64");
     }
     else
-        unexpected_type(__FILE__, __LINE__, lookup_type(type)->tag);
+        unexpected_type(__FILE__, __LINE__, lookup(type)->tag);
 }
 
 void x64_mov(const Ir_Instruction* mov)
 {
-    Ir_Operand* source = lookup_ir_operand(ir_operand_at(&mov->sources, 0));
-    Ir_Operand* destination = lookup_ir_operand(mov->destination);
+    Ir_Operand* source = lookup_in(&mov->sources, 0);
+    Ir_Operand* destination = lookup(mov->destination);
     
     if (IS_X64_REG(destination->tag) && source->tag == Ir_Operand_Tag_immediate)
         mov_reg_imm(destination->tag, source->imm.value, mov->type);
@@ -110,29 +110,29 @@ void x64_mov(const Ir_Instruction* mov)
 
 uint16_t size_of_x64_mov(const Ir_Instruction* mov)
 {
-    Ir_Operand* source = lookup_ir_operand(ir_operand_at(&mov->sources, 0));
-    Ir_Operand* destination = lookup_ir_operand(mov->destination);
+    Ir_Operand* source = lookup_in(&mov->sources, 0);
+    Ir_Operand* destination = lookup(mov->destination);
         
     if (IS_X64_REG(destination->tag) && source->tag == Ir_Operand_Tag_immediate)
     {
-        if (compare_types(mov->type, u8_handle) || compare_types(mov->type, i8_handle))
+        if (compare(mov->type, u8_handle) || compare(mov->type, i8_handle))
             // MOV r8, imm8.
             return 3;
-        else if (compare_types(mov->type, u16_handle) || compare_types(mov->type, i16_handle))
+        else if (compare(mov->type, u16_handle) || compare(mov->type, i16_handle))
             // MOV r16, imm16.
             return destination->tag >= Ir_Operand_Tag_x64_r8 ? 5 : 4;
-        else if (compare_types(mov->type, u32_handle) || compare_types(mov->type, i32_handle))
+        else if (compare(mov->type, u32_handle) || compare(mov->type, i32_handle))
             // MOV r32, imm32.
             return destination->tag >= Ir_Operand_Tag_x64_r8 ? 6 : 5;
-        else if (compare_types(mov->type, u64_handle) || compare_types(mov->type, i64_handle))
+        else if (compare(mov->type, u64_handle) || compare(mov->type, i64_handle))
             // MOV r64, imm64.
             return 10;
         else
-            unexpected_type(__FILE__, __LINE__, lookup_type(mov->type)->tag);
+            unexpected_type(__FILE__, __LINE__, lookup(mov->type)->tag);
     }
     else if (IS_X64_REG(destination->tag) && IS_X64_REG(source->tag))
     {
-        if (compare_types(mov->type, u32_handle) || compare_types(mov->type, i32_handle))
+        if (compare(mov->type, u32_handle) || compare(mov->type, i32_handle))
         {
             // MOV r32, r32.
             if (destination->tag >= Ir_Operand_Tag_x64_r8 && source->tag >= Ir_Operand_Tag_x64_r8)
@@ -143,7 +143,7 @@ uint16_t size_of_x64_mov(const Ir_Instruction* mov)
                 return 2;
         }
         else
-            unexpected_type(__FILE__, __LINE__, lookup_type(mov->type)->tag);
+            unexpected_type(__FILE__, __LINE__, lookup(mov->type)->tag);
     }
     else
         ice(__FILE__, __LINE__, "Unexpected mov operands.");

@@ -4,7 +4,7 @@ static int32_t index_of_definition(const Ir_Basic_Block* block, Interned_String_
 {
     for (int32_t i = 0; i < block->definitions_length; i++)
     {
-        if (compare_interned_strings(name, block->definitions[i].name))
+        if (compare(name, block->definitions[i].name))
             return i;
     }
 

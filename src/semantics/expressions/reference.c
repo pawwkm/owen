@@ -9,13 +9,13 @@ void type_check_reference_expression(const File* file, Reference* reference, Typ
         Symbol* symbol = symbol_of_reference(reference->name);
         if (symbol)
             reference->type = symbol->type;
-        else if (is_invalid_type_handle(inferred_type_handle))
+        else if (invalid(inferred_type_handle))
         { 
             bool function_with_the_same_name_exists = false;
             for (Array_Size i = 0; i < file->functions_in_scope.handles_length; i++)
             {
-                Function* function = lookup_function(function_at(&file->functions_in_scope, i));
-                if (compare_interned_strings(function->name, reference->name))
+                Function* function = lookup_in(&file->functions_in_scope, i);
+                if (compare(function->name, reference->name))
                 {
                     if (!function_with_the_same_name_exists)
                         print_declaration_header(file, reference->span.start, "No matching signature for %I.", reference->name);
@@ -34,12 +34,12 @@ void type_check_reference_expression(const File* file, Reference* reference, Typ
         {
             reference->type = inferred_type_handle;
 
-            Type* inferred_type = lookup_type(inferred_type_handle);
+            Type* inferred_type = lookup(inferred_type_handle);
             bool function_with_the_same_name_exists = false;
             for (Array_Size a = 0; a < file->functions_in_scope.handles_length; a++)
             {
-                Function* function = lookup_function(function_at(&file->functions_in_scope, a));
-                if (!compare_interned_strings(reference->name, function->name) || function->attributes & Function_Attribute_is_polymorphic)
+                Function* function = lookup_in(&file->functions_in_scope, a);
+                if (!compare(reference->name, function->name) || function->attributes & Function_Attribute_is_polymorphic)
                     continue;
 
                 function_with_the_same_name_exists = true;
@@ -53,9 +53,9 @@ void type_check_reference_expression(const File* file, Reference* reference, Typ
 
             for (Array_Size a = 0; a < file->functions_in_scope.handles_length; a++)
             {
-                Function_Handle a_handle = function_at(&file->functions_in_scope, a);
-                Function* function = lookup_function(a_handle);
-                if (!compare_interned_strings(reference->name, function->name) || !(function->attributes & Function_Attribute_is_polymorphic))
+                Function_Handle a_handle = handle_at(&file->functions_in_scope, a);
+                Function* function = lookup(a_handle);
+                if (!compare(reference->name, function->name) || !(function->attributes & Function_Attribute_is_polymorphic))
                     continue;
 
                 function_with_the_same_name_exists = true;
@@ -66,8 +66,8 @@ void type_check_reference_expression(const File* file, Reference* reference, Typ
                 bool is_match = true;
                 for (Array_Size b = 0; b < function->formal_parameters.handles_length; b++)
                 {
-                    Type_Reference_Handle formal_type_parameter = lookup_formal_parameter(formal_parameter_at(&function->formal_parameters, b))->type;
-                    Type_Handle actual_type = type_at(&inferred_type->function.formal_parameters, b);
+                    Type_Reference_Handle formal_type_parameter = lookup_in(&function->formal_parameters, b)->type;
+                    Type_Handle actual_type = handle_at(&inferred_type->function.formal_parameters, b);
 
                     if (!formal_parameter_type_matches_actual_parameter_type(file, function, formal_type_parameter, actual_type))
                     {
@@ -84,12 +84,12 @@ void type_check_reference_expression(const File* file, Reference* reference, Typ
                 // always the same... This should be a flag.
                 for (Array_Size b = 0; b < function->formal_type_parameters.handles_length; b++)
                 {
-                    Named_Type_Reference* formal_type_parameter = &lookup_type_reference(type_reference_at(&function->formal_type_parameters, b))->named;
+                    Named_Type_Reference* formal_type_parameter = &lookup_in(&function->formal_type_parameters, b)->named;
                     bool specified_by_formal_parameter = false;
 
                     for (Array_Size c = 0; c < function->formal_parameters.handles_length; c++)
                     {
-                        Formal_Parameter* formal_parameter = lookup_formal_parameter(formal_parameter_at(&function->formal_parameters, c));
+                        Formal_Parameter* formal_parameter = lookup_in(&function->formal_parameters, c);
                         if (is_formal_type_parameter_specified_by_a_formal_parameter(formal_parameter->type, formal_type_parameter->name))
                         {
                             specified_by_formal_parameter = true;
@@ -105,7 +105,7 @@ void type_check_reference_expression(const File* file, Reference* reference, Typ
                 for (uint16_t b = 0; b < functions_length; b++)
                 {
                     Function* monomorphic_function = &functions[b];
-                    if (!compare_functions(monomorphic_function->template, (Function_Handle) { .index = b }))
+                    if (!compare(monomorphic_function->template, (Function_Handle) { .index = b }))
                         continue;
 
                     if (expression_types_match(monomorphic_function->signature, reference->type))
@@ -119,9 +119,9 @@ void type_check_reference_expression(const File* file, Reference* reference, Typ
 
                 for (Array_Size b = 0; b < function->formal_parameters.handles_length; b++)
                 {
-                    Type_Reference* formal_parameter_type = lookup_type_reference(lookup_formal_parameter(formal_parameter_at(&function->formal_parameters, b))->type);
+                    Type_Reference* formal_parameter_type = lookup(lookup_in(&function->formal_parameters, b)->type);
                     for (Array_Size c = 0; c < inferred_type->function.formal_parameters.handles_length; c++)
-                        map_formal_type_parameter(file, function, type_at(&inferred_type->function.formal_parameters, c), formal_parameter_type, reference->span);
+                        map_formal_type_parameter(file, function, handle_at(&inferred_type->function.formal_parameters, c), formal_parameter_type, reference->span);
                 }
 
                 monomorphisize_function(a_handle);
@@ -135,8 +135,8 @@ void type_check_reference_expression(const File* file, Reference* reference, Typ
                 print_declaration_header(file, reference->span.start, "No matching signature for %I.", reference->name);
                 for (Array_Size i = 0; i < file->functions_in_scope.handles_length; i++)
                 {
-                    Function* function = lookup_function(function_at(&file->functions_in_scope, i));
-                    if (compare_interned_strings(function->name, reference->name))
+                    Function* function = lookup_in(&file->functions_in_scope, i);
+                    if (compare(function->name, reference->name))
                         print_function_declaration(function);
                 }
 
@@ -152,6 +152,6 @@ void deep_copy_reference(Reference* restrict destination, const Reference* restr
 {
     destination->name = source->name;
 
-    reserve_type_reference_handles(&destination->actual_type_parameters, source->actual_type_parameters.handles_length);
+    reserve(&destination->actual_type_parameters, source->actual_type_parameters.handles_length);
     deep_copy_type_references(&destination->actual_type_parameters, &source->actual_type_parameters);
 }

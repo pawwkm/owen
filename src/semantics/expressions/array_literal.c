@@ -4,33 +4,33 @@
 
 void type_check_array_literal(const File* file, Array_Literal* literal, Type_Handle inferred_type_handle, Expression_Check_Flags flags)
 {
-    if (is_invalid_type_handle(inferred_type_handle))
+    if (invalid(inferred_type_handle))
         print_span_error(file, literal->span, "Array type cannot be inferred.");
 
-    Fixed_Array_Type* inferred_type = &lookup_type(inferred_type_handle)->fixed_array;
+    Fixed_Array_Type* inferred_type = &lookup(inferred_type_handle)->fixed_array;
     if (inferred_type->tag != Type_Tag_fixed_array)
         print_span_error(file, literal->span, "Cannot infer literal as %t.", inferred_type_handle);
 
     uint32_t next_element_index = 0;
     for (Array_Size a = 0; a < literal->elements.handles_length; a++)
     {
-        Element_Initializer* a_element = lookup_element_initializer(element_initializer_at(&literal->elements, a));
-        if (is_invalid_expression_handle(a_element->explicit_index))
+        Element_Initializer* a_element = lookup_in(&literal->elements, a);
+        if (invalid(a_element->explicit_index))
         {
             if (next_element_index >= inferred_type->size)
-                print_span_error(file, lookup_expression(a_element->expression)->span, "%" PRIu32 " is out of bounds in %t.", next_element_index, inferred_type_handle);
+                print_span_error(file, lookup(a_element->expression)->span, "%" PRIu32 " is out of bounds in %t.", next_element_index, inferred_type_handle);
 
             a_element->index = next_element_index;
         }
         else
         {
-            Expression* explicit_index = lookup_expression(a_element->explicit_index);
+            Expression* explicit_index = lookup(a_element->explicit_index);
             if (explicit_index->tag == Expression_Tag_enumeration_constant_access)
             {
-                Enumeration_Type* enumeration_type = &lookup_type(type_check_expression(file, explicit_index, invalid_type_handle, flags))->enumeration;
+                Enumeration_Type* enumeration_type = &lookup(type_check_expression(file, explicit_index, invalid_type_handle, flags))->enumeration;
                 Constant* constant = lookup_constant_by_name(enumeration_type, explicit_index->enumeration_constant_access.constant, explicit_index->enumeration_constant_access.constant_span);
 
-                Type* underlying_type = lookup_type(enumeration_type->underlying_type);
+                Type* underlying_type = lookup(enumeration_type->underlying_type);
                 if (underlying_type->tag == Type_Tag_i8)
                 {
                     if (constant->value.i8 < 0 || (uint32_t)constant->value.i8 >= inferred_type->size)
@@ -78,12 +78,12 @@ void type_check_array_literal(const File* file, Array_Literal* literal, Type_Han
 
         for (Array_Size b = 0; b < a; b++)
         {
-            Element_Initializer* b_element = lookup_element_initializer(element_initializer_at(&literal->elements, b));
+            Element_Initializer* b_element = lookup_in(&literal->elements, b);
             if (a_element->index == b_element->index)
-                print_span_error(file, lookup_expression(b_element->expression)->span, "Element at index %u already initialized.", a_element->index);
+                print_span_error(file, lookup(b_element->expression)->span, "Element at index %u already initialized.", a_element->index);
         }
 
-        Expression* element_expression = lookup_expression(a_element->expression);
+        Expression* element_expression = lookup(a_element->expression);
         type_check_expression(file, element_expression, inferred_type->base_type, flags);
         if (!expression_types_match(inferred_type->base_type, element_expression->type))
             print_span_error(file, element_expression->span, "%t expected but found %t.", inferred_type->base_type, element_expression->type);
@@ -91,9 +91,9 @@ void type_check_array_literal(const File* file, Array_Literal* literal, Type_Han
         next_element_index = a_element->index + 1;
         if (next_element_index < a_element->index && a != (uint32_t)literal->elements.handles_length - 1)
         {
-            Element_Initializer* next_element = lookup_element_initializer(element_initializer_at(&literal->elements, a + 1));
-            if (is_invalid_expression_handle(next_element->explicit_index))
-                print_span_error(file, lookup_expression(next_element->expression)->span, "%" PRIu64 " overflows U32.", (uint64_t)a_element->index + 1);
+            Element_Initializer* next_element = lookup_in(&literal->elements, a + 1);
+            if (invalid(next_element->explicit_index))
+                print_span_error(file, lookup(next_element->expression)->span, "%" PRIu64 " overflows U32.", (uint64_t)a_element->index + 1);
         }
     }
 
@@ -102,25 +102,25 @@ void type_check_array_literal(const File* file, Array_Literal* literal, Type_Han
 
 static void deep_copy_element_initializer(Element_Initializer* restrict destination, const Element_Initializer* restrict source)
 {
-    if (is_invalid_expression_handle(source->explicit_index))
+    if (invalid(source->explicit_index))
         destination->explicit_index = source->explicit_index;
     else
     {
         destination->explicit_index = add_expression();
-        deep_copy_expression(lookup_expression(destination->explicit_index), lookup_expression(source->explicit_index));
+        deep_copy_expression(lookup(destination->explicit_index), lookup(source->explicit_index));
     }
 
     destination->expression = add_expression();
-    deep_copy_expression(lookup_expression(destination->expression), lookup_expression(source->expression));
+    deep_copy_expression(lookup(destination->expression), lookup(source->expression));
 }
 
 static void deep_copy_element_initializers(Element_Initializer_Handle_Array* restrict destination, const Element_Initializer_Handle_Array* restrict source)
 {
-    reserve_element_initializer_handles(destination, source->handles_length);
+    reserve(destination, source->handles_length);
     for (Array_Size i = 0; i < source->handles_length; i++)
     {
-        add_to_element_initializer_array(destination, add_element_initializer());
-        deep_copy_element_initializer(lookup_element_initializer(element_initializer_at(destination, i)), lookup_element_initializer(element_initializer_at(source, i)));
+        add_to(destination, add_element_initializer());
+        deep_copy_element_initializer(lookup_in(destination, i), lookup_in(source, i));
     }
 }
 
