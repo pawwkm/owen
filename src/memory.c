@@ -21,6 +21,9 @@ uint16_t ir_function_handles_length;
 uint8_t  text_section[TEXT_SECTION_CAPACITY];
 uint32_t text_section_length;
 
+#define INLINED_SIZE(ARRAY) (sizeof(ARRAY->inlined) / sizeof(ARRAY->inlined[0]))
+#define IS_INLINED(ARRAY) ((ARRAY)->handles_capacity <= INLINED_SIZE(ARRAY))
+
 #define DEFAULT_ADD_IMPLEMENTATION(TYPE, LOWER_CASE_TYPE, LOWER_CASE_TYPE_PLURAL, UPPER_CASE_TYPE) \
 TYPE##_Handle add_##LOWER_CASE_TYPE(void)                                                          \
 {                                                                                                  \
@@ -51,100 +54,121 @@ TYPE* lookup_##LOWER_CASE_TYPE(TYPE##_Handle handle)                            
     return &LOWER_CASE_TYPE_PLURAL[handle.index];                                                   \
 }
 
-#define DEFAULT_HANDLE_ARRAY_IMPLEMENTATION(TYPE, LOWER_CASE_TYPE, UPPER_CASE_TYPE)                                    \
-void reserve_##LOWER_CASE_TYPE##_handles(TYPE##_Handle_Array* array, uint8_t needed_free_handles)                      \
-{                                                                                                                      \
-    if (needed_free_handles <= array->handles_capacity - array->handles_length)                                        \
-        return;                                                                                                        \
-                                                                                                                       \
-    if (!array->handles)                                                                                               \
-    {                                                                                                                  \
-        if (LOWER_CASE_TYPE##_handles_length + needed_free_handles > UPPER_CASE_TYPE##_CAPACITY)                       \
-            out_of_memory(__FILE__, __LINE__, #TYPE);                                                                  \
-                                                                                                                       \
-        array->handles = &LOWER_CASE_TYPE##_handles[LOWER_CASE_TYPE##_handles_length];                                 \
-        array->handles_capacity = needed_free_handles;                                                                 \
-                                                                                                                       \
-        LOWER_CASE_TYPE##_handles_length += needed_free_handles;                                                       \
-    }                                                                                                                  \
-    else if (array->handles == &LOWER_CASE_TYPE##_handles[LOWER_CASE_TYPE##_handles_length - array->handles_capacity]) \
-    {                                                                                                                  \
-        uint8_t left_to_reserve = needed_free_handles - (array->handles_capacity - array->handles_length);             \
-        if (LOWER_CASE_TYPE##_handles_length + left_to_reserve > UPPER_CASE_TYPE##_CAPACITY)                           \
-            out_of_memory(__FILE__, __LINE__, #TYPE);                                                                  \
-                                                                                                                       \
-        array->handles_capacity += left_to_reserve;                                                                    \
-        LOWER_CASE_TYPE##_handles_length += left_to_reserve;                                                           \
-    }                                                                                                                  \
-    else                                                                                                               \
-    {                                                                                                                  \
-        uint8_t left_to_reserve = needed_free_handles - (array->handles_capacity - array->handles_length);             \
-        if (LOWER_CASE_TYPE##_handles_length + array->handles_capacity + left_to_reserve > UPPER_CASE_TYPE##_CAPACITY) \
-            out_of_memory(__FILE__, __LINE__, #TYPE);                                                                  \
-                                                                                                                       \
-        TYPE##_Handle* destination = &LOWER_CASE_TYPE##_handles[LOWER_CASE_TYPE##_handles_length];                     \
-        memcpy(destination, array->handles, sizeof(TYPE##_Handle) * array->handles_length);                            \
-                                                                                                                       \
-        array->handles = destination;                                                                                  \
-        array->handles_capacity += left_to_reserve;                                                                    \
-        LOWER_CASE_TYPE##_handles_length += array->handles_capacity;                                                   \
-    }                                                                                                                  \
-}                                                                                                                      \
-                                                                                                                       \
-void add_to_##LOWER_CASE_TYPE##_array(TYPE##_Handle_Array* array, TYPE##_Handle handle)                                \
-{                                                                                                                      \
-    reserve_##LOWER_CASE_TYPE##_handles(array, 1);                                                                     \
-    array->handles[array->handles_length++] = handle;                                                                  \
-}                                                                                                                      \
-                                                                                                                       \
-void insert_##LOWER_CASE_TYPE##_in_array(TYPE##_Handle_Array* array, TYPE##_Handle handle, uint8_t index)              \
-{                                                                                                                      \
-    if (array->handles_length == index)                                                                                \
-        add_to_##LOWER_CASE_TYPE##_array(array, handle);                                                               \
-    else if (array->handles_length <= index)                                                                           \
-        print_error("%s:%u: ICE: Insertion out of bounds of " #TYPE "_Handle_Array.", __FILE__, __LINE__);             \
-    else                                                                                                               \
-    {                                                                                                                  \
-        reserve_##LOWER_CASE_TYPE##_handles(array, 1);                                                                 \
-        for (uint8_t i = array->handles_length - 1; i != index; i--)                                                   \
-            array->handles[i] = array->handles[i - 1];                                                                 \
-                                                                                                                       \
-        array->handles[index] = handle;                                                                                \
-        array->handles_length++;                                                                                       \
-    }                                                                                                                  \
-}                                                                                                                      \
-                                                                                                                       \
-void remove_##LOWER_CASE_TYPE##_from_array(TYPE##_Handle_Array* array, uint8_t index)                                  \
-{                                                                                                                      \
-    if (array->handles_length <= index)                                                                                \
-        print_error("%s:%u: ICE: Insertion out of bounds of " #TYPE "_Handle_Array.", __FILE__, __LINE__);             \
-                                                                                                                       \
-    for (uint8_t i = index; i < array->handles_length - 1; i++)                                                        \
-        array->handles[i] = array->handles[i + 1];                                                                     \
-                                                                                                                       \
-    array->handles_length--;                                                                                           \
-}                                                                                                                      \
-                                                                                                                       \
-TYPE##_Handle LOWER_CASE_TYPE##_handle_at(const TYPE##_Handle_Array* array, Array_Size index)                          \
-{                                                                                                                      \
-    if (array->handles_length < index)                                                                                 \
-        print_error("%s:%u: ICE: Indexing out of bounds of " #TYPE "_Handle_Array.", __FILE__, __LINE__);              \
-                                                                                                                       \
-    return array->handles[index];                                                                                      \
-}                                                                                                                      \
-                                                                                                                       \
-void replace_##LOWER_CASE_TYPE(TYPE##_Handle_Array* array, TYPE##_Handle handle, Array_Size index)                     \
-{                                                                                                                      \
-    if (array->handles_length < index)                                                                                 \
-        print_error("%s:%u: ICE: Indexing out of bounds of " #TYPE "_Handle_Array.", __FILE__, __LINE__);              \
-                                                                                                                       \
-    array->handles[index] = handle;                                                                                    \
-}                                                                                                                      \
-                                                                                                                       \
-TYPE* lookup_##LOWER_CASE_TYPE##_in(const TYPE##_Handle_Array* array, Array_Size index)                                \
-{                                                                                                                      \
-    return lookup_##LOWER_CASE_TYPE(LOWER_CASE_TYPE##_handle_at(array, index));                                        \
-}                                                                                                                      \
+#define DEFAULT_HANDLE_ARRAY_IMPLEMENTATION(TYPE, LOWER_CASE_TYPE, UPPER_CASE_TYPE)                                        \
+void reserve_##LOWER_CASE_TYPE##_handles(TYPE##_Handle_Array* array, Array_Size needed_free_handles)                       \
+{                                                                                                                          \
+    if (needed_free_handles <= array->handles_capacity - array->handles_length)                                            \
+        return;                                                                                                            \
+                                                                                                                           \
+    Array_Size left_to_reserve = needed_free_handles - (array->handles_capacity - array->handles_length);                  \
+    if (INLINED_SIZE(array) >= array->handles_capacity + left_to_reserve)                                                  \
+        array->handles_capacity = INLINED_SIZE(array);                                                                     \
+    else                                                                                                                   \
+    {                                                                                                                      \
+        if (!array->handles_length)                                                                                        \
+        {                                                                                                                  \
+            if (LOWER_CASE_TYPE##_handles_length + needed_free_handles > UPPER_CASE_TYPE##_CAPACITY)                       \
+                out_of_memory(__FILE__, __LINE__, #TYPE);                                                                  \
+                                                                                                                           \
+            array->handles = &LOWER_CASE_TYPE##_handles[LOWER_CASE_TYPE##_handles_length];                                 \
+            LOWER_CASE_TYPE##_handles_length += left_to_reserve;                                                           \
+            array->handles_capacity = left_to_reserve;                                                                     \
+        }                                                                                                                  \
+        else if (INLINED_SIZE(array) < array->handles_length && array->handles == &LOWER_CASE_TYPE##_handles[LOWER_CASE_TYPE##_handles_length - array->handles_capacity]) \
+        {                                                                                                                  \
+            if (LOWER_CASE_TYPE##_handles_length + left_to_reserve > UPPER_CASE_TYPE##_CAPACITY)                           \
+                out_of_memory(__FILE__, __LINE__, #TYPE);                                                                  \
+                                                                                                                           \
+            array->handles_capacity += left_to_reserve;                                                                    \
+            LOWER_CASE_TYPE##_handles_length += left_to_reserve;                                                           \
+        }                                                                                                                  \
+        else                                                                                                               \
+        {                                                                                                                  \
+            TYPE##_Handle* root;                                                                                           \
+            if (IS_INLINED(array))                                                                                         \
+                root = (TYPE##_Handle*)&array->inlined;                                                                    \
+            else                                                                                                           \
+            {                                                                                                              \
+                root = array->handles;                                                                                     \
+                if (LOWER_CASE_TYPE##_handles_length + needed_free_handles > UPPER_CASE_TYPE##_CAPACITY)                   \
+                    out_of_memory(__FILE__, __LINE__, #TYPE);                                                              \
+            }                                                                                                              \
+                                                                                                                           \
+            TYPE##_Handle* destination = &LOWER_CASE_TYPE##_handles[LOWER_CASE_TYPE##_handles_length];                     \
+            memcpy(destination, root, sizeof(TYPE##_Handle) * array->handles_length);                                      \
+                                                                                                                           \
+            array->handles = destination;                                                                                  \
+            array->handles_capacity += left_to_reserve;                                                                    \
+            LOWER_CASE_TYPE##_handles_length += array->handles_capacity;                                                   \
+        }                                                                                                                  \
+    }                                                                                                                      \
+}                                                                                                                          \
+                                                                                                                           \
+void add_to_##LOWER_CASE_TYPE##_array(TYPE##_Handle_Array* array, TYPE##_Handle handle)                                    \
+{                                                                                                                          \
+    reserve_##LOWER_CASE_TYPE##_handles(array, 1);                                                                         \
+    if (IS_INLINED(array))                                                                                                 \
+        array->inlined[array->handles_length++] = handle;                                                                  \
+    else                                                                                                                   \
+        array->handles[array->handles_length++] = handle;                                                                  \
+}                                                                                                                          \
+                                                                                                                           \
+void insert_##LOWER_CASE_TYPE##_in_array(TYPE##_Handle_Array* array, TYPE##_Handle handle, Array_Size index)               \
+{                                                                                                                          \
+    if (array->handles_length == index)                                                                                    \
+        add_to_##LOWER_CASE_TYPE##_array(array, handle);                                                                   \
+    else if (array->handles_length <= index)                                                                               \
+        print_error("%s:%u: ICE: Insertion out of bounds of " #TYPE "_Handle_Array.", __FILE__, __LINE__);                 \
+    else                                                                                                                   \
+    {                                                                                                                      \
+        reserve_##LOWER_CASE_TYPE##_handles(array, 1);                                                                     \
+        TYPE##_Handle* root = IS_INLINED(array) ? (TYPE##_Handle*)&array->inlined : array->handles;                        \
+        for (Array_Size i = array->handles_length - 1; i != index; i--)                                                    \
+            root[i] = root[i - 1];                                                                                         \
+                                                                                                                           \
+        root[index] = handle;                                                                                              \
+        array->handles_length++;                                                                                           \
+    }                                                                                                                      \
+}                                                                                                                          \
+                                                                                                                           \
+void remove_##LOWER_CASE_TYPE##_from_array(TYPE##_Handle_Array* array, Array_Size index)                                   \
+{                                                                                                                          \
+    if (array->handles_length <= index)                                                                                    \
+        print_error("%s:%u: ICE: Insertion out of bounds of " #TYPE "_Handle_Array.", __FILE__, __LINE__);                 \
+                                                                                                                           \
+    TYPE##_Handle* root = IS_INLINED(array) ? (TYPE##_Handle*)&array->inlined : array->handles;                            \
+    for (Array_Size i = index; i < array->handles_length - 1; i++)                                                         \
+        root[i] = root[i + 1];                                                                                             \
+                                                                                                                           \
+    array->handles_length--;                                                                                               \
+}                                                                                                                          \
+                                                                                                                           \
+TYPE##_Handle LOWER_CASE_TYPE##_handle_at(const TYPE##_Handle_Array* array, Array_Size index)                              \
+{                                                                                                                          \
+    if (array->handles_length < index)                                                                                     \
+        print_error("%s:%u: ICE: Indexing out of bounds of " #TYPE "_Handle_Array.", __FILE__, __LINE__);                  \
+                                                                                                                           \
+    if (IS_INLINED(array))                                                                                                 \
+        return array->inlined[index];                                                                                      \
+    else                                                                                                                   \
+        return array->handles[index];                                                                                      \
+}                                                                                                                          \
+                                                                                                                           \
+void replace_##LOWER_CASE_TYPE(TYPE##_Handle_Array* array, TYPE##_Handle handle, Array_Size index)                         \
+{                                                                                                                          \
+    if (array->handles_length < index)                                                                                     \
+        print_error("%s:%u: ICE: Indexing out of bounds of " #TYPE "_Handle_Array.", __FILE__, __LINE__);                  \
+                                                                                                                           \
+    if (IS_INLINED(array))                                                                                                 \
+        array->inlined[index] = handle;                                                                                    \
+    else                                                                                                                   \
+        array->handles[index] = handle;                                                                                    \
+}                                                                                                                          \
+                                                                                                                           \
+TYPE* lookup_##LOWER_CASE_TYPE##_in(const TYPE##_Handle_Array* array, Array_Size index)                                    \
+{                                                                                                                          \
+    return lookup_##LOWER_CASE_TYPE(LOWER_CASE_TYPE##_handle_at(array, index));                                            \
+}
 
 #define DEFINE_ARENA(TYPE, LOWER_CASE_TYPE, LOWER_CASE_TYPE_PLURAL, UPPER_CASE_TYPE, UINT_X, UINT_X_MAX) \
 TYPE LOWER_CASE_TYPE_PLURAL[UPPER_CASE_TYPE##_CAPACITY];                                                 \

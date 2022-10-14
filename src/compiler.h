@@ -57,12 +57,17 @@ typedef struct                         \
 } TYPE##_Handle;
 
 typedef uint8_t Array_Size;
-#define DEFINE_HANDLE_ARRAY_TYPE(TYPE) \
-typedef struct                         \
-{                                      \
-    TYPE##_Handle* handles;            \
-    Array_Size handles_length;         \
-    Array_Size handles_capacity;       \
+#define DEFINE_HANDLE_ARRAY_TYPE(TYPE)                                         \
+typedef struct                                                                 \
+{                                                                              \
+    union                                                                      \
+    {                                                                          \
+        TYPE##_Handle* handles;                                                \
+        TYPE##_Handle inlined[sizeof(TYPE##_Handle*) / sizeof(TYPE##_Handle)]; \
+    };                                                                         \
+                                                                               \
+    Array_Size handles_length;                                                 \
+    Array_Size handles_capacity;                                               \
 } TYPE##_Handle_Array;
 
 DEFINE_HANDLE_TYPE(uint8_t,  File)
