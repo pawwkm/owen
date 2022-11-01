@@ -68,52 +68,7 @@ static void set_call_address(Ir_Function* function)
 }
 
 void ir_x64_pass(void)
-{
-    x64_reg_rax = add_ir_operand();
-    lookup(x64_reg_rax)->tag = Ir_Operand_Tag_x64_rax;
-    
-    x64_reg_rcx = add_ir_operand();
-    lookup(x64_reg_rcx)->tag = Ir_Operand_Tag_x64_rcx;
-    
-    x64_reg_rdx = add_ir_operand();
-    lookup(x64_reg_rdx)->tag = Ir_Operand_Tag_x64_rdx;
-    
-    x64_reg_rbx = add_ir_operand();
-    lookup(x64_reg_rbx)->tag = Ir_Operand_Tag_x64_rbx;
-    
-    x64_reg_sp = add_ir_operand();
-    lookup(x64_reg_sp)->tag = Ir_Operand_Tag_x64_sp;
-    
-    x64_reg_bp = add_ir_operand();
-    lookup(x64_reg_bp)->tag = Ir_Operand_Tag_x64_bp;
-    
-    x64_reg_si = add_ir_operand();
-    lookup(x64_reg_si)->tag = Ir_Operand_Tag_x64_si;
-    
-    x64_reg_r8 = add_ir_operand();
-    lookup(x64_reg_r8)->tag = Ir_Operand_Tag_x64_r8;
-    
-    x64_reg_r9 = add_ir_operand();
-    lookup(x64_reg_r9)->tag = Ir_Operand_Tag_x64_r9;
-    
-    x64_reg_r10 = add_ir_operand();
-    lookup(x64_reg_r10)->tag = Ir_Operand_Tag_x64_r10;
-    
-    x64_reg_r11 = add_ir_operand();
-    lookup(x64_reg_r11)->tag = Ir_Operand_Tag_x64_r11;
-    
-    x64_reg_r12 = add_ir_operand();
-    lookup(x64_reg_r12)->tag = Ir_Operand_Tag_x64_r12;
-    
-    x64_reg_r13 = add_ir_operand();
-    lookup(x64_reg_r13)->tag = Ir_Operand_Tag_x64_r13;
-    
-    x64_reg_r14 = add_ir_operand();
-    lookup(x64_reg_r14)->tag = Ir_Operand_Tag_x64_r14;
-    
-    x64_reg_r15 = add_ir_operand();
-    lookup(x64_reg_r15)->tag = Ir_Operand_Tag_x64_r15;
-    
+{   
     ordered_ir_function_iteration(lower_instructions);
 
     ir_x64_peep_hole_pass();

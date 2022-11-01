@@ -1246,7 +1246,7 @@ Interned_String_Handle add_interned_string(String string);
     Ir_Instruction_Handle:      lookup_ir_instruction,      \
     Ir_Operand_Handle:          lookup_ir_operand)(HANDLE)
 
-#define invalid(HANDLE) _Generic((HANDLE),                              \
+#define invalid(HANDLE) _Generic((HANDLE),                             \
     File_Handle:                is_invalid_file_handle,                \
     Type_Handle:                is_invalid_type_handle,                \
     Type_Reference_Handle:      is_invalid_type_reference_handle,      \
@@ -1266,7 +1266,7 @@ Interned_String_Handle add_interned_string(String string);
     Ir_Instruction_Handle:      is_invalid_ir_instruction_handle,      \
     Ir_Operand_Handle:          is_invalid_ir_operand_handle)(HANDLE)
 
-#define compare(A, B) _Generic((A),                            \
+#define compare(A, B) _Generic((A),                           \
     File_Handle:                compare_files,                \
     Type_Handle:                compare_types,                \
     Type_Reference_Handle:      compare_type_references,      \
