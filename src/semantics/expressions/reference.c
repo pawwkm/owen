@@ -124,7 +124,7 @@ void type_check_reference_expression(const File* file, Reference* reference, Typ
                         map_formal_type_parameter(file, function, handle_at(&inferred_type->function.formal_parameters, c), formal_parameter_type, reference->span);
                 }
 
-                monomorphisize_function(a_handle);
+                monomorphisize_function(a_handle, &(Function_Handle) { 0 }, &(Type_Handle) { 0 });
                 release_polymorphic_type_mapping();
 
                 return;

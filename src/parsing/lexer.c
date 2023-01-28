@@ -205,8 +205,10 @@ void next_token(void)
             {{ "public",      6  },  Token_Tag_public      },
             {{ "return",      6  },  Token_Tag_return      },
             {{ "sizeof",      6  },  Token_Tag_sizeof      },
+            {{ "noalias",     7  },  Token_Tag_noalias     },
             {{ "version",     7  },  Token_Tag_version     },
             {{ "external",    8  },  Token_Tag_external    },
+            {{ "readonly",    8  },  Token_Tag_readonly    },
             {{ "function",    8  },  Token_Tag_function    },
             {{ "continue",    8  },  Token_Tag_continue    },
             {{ "structure",   9  },  Token_Tag_structure   },
@@ -368,12 +370,6 @@ void next_token(void)
         lexer.token.tag = Token_Tag_semicolon;
     else if (advance_if_char(':'))
         lexer.token.tag = Token_Tag_colon;
-    else if (advance_if_char('`'))
-        lexer.token.tag = Token_Tag_backtick;
-    else if (advance_if_char('?'))
-        lexer.token.tag = Token_Tag_question_mark;
-    else if (advance_if_char('$'))
-        lexer.token.tag = Token_Tag_dollar_sign;
     else if (advance_if_char('_'))
         lexer.token.tag = Token_Tag_blank_identifier;
     else

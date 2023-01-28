@@ -40,7 +40,7 @@ static void check_if_signatures_formal_type_parameters_matches_any_types(const F
     for (Array_Size i = 0; i < function->formal_type_parameters.handles_length; i++)
     {
         Type_Reference_Handle type_reference_handle = handle_at(&function->formal_type_parameters, i);
-        Type_Handle type_handle = lookup_type_by_reference(file, type_reference_handle, false);
+        Type_Handle type_handle = lookup_type_by_reference(file, type_reference_handle, false, true);
 
         if (invalid(type_handle))
             continue;
@@ -162,7 +162,7 @@ static bool possibly_polymorphic_type_references_match(const Function* a_functio
     else if (a_reference->tag == Type_Reference_Tag_dynamic_array)
         not_implemented(__FILE__, __LINE__, "Type_Reference_Tag_dynamic_array");
     else if (a_reference->tag == Type_Reference_Tag_fixed_array)
-        return compare(a_reference->fixed_array.size, b_reference->fixed_array.size) &&
+        return a_reference->fixed_array.size == b_reference->fixed_array.size &&
                possibly_polymorphic_type_references_match(a_function, lookup(a_reference->fixed_array.base_type), b_function, lookup(b_reference->fixed_array.base_type));
     else if (a_reference->tag == Type_Reference_Tag_function)
         not_implemented(__FILE__, __LINE__, "Type_Reference_Tag_function");
@@ -215,7 +215,7 @@ static bool possibly_polymorphic_compound_reference_matches_type(const Function*
     else if (reference->tag == Type_Reference_Tag_fixed_array)
     {
         return type->tag == Type_Tag_fixed_array &&
-               type->fixed_array.size == type_check_integer_literal(lookup(function->file), reference->fixed_array.size, reference->fixed_array.size_span, u32_handle).u32 &&
+               type->fixed_array.size == reference->fixed_array.size &&
                possibly_polymorphic_compound_reference_matches_type(function, reference->fixed_array.base_type, type->fixed_array.base_type);
     }
     else if (reference->tag == Type_Reference_Tag_function)
@@ -244,8 +244,8 @@ static bool possibly_polymorphic_compound_reference_matches_type(const Function*
 
 static bool formal_parameter_types_in_signatures_matches(Type_Handle a_handle, Type_Handle b_handle)
 {
-    Type* a = lookup(a_handle);
-    Type* b = lookup(b_handle);
+    Type* a = unqualified(a_handle);
+    Type* b = unqualified(b_handle);
 
     if (a->tag != b->tag)
         return false;
@@ -273,8 +273,10 @@ static bool formal_parameter_types_in_signatures_matches(Type_Handle a_handle, T
         return a->fixed_array.size == b->fixed_array.size && 
                formal_parameter_types_in_signatures_matches(a->fixed_array.base_type, b->fixed_array.base_type);
     else if (a->tag == Type_Tag_pointer)
-        return (~a->pointer.privileges & b->pointer.privileges) == 0 && 
-               formal_parameter_types_in_signatures_matches(a->pointer.base_type, b->pointer.base_type);
+        return formal_parameter_types_in_signatures_matches(a->pointer.base_type, b->pointer.base_type);
+    else if (a->tag == Type_Tag_qualified)
+        return a->qualified.qualifiers == b->qualified.qualifiers &&
+               formal_parameter_types_in_signatures_matches(a->qualified.unqualified, b->qualified.unqualified);
     else
         unexpected_type(__FILE__, __LINE__, a->tag);
 
@@ -327,13 +329,13 @@ bool signatures_match(Function_Handle a_handle, Function_Handle b_handle)
         return formal_parameter_types_in_signatures_matches(a_function->signature, b_function->signature);
 }
 
-Type_Handle monomorphisize_function(Function_Handle polymorphic_handle)
+void monomorphisize_function(Function_Handle polymorphic_handle, Function_Handle* monomorphic_handle, Type_Handle* signature)
 {
     Function* polymorphic = lookup(polymorphic_handle);
     File* file = lookup_file(polymorphic->file); 
     
-    Function_Handle monomorphic_handle = add_function();
-    Function* monomorphic = lookup(monomorphic_handle);
+    *monomorphic_handle = add_function();
+    Function* monomorphic = lookup(*monomorphic_handle);
     monomorphic->file = polymorphic->file;
     monomorphic->attributes = polymorphic->attributes & ~Function_Attribute_is_polymorphic;
     monomorphic->name = polymorphic->name;
@@ -348,7 +350,7 @@ Type_Handle monomorphisize_function(Function_Handle polymorphic_handle)
         Formal_Parameter* monomorphic_formal_parameter = lookup_in(&monomorphic->formal_parameters, i);
         Formal_Parameter* polymorphic_formal_parameter = lookup_in(&polymorphic->formal_parameters, i);
 
-        monomorphic_formal_parameter->name = polymorphic_formal_parameter->name;
+        *monomorphic_formal_parameter = *polymorphic_formal_parameter;
         monomorphic_formal_parameter->type = add_type_reference();
 
         deep_copy_type_reference(monomorphic_formal_parameter->type, polymorphic_formal_parameter->type);
@@ -363,5 +365,5 @@ Type_Handle monomorphisize_function(Function_Handle polymorphic_handle)
     type_check_signature(file, monomorphic);
     type_check_function_body(file, monomorphic);
 
-    return monomorphic->signature;
+    *signature = monomorphic->signature;
 }

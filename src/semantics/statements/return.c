@@ -24,7 +24,7 @@ void type_check_return_statement(const File* file, const Return_Statement* retur
         Type_Handle expected_type = handle_at(&signature->return_types, i);
         Expression* returned_value = lookup_in(&return_statement->values, i);
 
-        type_check_expression(file, returned_value, expected_type, Expression_Check_Flags_retain | Expression_Check_Flags_allow_unitialized_literals | Expression_Check_Flags_rhs_value);
+        type_check_expression(file, returned_value, expected_type, Expression_Check_Flags_allow_unitialized_literals | Expression_Check_Flags_rhs_value);
         if (!expression_types_match(expected_type, returned_value->type))
             print_span_error(file, returned_value->span, "%t expected but found %t.", expected_type, returned_value->type);
     }

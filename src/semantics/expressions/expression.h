@@ -6,6 +6,7 @@ void type_check_binary(const File* file, Binary* expression, Type_Handle inferre
 void type_check_compound_literal(const File* file, Compound_Literal* literal, Type_Handle inferred_type_handle, Expression_Check_Flags flags);
 void type_check_reference_expression(const File* file, Reference* reference, Type_Handle inferred_type_handle);
 void type_check_float_literal(const File* file, Unchecked_Number* literal, Type_Handle inferred_type_handle);
+Number type_check_integer_literal(const File* file, String integer, Span integer_span, Type_Handle inferred_type_handle);
 void type_check_enumeration_constant_access(const File* file, Enumeration_Constant_Access* access);
 void type_check_call_expression(const File* file, Call* call, Expression_Check_Flags flags);
 void type_check_field_access(const File* file, Field_Access* access, Expression_Check_Flags flags);

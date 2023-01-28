@@ -7,23 +7,23 @@ void type_check_field_access(const File* file, Field_Access* access, Expression_
         print_span_error(file, access->span, "Field access is not constant.");
 
     Expression* compound = lookup(access->compound);
+    type_check_expression(file, compound, invalid_type_handle, flags);
     
-    Type* type = lookup(type_check_expression(file, compound, invalid_type_handle, flags));
-    if (type->tag == Type_Tag_compound)
-        access->type = lookup_field_by_name(&type->compound, access->field, access->field_span)->type;
-    else if (type->tag == Type_Tag_pointer)
+    Qualified_Type* qualified_type = &lookup(compound->type)->qualified;    
+    Type* unqualified_type = unqualified(compound->type);
+    
+    if (unqualified_type->tag == Type_Tag_pointer)
     {
-        Type* base_type = lookup(type->pointer.base_type);
-        if (base_type->tag != Type_Tag_compound)
-            print_span_error(file, compound->span, "%t is not a pointer to a compound type.", compound->type);
-        else if (flags & Expression_Check_Flags_lhs_value && !(type->pointer.privileges & Pointer_Type_Privilege_writable))
-            print_span_error(file, compound->span, "Missing writable privilege ($) from %t.", compound->type);
-        else if (flags & Expression_Check_Flags_rhs_value && !(type->pointer.privileges & Pointer_Type_Privilege_readable))
-            print_span_error(file, compound->span, "Missing readable privilege (?) from %t.", compound->type);
+        Type* base_type = lookup(unqualified_type->pointer.base_type);
+        if (base_type->tag != Type_Tag_compound && base_type->tag != Type_Tag_fixed_array && base_type->tag != Type_Tag_dynamic_array)
+            print_span_error(file, compound->span, "%t is not a pointer to a compound or array type.", compound->type);
 
-        access->type = lookup_field_by_name(&base_type->compound, access->field, access->field_span)->type;
+        unqualified_type = base_type;
     }
-    else if (type->tag == Type_Tag_fixed_array)
+
+    if (unqualified_type->tag == Type_Tag_compound)
+        access->type = lookup_field_by_name(&unqualified_type->compound, access->field, access->field_span)->type;
+    else if (unqualified_type->tag == Type_Tag_fixed_array)
     {
         if (compare(access->field, length_field))
         {
@@ -33,7 +33,7 @@ void type_check_field_access(const File* file, Field_Access* access, Expression_
         else
             print_span_error(file, access->field_span, "length expected.");
     }
-    else if (type->tag == Type_Tag_dynamic_array)
+    else if (unqualified_type->tag == Type_Tag_dynamic_array)
     {
         if (compare(access->field, length_field))
         {
@@ -47,22 +47,7 @@ void type_check_field_access(const File* file, Field_Access* access, Expression_
         }
         else if (compare(access->field, elements_field))
         {
-            for (Type_Handle handle = { 0 }; handle.index < types_length; handle.index++)
-            {
-                Pointer_Type* t = &lookup(handle)->pointer;
-                if (t->tag == Type_Tag_pointer && compare(t->base_type, type->dynamic_array.base_type))
-                {
-                    access->type = handle;
-                    return;
-                }
-            }
-
-            Type_Handle handle = add_type();
-            Pointer_Type* pointer_type = &lookup(handle)->pointer;
-            pointer_type->tag = Type_Tag_pointer;
-            pointer_type->base_type = type->dynamic_array.base_type;
-
-            access->type = handle;
+            access->type = find_or_add_pointer_type(unqualified_type->dynamic_array.base_type);
             access->tag = Expression_Tag_dynamic_array_elements;
         }
         else
@@ -70,6 +55,16 @@ void type_check_field_access(const File* file, Field_Access* access, Expression_
     }
     else
         print_span_error(file, compound->span, "%t is not a compound type.", compound->type);
+    
+    if (qualified_type->tag == Type_Tag_qualified)
+    {
+        access->type = find_or_add_qualified_type
+        (
+            lookup(access->type)->is_pointerless ? qualified_type->qualifiers & ~Qualifier_noalias : 
+                                                   qualified_type->qualifiers,
+            access->type
+        );
+    }  
 }
 
 void deep_copy_field_access(Field_Access* restrict destination, const Field_Access* restrict source)

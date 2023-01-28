@@ -3,6 +3,7 @@
 #pragma warning(push, 0)
 #include <windows.h>
 #include <shlwapi.h>
+#include <shellapi.h>
 #pragma warning(pop)
 
 #include <stdio.h>
@@ -14,45 +15,20 @@ bool file_exists(const char (* file_name)[MAX_PATH_LENGTH])
 
 void delete_directory(const char(* directory)[MAX_PATH_LENGTH])
 {
-    if (!PathFileExists(*directory))
-        return;
+    char temp[MAX_PATH_LENGTH + 2] = { 0 };
+    strncpy(temp, (char*)directory, MAX_PATH_LENGTH);
 
-    char path[MAX_PATH_LENGTH];
-    strncpy(path, *directory, MAX_PATH_LENGTH);
-
-    size_t directory_length = strlen(*directory);
-    path[directory_length] = '*';
-    path[directory_length + 1] = '\0';
-
-    WIN32_FIND_DATA fd;
-    HANDLE handle = FindFirstFile(path, &fd);
-
-    if (handle == INVALID_HANDLE_VALUE)
-        return;
-
-    do
+    SHFileOperation(&(SHFILEOPSTRUCT)
     {
-        if (!strcmp(".", fd.cFileName) || !strcmp("..", fd.cFileName))
-            continue;
-
-        strncpy(&path[directory_length], fd.cFileName, MAX_PATH_LENGTH - directory_length);
-        if ((fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == FILE_ATTRIBUTE_DIRECTORY)
-        {
-            size_t file_name_length = strlen(fd.cFileName);
-            path[directory_length + file_name_length] = '/';
-            path[directory_length + file_name_length + 1] = '\0';
-
-            delete_directory(&path);
-        }
-        else if (!DeleteFile(path))
-        {
-            fprintf(stderr, "Could not delete %s.\n", &path);
-            exit(EXIT_FAILURE);
-        }
-    } while (FindNextFile(handle, &fd));
-
-    FindClose(handle);
-    RemoveDirectory(*directory);
+        .hwnd = NULL,
+        .wFunc = FO_DELETE,
+        .pFrom = temp,
+        .pTo = NULL,
+        .fFlags = FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_SILENT,
+        .fAnyOperationsAborted = false,
+        .hNameMappings = NULL,
+        .lpszProgressTitle = NULL
+    });
 }
 
 static void enable_ansi_codes(void)
@@ -161,13 +137,26 @@ void run_test(void)
     ReadFile(owen_out_read, buffer + buffer_length, sizeof(buffer) - buffer_length, &bytes_read, NULL);
     buffer_length += bytes_read;
     buffer[buffer_length] = '\0';
+    
+    // Remove \r from line endings.
+    for (DWORD a = 0; a < buffer_length; a++)
+    {
+        if (buffer[a] == '\r' && buffer[a + 1] == '\n')
+        {
+            for (DWORD b = a; b < buffer_length; b++)
+                buffer[b] = buffer[b + 1];
 
+            buffer_length--;
+            a--;
+        }
+    }
+    
     GetExitCodeProcess(pi.hProcess, &exit_code);
     if (exit_code)
         strcpy(test_result.actual_error, buffer);
     else
     {
-        // TODO: Read until the first double NEW_LINE or end of the buffer.
+        // TODO: Read until the first double newline or end of the buffer.
         // Each part is printed in a fixed order and only errors have 
         // NEW_LINE NEW_LINE. So I can use NEW_LINE NEW_LINE for splitting 
         // the printed output.

@@ -105,11 +105,10 @@ bool formal_parameter_type_matches_actual_parameter_type(const File* file, const
                 return true;
         }
 
-        return expression_types_match(lookup_type_by_reference(file, formal_parameter_type_handle, true), actual_type_handle);
+        return expression_types_match(lookup_type_by_reference(file, formal_parameter_type_handle, true, true), actual_type_handle);
     }
     else if (formal_parameter_type->tag == Type_Reference_Tag_pointer)
-        return (~formal_parameter_type->pointer.privileges & actual_type->pointer.privileges) == 0 &&
-               formal_parameter_type_matches_actual_parameter_type(file, function, formal_parameter_type->pointer.base_type, actual_type->pointer.base_type);
+        return formal_parameter_type_matches_actual_parameter_type(file, function, formal_parameter_type->pointer.base_type, actual_type->pointer.base_type);
     else if (formal_parameter_type->tag == Type_Reference_Tag_dynamic_array)
         return formal_parameter_type_matches_actual_parameter_type(file, function, formal_parameter_type->dynamic_array.base_type, actual_type->dynamic_array.base_type);
     else if (formal_parameter_type->tag == Type_Reference_Tag_fixed_array)
@@ -215,6 +214,7 @@ void resolve_call_to_function_overload_by_actual_parameters(const File* file, In
 
             if (signature_matches_actual_parameter_types(monomorphic_function, &call->actual_parameters))
             {
+                call->callee_declaration.index = b;
                 resolve_type_of_call(call, monomorphic_function->signature);
                 return;
             }
@@ -235,7 +235,9 @@ void resolve_call_to_function_overload_by_actual_parameters(const File* file, In
             }
         }
 
-        resolve_type_of_call(call, monomorphisize_function(handle_at(&file->functions_in_scope, a)));
+        Type_Handle signature;
+        monomorphisize_function(handle_at(&file->functions_in_scope, a), &call->callee_declaration, &signature);
+        resolve_type_of_call(call, signature);
         release_polymorphic_type_mapping();
 
         return;

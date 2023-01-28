@@ -21,13 +21,13 @@ void type_check_cast(const File* file, Cast* cast, Expression_Check_Flags flags)
     if (flags & Expression_Check_Flags_constant)
         print_span_error(file, cast->span, "Cast is not constant.");
 
-    cast->type = lookup_type_by_reference(file, cast->target, true);
+    cast->type = lookup_type_by_reference(file, cast->target, true, false);
     Type* target_type = lookup(cast->type);
 
     Expression* source = lookup(cast->source);
     type_check_expression(file, source, cast->type, flags);
     if (target_type->tag != Type_Tag_function && !is_castable(lookup(source->type), target_type))
-        print_span_error(file, cast->span, "Cannot cast %t to %t", source->type, cast->type);
+        print_span_error(file, cast->span, "Cannot cast %t to %t.", source->type, cast->type);
 }
 
 void deep_copy_cast(Cast* restrict destination, const Cast* restrict source)

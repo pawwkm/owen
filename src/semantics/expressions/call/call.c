@@ -29,36 +29,13 @@ bool signature_matches_actual_parameter_types(const Function* function, const Ex
     return true;
 }
 
-static Address_Of* find_address_of(Expression_Handle expression_handle)
-{
-    Expression* expression = lookup(expression_handle);
-    switch (expression->tag)
-    {
-        case Expression_Tag_array_access:
-            return find_address_of(expression->array_access.array);
-
-        case Expression_Tag_field_access:
-        case Expression_Tag_fixed_array_length:
-        case Expression_Tag_dynamic_array_length:
-        case Expression_Tag_dynamic_array_capacity:
-        case Expression_Tag_dynamic_array_elements:
-            return find_address_of(expression->field_access.compound);
-
-        case Expression_Tag_address_of:
-            return &expression->address_of;
-
-        default:
-            return NULL;
-    }
-}
-
 void type_check_call_expression(const File* file, Call* call, Expression_Check_Flags flags)
 {
     if (flags & Expression_Check_Flags_constant)
         print_span_error(file, call->span, "Calls are not constant.");
 
     for (Array_Size i = 0; i < call->actual_parameters.handles_length; i++)
-        type_check_expression(file, lookup_in(&call->actual_parameters, i), invalid_type_handle, flags & ~Expression_Check_Flags_retain);
+        type_check_expression(file, lookup_in(&call->actual_parameters, i), invalid_type_handle, flags);
 
     Expression* callee = lookup(call->callee);
     if (callee->tag == Expression_Tag_reference)
@@ -72,18 +49,6 @@ void type_check_call_expression(const File* file, Call* call, Expression_Check_F
     }
     else
         call_to_function_typed_expression(file, call, flags);
-
-    Function_Type* signature = &lookup(callee->type)->function;
-    for (Array_Size i = 0; i < call->actual_parameters.handles_length; i++)
-    {
-        Type* formal_parameter_type = lookup_in(&signature->formal_parameters, i);
-        if (formal_parameter_type->tag != Type_Tag_pointer || !(formal_parameter_type->pointer.privileges & Pointer_Type_Privilege_retained))
-            continue;
-
-        Address_Of* address_of = find_address_of(handle_at(&call->actual_parameters, i)); 
-        if (address_of)
-            type_check_address_of(file, address_of, flags & Expression_Check_Flags_retain);
-    }
 }
 
 void deep_copy_call(Call* restrict destination, const Call* restrict source)

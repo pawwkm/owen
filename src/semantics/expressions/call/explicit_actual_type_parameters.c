@@ -24,7 +24,7 @@ void resolve_call_to_function_overload_by_actual_type_parameters(const File* fil
         for (uint8_t b = 0; b < callee->reference.actual_type_parameters.handles_length; b++)
         {
             current_polymorphic_type_mapping->polymorphic_types[b] = handle_at(&function->formal_type_parameters, b);
-            current_polymorphic_type_mapping->monomorphic_types[b] = lookup_type_by_reference(file, handle_at(&callee->reference.actual_type_parameters, b), true);
+            current_polymorphic_type_mapping->monomorphic_types[b] = lookup_type_by_reference(file, handle_at(&callee->reference.actual_type_parameters, b), true, true);
         }
 
         for (Array_Size b = 0; b < call->actual_parameters.handles_length; b++)
@@ -32,7 +32,7 @@ void resolve_call_to_function_overload_by_actual_type_parameters(const File* fil
             Type_Reference_Handle formal_parameter_type = lookup_in(&function->formal_parameters, b)->type;
             Type_Handle actual_parameter_type = lookup_in(&call->actual_parameters, b)->type;
 
-            if (!expression_types_match(lookup_type_by_reference(file, formal_parameter_type, false), actual_parameter_type))
+            if (!expression_types_match(lookup_type_by_reference(file, formal_parameter_type, false, true), actual_parameter_type))
             {
                 is_match = false;
                 break;
@@ -42,7 +42,7 @@ void resolve_call_to_function_overload_by_actual_type_parameters(const File* fil
         if (!is_match)
         {
             release_polymorphic_type_mapping();
-            break;
+            continue;
         }
 
         for (uint16_t b = 0; b < functions_length; b++)
@@ -53,6 +53,7 @@ void resolve_call_to_function_overload_by_actual_type_parameters(const File* fil
 
             if (signature_matches_actual_parameter_types(monomorphic_function, &call->actual_parameters))
             {
+                call->callee_declaration.index = b;
                 resolve_type_of_call(call, monomorphic_function->signature);
                 release_polymorphic_type_mapping();
 
@@ -62,7 +63,10 @@ void resolve_call_to_function_overload_by_actual_type_parameters(const File* fil
 
         if (invalid(call->type))
         {
-            resolve_type_of_call(call, monomorphisize_function(handle_at(&file->functions_in_scope, a)));
+            Type_Handle signature;
+            monomorphisize_function(handle_at(&file->functions_in_scope, a), &call->callee_declaration, &signature);
+
+            resolve_type_of_call(call, signature);
             release_polymorphic_type_mapping();
             
             return;

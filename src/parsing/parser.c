@@ -1,6 +1,7 @@
 #include "parsing.h"
 #include <assert.h>
 #include <string.h>
+#include <stdlib.h>
 
 static bool look_ahead_1(uint8_t tag)
 {
@@ -47,45 +48,16 @@ static bool is_type_ahead(void)
 
     while (lexer.token.tag != Token_Tag_eof)
     {
-        if (lexer.token.tag == Token_Tag_left_square_bracket || lexer.token.tag == Token_Tag_upper_case_identifier)
+        if (lexer.token.tag == Token_Tag_left_square_bracket || 
+            lexer.token.tag == Token_Tag_upper_case_identifier ||
+            lexer.token.tag == Token_Tag_readonly || 
+            lexer.token.tag == Token_Tag_noalias)
         {
             result = true;
             break;
         }
         else if (lexer.token.tag == Token_Tag_pound_sign)
-        {
             next_token();
-            if (lexer.token.tag == Token_Tag_eof)
-                break;
-
-            if (lexer.token.tag == Token_Tag_backtick)
-            {
-                next_token();
-                if (lexer.token.tag == Token_Tag_eof)
-                    break;
-            }
-
-            if (lexer.token.tag == Token_Tag_exclamation_mark)
-            {
-                next_token();
-                if (lexer.token.tag == Token_Tag_eof)
-                    break;
-            }
-
-            if (lexer.token.tag == Token_Tag_question_mark)
-            {
-                next_token();
-                if (lexer.token.tag == Token_Tag_eof)
-                    break;
-            }
-
-            if (lexer.token.tag == Token_Tag_dollar_sign)
-            {
-                next_token();
-                if (lexer.token.tag == Token_Tag_eof)
-                    break;
-            }
-        }   
         else
             break;
     }
@@ -95,13 +67,13 @@ static bool is_type_ahead(void)
     return result;
 }
 
-static bool parse_type(Type_Reference_Handle* reference_handle);
+static bool parse_type(Type_Reference_Handle* reference_handle, bool allow_qualifiers);
 static void parse_types(Type_Reference_Handle_Array* array, const char* type_of_types)
 {
     do
     {
         Type_Reference_Handle type_reference;
-        if (!parse_type(&type_reference))
+        if (!parse_type(&type_reference, true))
             print_span_error(file, lexer.token.span, "%s type expected.", type_of_types);
 
         add_to(array, type_reference);
@@ -110,11 +82,11 @@ static void parse_types(Type_Reference_Handle_Array* array, const char* type_of_
 
 static void parse_base_type(Type_Reference_Handle* base_type)
 {
-    if (!parse_type(base_type))
+    if (!parse_type(base_type, false))
         print_span_error(file, lexer.token.span, "Base type expected.");
 }
 
-static bool parse_type(Type_Reference_Handle* reference_handle)
+static bool parse_type(Type_Reference_Handle* reference_handle, bool allow_qualifiers)
 {
     if (lexer.token.tag == Token_Tag_left_square_bracket)
     {
@@ -125,9 +97,19 @@ static bool parse_type(Type_Reference_Handle* reference_handle)
 
         if (lexer.token.tag == Token_Tag_integer)
         {
+            // type_check_integer_literal(lookup(fu
+            // HACK: type_check_integer_literal used to be used for this part
+            // when it was done in the samantics pass but it isn' vissible
+            // from here. I could forward declare it but the semantics pass
+            // is not yet initialized.
+            //
+            // So do the bare minimum for now.
+            //
+            // Maybe I could parse numbers here into 64 bit numbers and set the "type"
+            // so that the semantics pass only need to be concerned with the number 
+            // being within the inferred bounds.
             Fixed_Array_Type_Reference* array = &lookup(*reference_handle)->fixed_array;
-            array->size = lexer.token.string;
-            array->size_span = lexer.token.span;
+            array->size = (uint32_t)atoi(lexer.token.string.text);
             array->tag = Type_Reference_Tag_fixed_array;
             next_token();
 
@@ -158,18 +140,6 @@ static bool parse_type(Type_Reference_Handle* reference_handle)
         pointer->tag = Type_Reference_Tag_pointer;
 
         next_token();
-        if (advance_if(Token_Tag_backtick))
-            pointer->privileges |= Pointer_Type_Privilege_retained;
-
-        if (advance_if(Token_Tag_exclamation_mark))
-            pointer->privileges |= Pointer_Type_Privilege_alias;
-
-        if (advance_if(Token_Tag_question_mark))
-            pointer->privileges |= Pointer_Type_Privilege_readable;
-
-        if (advance_if(Token_Tag_dollar_sign))
-            pointer->privileges |= Pointer_Type_Privilege_writable;
-
         parse_base_type(&pointer->base_type);
         pointer->span.end = lookup(pointer->base_type)->span.end;
     }
@@ -224,7 +194,7 @@ static bool parse_type(Type_Reference_Handle* reference_handle)
                     do
                     {
                         Type_Reference_Handle handle;
-                        if (!parse_type(&handle))
+                        if (!parse_type(&handle, true))
                             print_span_error(file, lexer.token.span, "Type expected.");
 
                         add_to(&reference->polymorphic_compound.actual_type_parameters, handle);
@@ -243,6 +213,23 @@ static bool parse_type(Type_Reference_Handle* reference_handle)
             else
                 reference->tag = Type_Reference_Tag_name;
         }
+    }
+    else if (allow_qualifiers && (lexer.token.tag == Token_Tag_readonly || lexer.token.tag == Token_Tag_noalias))
+    {
+        *reference_handle = add_type_reference();
+
+        Qualified_Type_Reference* qualified = &lookup(*reference_handle)->qualified;
+        qualified->span.start = lexer.token.span.start;
+        qualified->tag = Type_Reference_Tag_qualified;
+
+        if (advance_if(Token_Tag_readonly))
+            qualified->qualifiers |= Qualifier_readonly;
+
+        if (advance_if(Token_Tag_noalias))
+            qualified->qualifiers |= Qualifier_noalias;
+
+        parse_base_type(&qualified->unqualified);
+        qualified->span.end = lookup(qualified->unqualified)->span.end;
     }
     else
         return false;
@@ -364,7 +351,7 @@ static Expression_Handle parse_primary_expression(void)
                 do
                 {
                     Type_Reference_Handle type_reference_handle;
-                    if (!parse_type(&type_reference_handle))
+                    if (!parse_type(&type_reference_handle, true))
                         print_span_error(file, lexer.token.span, "Type expected.");
 
                     add_to(&reference->actual_type_parameters, type_reference_handle);
@@ -489,7 +476,7 @@ static Expression_Handle parse_primary_expression(void)
         next_token();
         expect(Token_Tag_left_parentheses, "( expected.");
 
-        if (parse_type(&size_of->t))
+        if (parse_type(&size_of->t, true))
             size_of->expression = invalid_expression_handle;
         else 
         {
@@ -535,7 +522,7 @@ static Expression_Handle parse_primary_expression(void)
 
         Position start = lexer.token.span.start;
         Type_Reference_Handle type;
-        assert(parse_type(&type));
+        assert(parse_type(&type, false));
 
         if (advance_if(Token_Tag_dot))
         {
@@ -574,7 +561,7 @@ static Expression_Handle parse_primary_expression(void)
         cast->type = invalid_type_handle;
         cast->span.start = lexer.token.span.start;
 
-        parse_type(&cast->target);
+        parse_type(&cast->target, true);
         expect(Token_Tag_left_parentheses, "( expected.");
 
         cast->source = parse_expression(0);
@@ -618,6 +605,7 @@ static Expression_Handle parse_postfix_expression(void)
 
             call->span.start = lexer.token.span.start;
             call->callee = expression_handle;
+            call->callee_declaration = invalid_function_handle;
             call->type = invalid_type_handle;
             call->tag = Expression_Tag_call;
             call->span.start = lexer.token.span.start;
@@ -968,7 +956,7 @@ static Statement_Handle parse_return_statement(void)
 static Variable_Handle parse_variable(bool first_variable)
 {
     Type_Reference_Handle type_reference;
-    if (!parse_type(&type_reference))
+    if (!parse_type(&type_reference, true))
     {
         if (first_variable)
             return invalid_variable_handle;
@@ -1103,7 +1091,7 @@ static bool parse_function_declaration(bool is_public)
         do
         {
             Type_Reference_Handle type_reference_handle;
-            if (!parse_type(&type_reference_handle))
+            if (!parse_type(&type_reference_handle, true))
                 print_span_error(file, lexer.token.span, "Formal type parameter expected.");
 
             Type_Reference* type_reference = lookup(type_reference_handle);
@@ -1124,7 +1112,7 @@ static bool parse_function_declaration(bool is_public)
         {
             Formal_Parameter_Handle parameter_handle = add_formal_parameter();
             Formal_Parameter* parameter = lookup(parameter_handle);
-            if (!parse_type(&parameter->type))
+            if (!parse_type(&parameter->type, true))
                 print_span_error(file, lexer.token.span, "Formal parameter type expected.");
 
             parameter->name = lexer.token.interned;
@@ -1152,7 +1140,7 @@ static void parse_field(Compound_Type* compound)
     Field_Handle field_handle = add_field(); 
     Field* field = lookup(field_handle);
 
-    if (!parse_type(&field->type_reference))
+    if (!parse_type(&field->type_reference, true))
         print_span_error(file, lexer.token.span, "Field type expected.");
 
     field->type = invalid_type_handle;
@@ -1191,14 +1179,14 @@ static bool parse_compound_declaration(bool is_public)
     Lexer start = lexer;
     if (advance_if(Token_Tag_left_square_bracket))
     {
-        if (lexer.token.tag == Token_Tag_integer)
+        if (lexer.token.tag == Token_Tag_integer || lexer.token.tag == Token_Tag_right_square_bracket)
             lexer = start;
         else
         {
             do
             {
                 Type_Reference_Handle type_reference_handle;
-                if (!parse_type(&type_reference_handle))
+                if (!parse_type(&type_reference_handle, false))
                     print_span_error(file, lexer.token.span, "Formal type parameter expected.");
 
                 Type_Reference* type_reference = lookup(type_reference_handle);
@@ -1240,7 +1228,7 @@ static bool parse_enumeration_declaration(bool is_public)
     expect(Token_Tag_upper_case_identifier, "Type expected.");
     expect(Token_Tag_colon, ": expected.");
 
-    if (!parse_type(&enumeration->underlying_type_reference))
+    if (!parse_type(&enumeration->underlying_type_reference, true))
         print_span_error(file, lexer.token.span, "Type expected.");
    
     Type_Reference* underlying_type_reference = lookup(enumeration->underlying_type_reference);

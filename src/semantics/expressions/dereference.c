@@ -11,15 +11,21 @@ void type_check_dereference(const File* file, Dereference* dereference, Expressi
     if (!is_addressable(sub_expression->tag))
         print_span_error(file, sub_expression->span, "Expression is not addressable.");
 
-    Pointer_Type* type = &lookup(sub_expression->type)->pointer;
+    Type* type = lookup(sub_expression->type);
+    Qualifier qualifiers = 0;
+
+    if (type->tag == Type_Tag_qualified)
+    {
+        qualifiers = type->qualified.qualifiers;
+        type = lookup(type->qualified.unqualified);
+    }
+
     if (type->tag != Type_Tag_pointer)
         print_span_error(file, sub_expression->span, "Pointer type expected but found %t.", sub_expression->type);
-    else if (flags & Expression_Check_Flags_lhs_value && !(type->privileges & Pointer_Type_Privilege_writable))
-        print_span_error(file, dereference->span, "Missing writable privilege ($) from %t.", sub_expression->type);
-    else if (flags & Expression_Check_Flags_rhs_value && !(type->privileges & Pointer_Type_Privilege_readable))
-        print_span_error(file, dereference->span, "Missing readable privilege (?) from %t.", sub_expression->type);
+    else if (lookup(type->pointer.base_type)->is_pointerless)
+        qualifiers &= ~Qualifier_noalias;
 
-    dereference->type = type->base_type;
+    dereference->type = find_or_add_qualified_type(qualifiers, type->pointer.base_type);
 }
 
 void deep_copy_dereference(Dereference* restrict destination, const Dereference* restrict source)

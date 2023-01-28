@@ -2,7 +2,7 @@
 
 void type_check_enumeration_constant_access(const File* file, Enumeration_Constant_Access* access)
 {
-    Type_Handle handle = lookup_type_by_reference(file, access->enumeration, true);
+    Type_Handle handle = lookup_type_by_reference(file, access->enumeration, true, true);
     Enumeration_Type* enumeration = &lookup(handle)->enumeration;
     
     if (enumeration->tag != Type_Tag_enumeration)

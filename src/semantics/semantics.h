@@ -16,7 +16,8 @@ Symbol* symbol_of_reference(Interned_String_Handle name);
 
 bool signatures_match(Function_Handle a, Function_Handle b);
 
-void assign_types_to_compound_fields(const Compound_Type* compound);
+void assign_types_to_compound_fields(Compound_Type* compound);
+void set_size_and_allignment(Compound_Type* compound);
 
 void intern_primitive_type_identifiers(void);
 
@@ -54,15 +55,14 @@ bool type_check_statements(const File* file, Statement_Handle_Array* body, const
 typedef enum
 {
     Expression_Check_Flags_none = 1 << 0,
-    Expression_Check_Flags_retain = 1 << 1,
+    Expression_Check_Flags_constant = 1 << 1,
     Expression_Check_Flags_allow_unitialized_literals = 1 << 2,
     Expression_Check_Flags_is_nested = 1 << 3,
-    Expression_Check_Flags_constant = 1 << 4,
-    Expression_Check_Flags_lhs_value = 1 << 5,
-    Expression_Check_Flags_rhs_value = 1 << 6
+    Expression_Check_Flags_lhs_value = 1 << 4,
+    Expression_Check_Flags_rhs_value = 1 << 5
 } Expression_Check_Flags;
+
 Type_Handle type_check_expression(const File* file, Expression* expression, Type_Handle inferred_type, Expression_Check_Flags flags);
-Number type_check_integer_literal(const File* file, String integer, Span integer_span, Type_Handle inferred_type_handle);
 
 void deep_copy_type_references(Type_Reference_Handle_Array* restrict destination, const Type_Reference_Handle_Array* restrict source);
 void deep_copy_type_reference(Type_Reference_Handle destination_handle, Type_Reference_Handle source_handle);
@@ -71,10 +71,13 @@ void deep_copy_expressions(Expression_Handle_Array* restrict destination, const 
 void deep_copy_expression(Expression* restrict destination, const Expression* restrict source);
 
 Type_Handle monomorphisize_compound(Type_Handle polymorphic_handle, const Compound_Type* polymorphic);
-Type_Handle monomorphisize_function(Function_Handle polymorphic_handle);
+void monomorphisize_function(Function_Handle polymorphic_handle, Function_Handle* monomorphic_handle, Type_Handle* signature);
 
 extern Interned_String_Handle length_field;
 extern Interned_String_Handle capacity_field;
 extern Interned_String_Handle elements_field;
 
-Type_Handle find_or_add_pointer_type(Type_Handle base_type, Pointer_Type_Privilege privileges);
+Type_Handle find_or_add_dynamic_pointer_type(Type_Handle base_type);
+Type_Handle find_or_add_pointer_type(Type_Handle base_type);
+Type_Handle find_or_add_qualified_type(Qualifier qualifiers, Type_Handle unqualified_type);
+Type* unqualified(Type_Handle handle);

@@ -412,9 +412,14 @@ void type_check_binary(const File* file, Binary* binary, Type_Handle inferred_ty
     }
 
     Type* lhs_type = lookup(lhs->type);
-    Type* rhs_type = lookup(rhs->type);
-    bool operator_is_defined = false;
+    if (lhs_type->tag == Type_Tag_qualified)
+        lhs_type = lookup(lhs_type->qualified.unqualified);
     
+    Type* rhs_type = lookup(rhs->type);
+    if (rhs_type->tag == Type_Tag_qualified)
+        rhs_type = lookup(rhs_type->qualified.unqualified);
+    
+    bool operator_is_defined = false;   
     if (!expression_types_match(lhs->type, rhs->type))
     {
         if (binary->operator == Binary_Operator_plus || binary->operator == Binary_Operator_minus)

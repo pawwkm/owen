@@ -4,9 +4,9 @@ Number type_check_integer_literal(const File* file, String integer, Span integer
 {
     if (invalid(inferred_type_handle))
         print_span_error(file, integer_span, "Integer type cannot be inferred.");
-    
-    Type_Tag inferred_type_tag = lookup(inferred_type_handle)->tag;
-    if (inferred_type_tag > Type_Tag_u64)
+
+    Type* unqualified_type = unqualified(inferred_type_handle);    
+    if (unqualified_type->tag > Type_Tag_u64)
         print_span_error(file, integer_span, "Cannot infer literal as %t.", inferred_type_handle);
 
     uint32_t index = 0;
@@ -50,27 +50,27 @@ Number type_check_integer_literal(const File* file, String integer, Span integer
         uint8_t digit = integer.text[index] - (integer.text[index] <= '9' ? '0' : 'A' - 10);
         uint64_t new_value = current_value * base + digit;
 
-        if (inferred_type_tag == Type_Tag_i8 && new_value > INT8_MAX ||
-            inferred_type_tag == Type_Tag_i16 && new_value > INT16_MAX ||
-            inferred_type_tag == Type_Tag_i32 && new_value > INT32_MAX ||
-            inferred_type_tag == Type_Tag_i64 && new_value > INT64_MAX ||
-            inferred_type_tag == Type_Tag_u8  && new_value > UINT8_MAX ||
-            inferred_type_tag == Type_Tag_u16 && new_value > UINT16_MAX ||
-            inferred_type_tag == Type_Tag_u32 && new_value > UINT32_MAX ||
-            inferred_type_tag == Type_Tag_u64 && new_value < current_value)
+        if (unqualified_type->tag == Type_Tag_i8 && new_value > INT8_MAX ||
+            unqualified_type->tag == Type_Tag_i16 && new_value > INT16_MAX ||
+            unqualified_type->tag == Type_Tag_i32 && new_value > INT32_MAX ||
+            unqualified_type->tag == Type_Tag_i64 && new_value > INT64_MAX ||
+            unqualified_type->tag == Type_Tag_u8  && new_value > UINT8_MAX ||
+            unqualified_type->tag == Type_Tag_u16 && new_value > UINT16_MAX ||
+            unqualified_type->tag == Type_Tag_u32 && new_value > UINT32_MAX ||
+            unqualified_type->tag == Type_Tag_u64 && new_value < current_value)
             print_span_error(file, integer_span, "%S overflows %t.", integer, inferred_type_handle);
 
         current_value = new_value;
     }
 
     Number number;
-    if (inferred_type_tag == Type_Tag_i8)
+    if (unqualified_type->tag == Type_Tag_i8)
         number.i8 = (int8_t)current_value;
-    else if (inferred_type_tag == Type_Tag_i16)
+    else if (unqualified_type->tag == Type_Tag_i16)
         number.i16 = (int16_t)current_value;
-    else if (inferred_type_tag == Type_Tag_i32)
+    else if (unqualified_type->tag == Type_Tag_i32)
         number.i32 = (int32_t)current_value;
-    else if (inferred_type_tag == Type_Tag_i64)
+    else if (unqualified_type->tag == Type_Tag_i64)
         number.i64 = (int64_t)current_value;
     else
         number.u64 = current_value;

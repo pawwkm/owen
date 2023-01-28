@@ -16,7 +16,7 @@ void type_check_sizeof(const File* file, Size_Of* size_of, Type_Handle inferred_
     if (invalid(size_of->t))
         t = lookup(type_check_expression(file, lookup(size_of->expression), invalid_type_handle, flags | Expression_Check_Flags_is_nested));
     else
-        t = lookup(lookup_type_by_reference(file, size_of->t, true));
+        t = lookup(lookup_type_by_reference(file, size_of->t, true, true));
 
     if (!t->size_of)
         ice(__FILE__, __LINE__, "Zero sized type.");

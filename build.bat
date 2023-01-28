@@ -45,6 +45,7 @@ set runner_compiler_options= /Febin\runner.exe
                       
 set linker_options= /incremental:no ^
                     /opt:ref ^
+                    shell32.lib ^
                     Shlwapi.lib ^
                     /subsystem:console
 

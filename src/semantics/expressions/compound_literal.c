@@ -14,7 +14,7 @@ static void each_field_is_initialized_at_most_once(const File* file, const Compo
     }
 }
 
-static void type_check_field_initializers(const File* file, const Compound_Type* type, const Compound_Literal* compound_literal, Expression_Check_Flags flags)
+static void type_check_field_initializers(const File* file, const Compound_Type* type, const Compound_Literal* compound_literal, Expression_Check_Flags flags, Qualifier qualifiers)
 {
     for (Array_Size i = 0; i < compound_literal->field_initializers.handles_length; i++)
     {
@@ -22,9 +22,11 @@ static void type_check_field_initializers(const File* file, const Compound_Type*
         Field* field = lookup_field_by_name(type, initializer->field, initializer->field_span);
         Expression* expression = lookup(initializer->expression);
 
-        type_check_expression(file, expression, field->type, flags);
-        if (!expression_types_match(field->type, expression->type))
-            print_span_error(file, expression->span, "%t expected but found %t.", field->type, expression->type);
+        Type_Handle qualified_field_type = qualifiers ? find_or_add_qualified_type(qualifiers, field->type) : field->type;
+
+        type_check_expression(file, expression, qualified_field_type, flags);
+        if (!expression_types_match(qualified_field_type, expression->type))
+            print_span_error(file, expression->span, "%t expected but found %t.", qualified_field_type, expression->type);
     }
 }
 
@@ -36,13 +38,15 @@ void type_check_compound_literal(const File* file, Compound_Literal* literal, Ty
     if (invalid(inferred_type_handle))
         print_span_error(file, literal->span, "Compound type cannot be inferred.");
 
-    Type* inferred_type = lookup(inferred_type_handle);
-    if (inferred_type->tag != Type_Tag_compound)
+    Qualified_Type* qualified_type = &lookup(inferred_type_handle)->qualified;
+    Compound_Type* unqualified_compound_type = &unqualified(inferred_type_handle)->compound;
+    
+    if (unqualified_compound_type->tag != Type_Tag_compound)
         print_span_error(file, literal->span, "Cannot infer literal as %t.", inferred_type_handle);
 
     literal->type = inferred_type_handle;
     each_field_is_initialized_at_most_once(file, literal);
-    type_check_field_initializers(file, &inferred_type->compound, literal, flags);
+    type_check_field_initializers(file, unqualified_compound_type, literal, flags, qualified_type->tag == Type_Tag_qualified ? qualified_type->qualifiers : 0);
 }
 
 static void deep_copy_field_initializer(Field_Initializer* destination, const Field_Initializer* source)

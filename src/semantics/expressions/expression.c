@@ -55,19 +55,39 @@ Type_Handle type_check_expression(const File* file, Expression* expression, Type
     else
         unexpected_expression(__FILE__, __LINE__, expression->tag);
 
+    if (flags & Expression_Check_Flags_rhs_value && !invalid(expression->type))
+    {
+        Qualified_Type* expression_type = &lookup(expression->type)->qualified;
+        if (expression_type->tag == Type_Tag_qualified && expression_type->is_pointerless)
+            expression->type = expression_type->unqualified;
+    }
+
     return expression->type;
 }
 
 bool expression_types_match(Type_Handle expected_type_handle, Type_Handle actual_type_handle)
 {
+    Qualifier expected_qualifiers = 0;
     Type* expected_type = lookup(expected_type_handle);
-    Type* actual_type = lookup(actual_type_handle);
+    if (expected_type->tag == Type_Tag_qualified)
+    {
+        expected_qualifiers = expected_type->qualified.qualifiers;
+        expected_type = lookup(expected_type->qualified.unqualified);
+    }
 
-    return expected_type == actual_type || 
+    Qualifier actual_qualifiers = 0;
+    Type* actual_type = lookup(actual_type_handle);
+    if (actual_type->tag == Type_Tag_qualified)
+    {
+        actual_qualifiers = actual_type->qualified.qualifiers;
+        actual_type = lookup(actual_type->qualified.unqualified);
+    }
+
+    return (expected_type == actual_type || 
            expected_type->tag == actual_type->tag &&
            expected_type->tag == Type_Tag_pointer &&
-           (~actual_type->pointer.privileges & expected_type->pointer.privileges) == 0 &&
-           expression_types_match(expected_type->pointer.base_type, actual_type->pointer.base_type);
+           expression_types_match(expected_type->pointer.base_type, actual_type->pointer.base_type)) &&
+          (actual_qualifiers & ~expected_qualifiers) == 0;
 }
 
 void deep_copy_expressions(Expression_Handle_Array* destination, const Expression_Handle_Array* source)

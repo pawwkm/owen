@@ -138,6 +138,8 @@ typedef enum
     Token_Tag_false,
     Token_Tag_null,
     Token_Tag_version,
+    Token_Tag_readonly,
+    Token_Tag_noalias,
     Token_Tag_unicode_code_point,
     Token_Tag_utf8_string,
     Token_Tag_logical_or,
@@ -182,9 +184,6 @@ typedef enum
     Token_Tag_comma,
     Token_Tag_semicolon,
     Token_Tag_colon,
-    Token_Tag_backtick,
-    Token_Tag_question_mark,
-    Token_Tag_dollar_sign,
     Token_Tag_uninitialized_literal,
     Token_Tag_blank_identifier,
     Token_Tag_eof
@@ -234,15 +233,17 @@ typedef enum
     Type_Tag_dynamic_array,
     Type_Tag_fixed_array,
     Type_Tag_none,
-    Type_Tag_tuple
+    Type_Tag_tuple,
+    Type_Tag_qualified
 } Type_Tag;
 
 #define COMMON_TYPE_FIELDS  \
 struct                      \
 {                           \
     uint8_t tag;            \
-    uint16_t allignment_of; \
-    uint16_t size_of;       \
+    uint32_t allignment_of; \
+    uint32_t size_of;       \
+    uint8_t is_pointerless; \
 }
 
 typedef struct
@@ -354,21 +355,10 @@ typedef struct
     Type_Handle_Array types;
 } Tuple_Type;
 
-typedef enum
-{
-    Pointer_Type_Privilege_retained = 1,
-    Pointer_Type_Privilege_alias = 2,
-    Pointer_Type_Privilege_readable = 4,
-    Pointer_Type_Privilege_writable = 8
-} Pointer_Type_Privilege;
-
-#define ALL_PRIVILEGES (Pointer_Type_Privilege_retained | Pointer_Type_Privilege_alias | Pointer_Type_Privilege_readable | Pointer_Type_Privilege_writable)
-
 typedef struct
 {
     COMMON_TYPE_FIELDS;
     Type_Handle base_type;
-    Pointer_Type_Privilege privileges;
 } Pointer_Type;
 
 typedef struct
@@ -384,6 +374,19 @@ typedef struct
     Type_Handle base_type;
 } Dynamic_Array_Type;
 
+typedef enum
+{
+    Qualifier_readonly = 1,
+    Qualifier_noalias = 2
+} Qualifier;
+
+typedef struct
+{
+    COMMON_TYPE_FIELDS;
+    uint8_t qualifiers;    
+    Type_Handle unqualified;
+} Qualified_Type;
+
 typedef union
 {
     COMMON_TYPE_FIELDS;
@@ -395,6 +398,7 @@ typedef union
     Pointer_Type pointer;
     Fixed_Array_Type fixed_array;
     Dynamic_Array_Type dynamic_array;
+    Qualified_Type qualified;
 } Type;
 
 typedef enum
@@ -404,7 +408,8 @@ typedef enum
     Type_Reference_Tag_dynamic_array,
     Type_Reference_Tag_fixed_array,
     Type_Reference_Tag_function,
-    Type_Reference_Tag_polymorphic_compound
+    Type_Reference_Tag_polymorphic_compound,
+    Type_Reference_Tag_qualified
 } Type_Reference_Tag;
 
 #define COMMON_TYPE_REFERENCE_FIELDS \
@@ -423,7 +428,6 @@ typedef struct
 typedef struct
 {
     COMMON_TYPE_REFERENCE_FIELDS;
-    Pointer_Type_Privilege privileges;
 
     // While the grammar defines this as a list of upper_case_identifier
     // it is easier implementation wise for lookups if it is
@@ -445,8 +449,7 @@ typedef struct
 typedef struct
 {
     COMMON_TYPE_REFERENCE_FIELDS;
-    String size;
-    Span size_span;
+    uint32_t size;
 
     // While the grammar defines this as a list of upper_case_identifier
     // it is easier implementation wise for lookups if it is
@@ -470,6 +473,13 @@ typedef struct
     Type_Reference_Handle_Array actual_type_parameters;
 } Polymorphic_Compound_Type_Reference;
 
+typedef struct
+{
+    COMMON_TYPE_REFERENCE_FIELDS;
+    Qualifier qualifiers;
+    Type_Reference_Handle unqualified;
+} Qualified_Type_Reference;
+
 typedef union
 {
     COMMON_TYPE_REFERENCE_FIELDS;
@@ -479,6 +489,7 @@ typedef union
     Fixed_Array_Type_Reference fixed_array;
     Function_Type_Reference function;
     Polymorphic_Compound_Type_Reference polymorphic_compound;
+    Qualified_Type_Reference qualified;
 } Type_Reference;
 
 typedef enum
@@ -1148,7 +1159,7 @@ void generate_pe(void);
 Type_Handle lookup_signature(const File* file, const Function* function);
 Field* lookup_field_by_name(const Compound_Type* compound, Interned_String_Handle name, Span name_span);
 Constant* lookup_constant_by_name(const Enumeration_Type* enumeration, Interned_String_Handle name, Span name_span);
-Type_Handle lookup_type_by_reference(const File* file, Type_Reference_Handle reference_handle, bool print_error_if_reference_is_undefined);
+Type_Handle lookup_type_by_reference(const File* file, Type_Reference_Handle reference_handle, bool print_error_if_reference_is_undefined, bool allow_noalias);
 Type_Handle lookup_tuple_type_by_signature(Type_Handle signature_handle);
 
 #define DECLARE_DEFAULT_ARENA(TYPE, LOWER_CASE_TYPE, LOWER_CASE_TYPE_PLURAL, UINT_X)                          \

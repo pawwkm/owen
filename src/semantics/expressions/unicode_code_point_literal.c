@@ -10,43 +10,24 @@ void type_check_unicode_code_point_literal(const File* file, Unicode_Code_Point_
         print_span_error(file, literal->span, "Cannot infer literal as %t.", inferred_type_handle);
     
     Number value;
-    if (inferred_type_tag == Type_Tag_i8)
-    {
-        if (literal->code_point > INT8_MAX)
-            print_span_error(file, literal->span, "%u overflows %t.", literal->code_point, literal->type);
-
+    if (inferred_type_tag == Type_Tag_i8 && literal->code_point <= INT8_MAX)
         value.i8 = (int8_t)literal->code_point;
-    }
-    else if (inferred_type_tag == Type_Tag_i16)
-    {
-        if (literal->code_point > INT16_MAX)
-            print_span_error(file, literal->span, "%u overflows %t.", literal->code_point, literal->type);
-
+    else if (inferred_type_tag == Type_Tag_i16 && literal->code_point <= INT16_MAX)
         value.i16 = (int16_t)literal->code_point;
-    }
-    else if (inferred_type_tag == Type_Tag_i32)
-    {
-        if (literal->code_point > INT32_MAX)
-            print_span_error(file, literal->span, "%u overflows %t.", literal->code_point, literal->type);
-
+    else if (inferred_type_tag == Type_Tag_i32 && literal->code_point <= INT32_MAX)
         value.i32 = (int32_t)literal->code_point;
-    }
-    else if (inferred_type_tag == Type_Tag_u8)
-    {
-        if (literal->code_point > UINT8_MAX)
-            print_span_error(file, literal->span, "%u overflows %t.", literal->code_point, literal->type);
-
+    else if (inferred_type_tag == Type_Tag_i64)
+        value.i64 = (int64_t)literal->code_point;
+    else if (inferred_type_tag == Type_Tag_u8 && literal->code_point <= UINT8_MAX)
         value.u8 = (uint8_t)literal->code_point;
-    }
-    else if (inferred_type_tag == Type_Tag_u16)
-    {
-        if (literal->code_point > UINT16_MAX)
-            print_span_error(file, literal->span, "%u overflows %t.", literal->code_point, literal->type);
-
+    else if (inferred_type_tag == Type_Tag_u16 && literal->code_point <=  UINT16_MAX)
         value.u16 = (uint16_t)literal->code_point;
-    }
-    else
+    else if (inferred_type_tag == Type_Tag_u32)
+        value.u32 = literal->code_point;
+    else if (inferred_type_tag == Type_Tag_u64)
         value.u64 = literal->code_point;
+    else
+        print_span_error(file, literal->span, "%u overflows %t.", literal->code_point, literal->type);
 
     *(Number_Literal*)literal = (Number_Literal)
     {

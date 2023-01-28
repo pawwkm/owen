@@ -1,12 +1,9 @@
 #pragma once
 
-#ifdef _WIN64
-#define NEW_LINE "\r\n"
-#else
-#define NEW_LINE "\n"
-#endif
-
 #define MAX_PATH_LENGTH 255
+#define STRINGIZE(x) STRINGIZE2(x)
+#define STRINGIZE2(x) #x
+#define LINE_STRING STRINGIZE(__LINE__)
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -15,7 +12,7 @@
 typedef bool (*Test_Iterator)(void);
 
 #define MAX_OWEN_SOURCES 2
-#define OUTPUT_LENGTH 6600
+#define OUTPUT_LENGTH 7500
 
 #define EXE_NAME "owen "
 #define EXE_NAME_LENGTH 5
@@ -176,6 +173,9 @@ typedef struct
     char* file_friendly_default_value_name;
     char* default_value_name;
 
+    char* address_of_name;
+    char* file_friendly_address_of_name;
+
     char* min_value;
     char* max_value;
 
@@ -188,12 +188,14 @@ typedef struct
     Binary_Operator_Tag operators_defined_for_type;
 } Type;
 
-bool is_readable_type(uint8_t index);
-bool is_writable_type(uint8_t index);
-bool pointer_is_retained(uint8_t index);
-bool pointer_type_is_compatible_with(uint8_t lhs_index, uint8_t rhs_index);
+bool is_readonly_type(const char* type);
+bool is_noalias_type(const char* type);
+bool is_qualified_type(const char* type);
+bool compatible_types(const char* expected, const char* actual);
 
-#define TYPES_LENGTH 33
+#define TYPES_LENGTH 23
+#define BOOL_TYPE_INDEX 0
+
 #define LAST_TYPE_INDEX (TYPES_LENGTH - 1)
 #define FIRST_SIGNED_NUMBER_TYPE_INDEX 1
 #define LAST_SIGNED_NUMBER_TYPE_INDEX 4
@@ -222,7 +224,13 @@ bool pointer_type_is_compatible_with(uint8_t lhs_index, uint8_t rhs_index);
 #define LAST_COMPOUND_TYPE_INDEX 15
 
 #define FIRST_POINTER_TYPE_INDEX 16
-#define LAST_POINTER_TYPE_INDEX 31
+#define READONLY_TYPE_INDEX 17
+#define READONLY_NOALIAS_TYPE_INDEX 18
+#define NOALIAS_TYPE_INDEX 19
+#define LAST_POINTER_TYPE_INDEX 19
+
+#define DYNAMIC_ARRAY_TYPE_INDEX 20
+#define FIXED_ARRAY_TYPE_INDEX 21
 
 extern Type types[TYPES_LENGTH];
 

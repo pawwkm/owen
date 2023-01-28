@@ -3,8 +3,8 @@
 static bool operator_is_defined(Type_Handle expected, uint8_t operator_tag, Type_Handle actual)
 {
     bool types_match     = expression_types_match(expected, actual);
-    uint8_t expected_tag = lookup(expected)->tag;
-    uint8_t actual_tag   = lookup(actual)->tag;
+    uint8_t expected_tag = unqualified(expected)->tag;
+    uint8_t actual_tag   = unqualified(actual)->tag;
 
     if (operator_tag == Assignment_Operator_plus_equal || operator_tag == Assignment_Operator_minus_equal)
         return types_match && actual_tag <= Type_Tag_f64 || 
@@ -83,13 +83,7 @@ static void type_check_ballanced_assignment_statement(const File* file, Assignme
         if (lhs->tag == Expression_Tag_blank_identifier)
             print_span_error(file, lhs->span, "_ only allowed in tuple declarations and assignments.");
 
-        Type* lhs_type = lookup(lhs->type);
-        Expression_Check_Flags flags = Expression_Check_Flags_rhs_value; 
-        if (lhs_type->tag == Type_Tag_pointer && lhs_type->pointer.privileges & Pointer_Type_Privilege_retained)
-            flags |= Expression_Check_Flags_retain;
-
-        type_check_expression(file, rhs, lhs->type, flags);
-
+        type_check_expression(file, rhs, lhs->type, Expression_Check_Flags_rhs_value);
         if (!operator_is_defined(lhs->type, assignment_statement->operator, rhs->type))
             print_span_error(file, assignment_statement->operator_span, "Operator not defined for %t and %t.", lhs->type, rhs->type);
     }
@@ -104,6 +98,13 @@ void type_check_assignment_statement(const File* file, Assignment_Statement* ass
         type_check_expression(file, lhs, invalid_type_handle, Expression_Check_Flags_lhs_value);
         if (!is_addressable(lhs->tag))
             print_span_error(file, lhs->span, "Expression is not addressable.");
+
+        if (!invalid(lhs->type))
+        {
+            Qualified_Type* qualified_type = &lookup(lhs->type)->qualified;
+            if (qualified_type->tag == Type_Tag_qualified && qualified_type->qualifiers & Qualifier_readonly)
+                print_span_error(file, lhs->span, "Assigning to readonly expression.");
+        }
     }
 
     if (assignment_statement->lhs.handles_length > 1 && assignment_statement->rhs.handles_length == 1)

@@ -59,12 +59,8 @@ static void type_check_ballanced_declaration_statement(const File* file, Declara
 
         check_that_identifier_is_undefined(file, variable->name, variable->name_span);
 
-        Type* variable_type = lookup(variable->type);
         Expression* expression = lookup_in(&declaration_statement->expressions, i);
-        
         Expression_Check_Flags flags = Expression_Check_Flags_allow_unitialized_literals | Expression_Check_Flags_rhs_value;
-        if (variable_type->tag == Type_Tag_pointer && variable_type->pointer.privileges & Pointer_Type_Privilege_retained)
-            flags |= Expression_Check_Flags_retain;
 
         type_check_expression(file, expression, variable->type, flags);
         if (!expression_types_match(variable->type, expression->type))
@@ -79,7 +75,7 @@ void type_check_declaration_statement(const File* file, Declaration_Statement* d
     for (Array_Size i = 0; i < declaration_statement->variables.handles_length; i++)
     {
         Variable* variable = lookup_in(&declaration_statement->variables, i);
-        variable->type = lookup_type_by_reference(file, variable->type_reference, true);
+        variable->type = lookup_type_by_reference(file, variable->type_reference, true, false);
     }
 
     if (!declaration_statement->expressions.handles_length)

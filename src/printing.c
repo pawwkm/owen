@@ -5,6 +5,32 @@
 #include <stdarg.h>
 #include <assert.h>
 
+static void print_number(Number value, Type_Handle type, FILE* file)
+{
+    if (compare(type, i8_handle))
+        fprintf(file, "%" PRId8 "\n", value.i8);
+    else if (compare(type, i16_handle))
+        fprintf(file, "%" PRId16 "\n", value.i16);
+    else if (compare(type, i32_handle))
+        fprintf(file, "%" PRId32 "\n", value.i32);
+    else if (compare(type, i64_handle))
+        fprintf(file, "%" PRId64 "\n", value.i64);
+    else if (compare(type, u8_handle))
+        fprintf(file, "%" PRIu8 "\n", value.u8);
+    else if (compare(type, u16_handle))
+        fprintf(file, "%" PRIu16 "\n", value.u16);
+    else if (compare(type, u32_handle))
+        fprintf(file, "%" PRIu32 "\n", value.u32);
+    else if (compare(type, u64_handle))
+        fprintf(file, "%" PRIu64 "\n", value.u64);
+    else if (compare(type, f32_handle))
+        fprintf(file, "%g\n", value.f32);
+    else if (compare(type, f64_handle))
+        fprintf(file, "%g\n", value.f64);
+    else
+        fprintf(file, "?\n");
+}
+
 void print_type_reference_for_compound(const Compound_Type* compound, FILE* file)
 {
     print_string_by_handle(compound->name, file);
@@ -73,6 +99,15 @@ void print_type_reference_for_tuple(const Tuple_Type* tuple, FILE* file)
     }
 }
 
+static void print_qualifiers(Qualifier qualifiers, FILE* file)
+{
+    if (qualifiers & Qualifier_readonly)
+        fprintf(file, "readonly ");
+
+    if (qualifiers & Qualifier_noalias)
+        fprintf(file, "noalias ");
+}
+
 void print_type_reference_for_type(const Type_Handle type_handle, FILE* file)
 {
     Type* type = lookup(type_handle);
@@ -85,18 +120,6 @@ void print_type_reference_for_type(const Type_Handle type_handle, FILE* file)
     else if (type->tag == Type_Tag_pointer)
     {
         fputc('#', file);
-        if (Pointer_Type_Privilege_retained & type->pointer.privileges)
-            fputc('`', file);
-
-        if (Pointer_Type_Privilege_alias & type->pointer.privileges)
-            fputc('!', file);
-
-        if (Pointer_Type_Privilege_readable & type->pointer.privileges)
-            fputc('?', file);
-
-        if (Pointer_Type_Privilege_writable & type->pointer.privileges)
-            fputc('$', file);
-
         print_type_reference_for_type(type->pointer.base_type, file);
     }
     else if (type->tag == Type_Tag_function)
@@ -113,6 +136,11 @@ void print_type_reference_for_type(const Type_Handle type_handle, FILE* file)
     }
     else if (type->tag == Type_Tag_tuple)
         print_type_reference_for_tuple(&type->tuple, file);
+    else if (type->tag == Type_Tag_qualified)
+    {
+        print_qualifiers(type->qualified.qualifiers, file);
+        print_type_reference_for_type(type->qualified.unqualified, file);
+    }
 }
 
 void print_operator(uint8_t operator, FILE* file)
@@ -173,18 +201,6 @@ static void print_type_reference(Type_Reference_Handle type_reference_handle, FI
     else if (type_reference->tag == Type_Reference_Tag_pointer)
     {
         fprintf(file, "#");
-        if (type_reference->pointer.privileges & Pointer_Type_Privilege_retained)
-            fprintf(file, "`");
-
-        if (type_reference->pointer.privileges & Pointer_Type_Privilege_alias)
-            fprintf(file, "!");
-
-        if (type_reference->pointer.privileges & Pointer_Type_Privilege_readable)
-            fprintf(file, "?");
-
-        if (type_reference->pointer.privileges & Pointer_Type_Privilege_writable)
-            fprintf(file, "$");
-
         print_type_reference(type_reference->pointer.base_type, file);
     }
     else if (type_reference->tag == Type_Reference_Tag_dynamic_array)
@@ -195,7 +211,7 @@ static void print_type_reference(Type_Reference_Handle type_reference_handle, FI
     else if (type_reference->tag == Type_Reference_Tag_fixed_array)
     {
         fprintf(file, "[");
-        print_string(type_reference->fixed_array.size, file);
+        fprintf(file, "%" PRIu32, type_reference->fixed_array.size);
         fprintf(file, "]");
 
         print_type_reference(type_reference->fixed_array.base_type, file);
@@ -238,6 +254,11 @@ static void print_type_reference(Type_Reference_Handle type_reference_handle, FI
         }
 
         fprintf(file, "]");
+    }
+    else if (type_reference->tag == Type_Reference_Tag_qualified)
+    {
+        print_qualifiers(type_reference->qualified.qualifiers, file);
+        print_type_reference(type_reference->qualified.unqualified, file);
     }
     else
         unexpected_reference_type(__FILE__, __LINE__, type_reference->tag);
@@ -346,25 +367,7 @@ static void print_enumeration_declaration(const Enumeration_Type* enumeration)
         print_indentation();
         printf("value: ");
 
-        if (compare(enumeration->underlying_type, i8_handle))
-            printf("%" PRId8 "\n", constant->value.i8);
-        else if (compare(enumeration->underlying_type, i16_handle))
-            printf("%" PRId16 "\n", constant->value.i16);
-        else if (compare(enumeration->underlying_type, i32_handle))
-            printf("%" PRId32 "\n", constant->value.i32);
-        else if (compare(enumeration->underlying_type, i64_handle))
-            printf("%" PRId64 "\n", constant->value.i64);
-        else if (compare(enumeration->underlying_type, u8_handle))
-            printf("%" PRIu8 "\n", constant->value.u8);
-        else if (compare(enumeration->underlying_type, u16_handle))
-            printf("%" PRIu16 "\n", constant->value.u16);
-        else if (compare(enumeration->underlying_type, u32_handle))
-            printf("%" PRIu32 "\n", constant->value.u32);
-        else if (compare(enumeration->underlying_type, u64_handle))
-            printf("%" PRIu64 "\n", constant->value.u64);
-        else
-            printf("?%%\n");
-
+        print_number(constant->value, enumeration->underlying_type, stdout);
         indentation--;
     }
 
@@ -448,24 +451,8 @@ static void print_integer_literal(const Expression* value, bool is_not_polymorph
         print_string(value->unchecked_number.string, stdout);
         putchar('\n');
     }
-    else if (compare(value->type, i8_handle))
-        printf("%" PRId8 "\n", value->number.value.i8);
-    else if (compare(value->type, i16_handle))
-        printf("%" PRId16 "\n", value->number.value.i16);
-    else if (compare(value->type, i32_handle))
-        printf("%" PRId32 "\n", value->number.value.i32);
-    else if (compare(value->type, i64_handle))
-        printf("%" PRId64 "\n", value->number.value.i64);
-    else if (compare(value->type, u8_handle))
-        printf("%" PRIu8 "\n", value->number.value.u8);
-    else if (compare(value->type, u16_handle))
-        printf("%" PRIu16 "\n", value->number.value.u16);
-    else if (compare(value->type, u32_handle))
-        printf("%" PRIu32 "\n", value->number.value.u32);
-    else if (compare(value->type, u64_handle))
-        printf("%" PRIu64 "\n", value->number.value.u64);
     else
-        printf("?\n");
+        print_number(value->number.value, value->type, stdout);
 
     indentation--;
 }
@@ -492,12 +479,8 @@ static void print_float_literal(const Expression* value, bool is_not_polymorphic
         print_string(value->unchecked_number.string, stdout);
         putchar('\n');
     }
-    else if (compare(value->type, f32_handle))
-        printf("%g\n", value->number.value.f32);
-    else if (compare(value->type, f64_handle))
-        printf("%g\n", value->number.value.f64);
     else
-        printf("?\n");
+        print_number(value->number.value, value->type, stdout);
     
     indentation--;
 }
@@ -1271,6 +1254,8 @@ const char* token_tag_as_string(uint8_t tag)
         case Token_Tag_false:                 return "Token_Tag_false";
         case Token_Tag_null:                  return "Token_Tag_null";
         case Token_Tag_version:               return "Token_Tag_version";
+        case Token_Tag_readonly:              return "Token_Tag_readonly";
+        case Token_Tag_noalias:               return "Token_Tag_noalias";
         case Token_Tag_unicode_code_point:    return "Token_Tag_unicode_code_point";
         case Token_Tag_utf8_string:           return "Token_Tag_utf8_string";
         case Token_Tag_logical_or:            return "Token_Tag_logical_or";
@@ -1315,9 +1300,6 @@ const char* token_tag_as_string(uint8_t tag)
         case Token_Tag_comma:                 return "Token_Tag_comma";
         case Token_Tag_semicolon:             return "Token_Tag_semicolon";
         case Token_Tag_colon:                 return "Token_Tag_colon";
-        case Token_Tag_backtick:              return "Token_Tag_backtick";
-        case Token_Tag_question_mark:         return "Token_Tag_question_mark";
-        case Token_Tag_dollar_sign:           return "Token_Tag_dollar_sign";
         case Token_Tag_uninitialized_literal: return "Token_Tag_uninitialized_literal";
         case Token_Tag_blank_identifier:      return "Token_Tag_blank_identifier";
         case Token_Tag_eof:                   return "Token_Tag_eof";
@@ -1351,6 +1333,7 @@ const char* type_reference_tag_as_string(uint8_t tag)
         case Type_Reference_Tag_fixed_array:          return "Type_Reference_Tag_fixed_array";
         case Type_Reference_Tag_function:             return "Type_Reference_Tag_function";
         case Type_Reference_Tag_polymorphic_compound: return "Type_Reference_Tag_polymorphic_compound";
+        case Type_Reference_Tag_qualified:            return "Type_Reference_Tag_qualified";
         default:                                      return "Invalid Type_Reference_Tag";
     }
 }
@@ -1580,26 +1563,6 @@ static void print_polymorphic_stack(void)
     fprintf(stderr, "\n");
 }
 
-static void print_number(Number value, Type_Handle type)
-{
-    if (compare(type, i8_handle))
-        printf("%" PRIi8, value.i8);
-    else if (compare(type, i16_handle))
-        printf("%" PRIi16, value.i16);
-    else if (compare(type, i32_handle))
-        printf("%" PRIi32, value.i32);
-    else if (compare(type, i64_handle))
-        printf("%" PRIi64, value.i64);
-    else if (compare(type, u8_handle))
-        printf("%" PRIu8, value.u8);
-    else if (compare(type, u16_handle))
-        printf("%" PRIu16, value.u16);
-    else if (compare(type, u32_handle))
-        printf("%" PRIu32, value.u32);
-    else if (compare(type, u64_handle))
-        printf("%" PRIu64, value.u64);
-}
-
 static const char* x64_register_as_string(uint8_t tag)
 {
     // skip the Ir_Operand_Tag_x64_ part.
@@ -1610,7 +1573,7 @@ static void print_ir_operand(Ir_Operand_Handle handle, Type_Handle type)
 {
     Ir_Operand* operand = lookup(handle);
     if (operand->tag == Ir_Operand_Tag_immediate)
-        print_number(operand->imm.value, type);
+        print_number(operand->imm.value, type, stdout);
     else if (operand->tag == Ir_Operand_Tag_vreg)
         fprintf(stdout, "v%u", operand->vreg.ir.index);
     else if (IS_X64_REG(operand->tag))

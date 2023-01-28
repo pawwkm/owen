@@ -16,7 +16,7 @@ Constant* lookup_constant_by_name(const Enumeration_Type* enumeration, Interned_
 
 static void type_check_underlying_type_of_enumeration(const File* file, Enumeration_Type* enumeration)
 {
-    Type_Handle handle = lookup_type_by_reference(file, enumeration->underlying_type_reference, true);
+    Type_Handle handle = lookup_type_by_reference(file, enumeration->underlying_type_reference, true, false);
     Primitive_Type* type = &lookup(handle)->primitive;
     if (type->tag > Type_Tag_u64)
         print_span_error(file, lookup(enumeration->underlying_type_reference)->span, "Expected an integer but found a %t.", handle);

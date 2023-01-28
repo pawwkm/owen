@@ -182,6 +182,9 @@ void ir_abi_pass(void)
 
     for (uint16_t i = 0; i < functions_length; i++)
     {
+        if (functions[i].attributes & Function_Attribute_is_polymorphic)
+            continue;
+
         Function_Type* function_type = &lookup(functions[i].signature)->function;
         Ir_Function* function = lookup(functions[i].ir);
         

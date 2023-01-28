@@ -6,19 +6,18 @@ Ir_Operand_Handle lower_call(Ir_Basic_Block* block, const Call* call)
     Ir_Call_Instruction* inst = &lookup(inst_handle)->call;
     inst->tag = Ir_Tag_call;
 
-    if (!invalid(call->callee_declaration))
+    if (invalid(call->callee_declaration))
     {
-        inst->callee_type = invalid_type_handle;
-        inst->callee_declaration = call->callee_declaration;
-        lower_function(lookup(call->callee_declaration));
+        inst->callee_type = lookup(call->callee)->type;
+        lower_expression(block, call->callee);
     }
     else
     {
-        inst->callee_type = lookup(call->callee)->type;
-        inst->callee_declaration = invalid_function_handle;
-        lower_expression(block, call->callee); 
+        inst->callee_type = invalid_type_handle;
+        lower_function(lookup(call->callee_declaration));
     }
-       
+
+    inst->callee_declaration = call->callee_declaration;
     lower_expressions(block, &inst->sources, &call->actual_parameters);
     if (compare(call->type, none_handle))
         return invalid_ir_operand_handle;

@@ -95,13 +95,21 @@ void check_compound_for_recursive_fields(const Compound_Type* compound)
     }
 }
 
-void assign_types_to_compound_fields(const Compound_Type* compound)
+void assign_types_to_compound_fields(Compound_Type* compound)
 {
     File* file = lookup(compound->file);
+    compound->is_pointerless = true;
     for (Array_Size i = 0; i < compound->fields.handles_length; i++)
     {
         Field* field = lookup_in(&compound->fields, i);   
-        field->type = lookup_type_by_reference(file, field->type_reference, true);
+        field->type = lookup_type_by_reference(file, field->type_reference, true, false);
+
+        Type* field_type = lookup(field->type);
+        if (!field_type->is_pointerless)
+            compound->is_pointerless = false;
+
+        if (field_type->tag == Type_Tag_qualified)
+            print_span_error(lookup(compound->file), lookup(field->type_reference)->span, "Field types cannot be qualified.");
     }
 }
 
@@ -159,7 +167,7 @@ void check_if_compounds_formal_type_parameters_matches_any_types(Type_Handle com
     for (Array_Size i = 0; i < compound->formal_type_parameters.handles_length; i++)
     {
         Type_Reference_Handle type_reference_handle = handle_at(&compound->formal_type_parameters, i);
-        Type_Handle type_handle = lookup_type_by_reference(file, type_reference_handle, false);
+        Type_Handle type_handle = lookup_type_by_reference(file, type_reference_handle, false, false);
         if (invalid(type_handle))
             continue;
 
@@ -202,6 +210,19 @@ void check_if_compound_has_duplicate_field_names(const Compound_Type* compound)
     }
 }
 
+void set_size_and_allignment(Compound_Type* compound)
+{
+    // TODO: Support multi-field compounds.
+    // The size and allignment is left as 0 as that is cought
+    // down the line.
+    if (compound->fields.handles_length)
+    {
+        Type* field_type = lookup(lookup_in(&compound->fields, 0)->type);
+        compound->size_of = field_type->size_of;
+        compound->allignment_of = field_type->allignment_of;
+    }
+}
+
 static Field_Handle deep_copy_field(const Field* polymorphic)
 {
     Field_Handle handle = add_field();
@@ -239,6 +260,7 @@ Type_Handle monomorphisize_compound(Type_Handle polymorphic_handle, const Compou
     assign_types_to_compound_fields(monomorphic);
     check_public_compound_for_fields_with_non_public_type(monomorphic);
     check_compound_for_recursive_fields(monomorphic);
+    set_size_and_allignment(monomorphic);
 
     return handle;
 }

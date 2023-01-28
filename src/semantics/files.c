@@ -1,6 +1,7 @@
 #include "semantics.h"
 #include <assert.h>
 #include <string.h>
+#include <inttypes.h>
 
 static bool type_declarations_match(const Type* a, const Type* b)
 {
@@ -242,6 +243,7 @@ Type_Handle add_primitive_type(char* name, uint8_t tag, uint16_t bytes)
     type->tag = tag;
     type->size_of = bytes;
     type->allignment_of = bytes;
+    type->is_pointerless = true;
     type->name = add_interned_string((String)
     { 
         .text = name, 
@@ -280,16 +282,9 @@ static void intern_array_fields(void)
 
 static void add_utf8_string_literal_type(void)
 {
-    Type_Handle array_handle = add_type();
-    Dynamic_Array_Type* array = &lookup(array_handle)->dynamic_array;
-    array->tag = Type_Tag_dynamic_array;
-    array->base_type = u8_handle;
-
-    utf8_string_literal_type_handle = add_type();
-    Pointer_Type* pointer = &lookup(utf8_string_literal_type_handle)->pointer;
-    pointer->tag = Type_Tag_pointer;
-    pointer->base_type = array_handle;
-    pointer->privileges = ALL_PRIVILEGES;
+    Type_Handle array_handle = find_or_add_dynamic_pointer_type(u8_handle);
+    Type_Handle pointer_handle = find_or_add_pointer_type(array_handle);
+    utf8_string_literal_type_handle = find_or_add_qualified_type(Qualifier_readonly, pointer_handle);
 }
 
 void analyze_program(void)
@@ -320,6 +315,7 @@ void analyze_program(void)
             {
                 assign_types_to_compound_fields(type);
                 check_public_compound_for_fields_with_non_public_type(type);
+                set_size_and_allignment(type);
             }
         }
 
@@ -403,7 +399,7 @@ Type_Handle lookup_signature(const File* file, const Function* function)
         for (Array_Size b = 0; b < function->formal_parameters.handles_length; b++)
         {
             Formal_Parameter* formal_parameter = lookup_in(&function->formal_parameters, b);
-            if (!compare(lookup_type_by_reference(file, formal_parameter->type, true), handle_at(&type->function.formal_parameters, b)))
+            if (!compare(lookup_type_by_reference(file, formal_parameter->type, true, true), handle_at(&type->function.formal_parameters, b)))
             {
                 is_match = false;
                 break;
@@ -415,7 +411,7 @@ Type_Handle lookup_signature(const File* file, const Function* function)
 
         for (Array_Size b = 0; b < function->return_types.handles_length; b++)
         {
-            if (!compare(lookup_type_by_reference(file, handle_at(&function->return_types, b), true), handle_at(&type->function.return_types, b)))
+            if (!compare(lookup_type_by_reference(file, handle_at(&function->return_types, b), true, false), handle_at(&type->function.return_types, b)))
             {
                 is_match = false;
                 break;
@@ -433,37 +429,88 @@ Type_Handle lookup_signature(const File* file, const Function* function)
     for (Array_Size i = 0; i < function->formal_parameters.handles_length; i++)
     {
         Formal_Parameter* formal_parameter = lookup_in(&function->formal_parameters, i);
-        add_to(&type->formal_parameters, lookup_type_by_reference(file, formal_parameter->type, true));
+        add_to(&type->formal_parameters, lookup_type_by_reference(file, formal_parameter->type, true, true));
     }
 
     for (Array_Size i = 0; i < function->return_types.handles_length; i++)
-        add_to(&type->return_types, lookup_type_by_reference(file, handle_at(&function->return_types, i), true));
+        add_to(&type->return_types, lookup_type_by_reference(file, handle_at(&function->return_types, i), true, false));
 
     type->fully_constructed = true;
 
     return type_handle;
 }
 
-Type_Handle find_or_add_pointer_type(Type_Handle base_type, Pointer_Type_Privilege privileges)
+Type_Handle find_or_add_dynamic_pointer_type(Type_Handle base_type)
+{
+    for (Type_Handle handle = { 0 }; handle.index < types_length; handle.index++)
+    {
+        Dynamic_Array_Type* type = &lookup(handle)->dynamic_array;
+        if (type->tag == Type_Tag_dynamic_array && compare(type->base_type, base_type))
+            return handle;
+    }
+
+    Type_Handle handle = add_type();
+    Dynamic_Array_Type* type = &lookup(handle)->dynamic_array;
+    type->tag = Type_Tag_dynamic_array;
+    type->base_type = base_type;
+    type->size_of = 16;
+
+    return handle;
+}
+
+Type_Handle find_or_add_pointer_type(Type_Handle base_type)
 {
     for (Type_Handle handle = { 0 }; handle.index < types_length; handle.index++)
     {
         Pointer_Type* type = &lookup(handle)->pointer;
-        if (type->tag == Type_Tag_pointer && type->privileges == privileges && compare(type->base_type, base_type))
+        if (type->tag == Type_Tag_pointer && compare(type->base_type, base_type))
             return handle;
     }
 
     Type_Handle handle = add_type();
     Pointer_Type* type = &lookup(handle)->pointer;
     type->tag = Type_Tag_pointer;
-    type->privileges = privileges;
     type->base_type = base_type;
     type->size_of = 8;
 
     return handle;
 }
 
-Type_Handle lookup_type_by_reference(const File* file, Type_Reference_Handle reference_handle, bool error_if_undefined)
+Type_Handle find_or_add_qualified_type(Qualifier qualifiers, Type_Handle unqualified)
+{
+    if (!qualifiers)
+        return unqualified;
+
+    for (Type_Handle handle = { 0 }; handle.index < types_length; handle.index++)
+    {
+        Qualified_Type* type = &lookup(handle)->qualified;
+        if (type->tag == Type_Tag_qualified && type->qualifiers == qualifiers && compare(type->unqualified, unqualified))
+            return handle;
+    }
+
+    Type* u = lookup(unqualified);
+    Type_Handle handle = add_type();
+    Qualified_Type* type = &lookup(handle)->qualified;
+    type->tag = Type_Tag_qualified;
+    type->qualifiers = qualifiers;
+    type->unqualified = unqualified;
+    type->allignment_of = u->allignment_of;
+    type->size_of = u->size_of;
+    type->is_pointerless = u->is_pointerless;
+
+    return handle;
+}
+
+Type* unqualified(Type_Handle handle)
+{
+    Type* t = lookup(handle);
+    if (t->tag == Type_Tag_qualified)
+        t = lookup(t->qualified.unqualified);
+
+    return t;
+}
+
+Type_Handle lookup_type_by_reference(const File* file, Type_Reference_Handle reference_handle, bool error_if_undefined, bool allow_noalias)
 {
     Type_Reference* reference = lookup(reference_handle);
     if (reference->tag == Type_Reference_Tag_name)
@@ -512,7 +559,7 @@ Type_Handle lookup_type_by_reference(const File* file, Type_Reference_Handle ref
         return invalid_type_handle;
     }
     else if (reference->tag == Type_Reference_Tag_pointer)
-        return find_or_add_pointer_type(lookup_type_by_reference(file, reference->pointer.base_type, error_if_undefined), reference->pointer.privileges);
+        return find_or_add_pointer_type(lookup_type_by_reference(file, reference->pointer.base_type, error_if_undefined, false));
     else if (reference->tag == Type_Reference_Tag_function)
     {
         for (Type_Handle handle = { 0 }; handle.index < types_length; handle.index++)
@@ -527,7 +574,7 @@ Type_Handle lookup_type_by_reference(const File* file, Type_Reference_Handle ref
             bool is_match = true;
             for (Array_Size i = 0; i < reference->function.formal_parameters.handles_length; i++)
             {
-                if (!compare(lookup_type_by_reference(file, handle_at(&reference->function.formal_parameters, i), true), handle_at(&type->formal_parameters, i)))
+                if (!compare(lookup_type_by_reference(file, handle_at(&reference->function.formal_parameters, i), true, true), handle_at(&type->formal_parameters, i)))
                 {
                     is_match = false;
                     break;
@@ -539,7 +586,7 @@ Type_Handle lookup_type_by_reference(const File* file, Type_Reference_Handle ref
 
             for (Array_Size i = 0; i < reference->function.return_types.handles_length; i++)
             {
-                if (!compare(lookup_type_by_reference(file, handle_at(&reference->function.return_types, i), true), handle_at(&type->return_types, i)))
+                if (!compare(lookup_type_by_reference(file, handle_at(&reference->function.return_types, i), true, false), handle_at(&type->return_types, i)))
                 {
                     is_match = false;
                     break;
@@ -553,52 +600,40 @@ Type_Handle lookup_type_by_reference(const File* file, Type_Reference_Handle ref
         Type_Handle handle = add_type();
         Function_Type* type = &lookup(handle)->function;
         type->tag = Type_Tag_function;
+        type->size_of = 8;
+        type->allignment_of = 8;
 
         for (Array_Size i = 0; i < reference->function.formal_parameters.handles_length; i++)
-            add_to(&type->formal_parameters, lookup_type_by_reference(file, handle_at(&reference->function.formal_parameters, i), true));
+            add_to(&type->formal_parameters, lookup_type_by_reference(file, handle_at(&reference->function.formal_parameters, i), true, true));
 
         for (Array_Size i = 0; i < reference->function.return_types.handles_length; i++)
-            add_to(&type->return_types, lookup_type_by_reference(file, handle_at(&reference->function.return_types, i), true));
+            add_to(&type->return_types, lookup_type_by_reference(file, handle_at(&reference->function.return_types, i), true, false));
 
         type->fully_constructed = true;
 
         return handle;
     }
     else if (reference->tag == Type_Reference_Tag_dynamic_array)
-    {
-        Type_Handle base_type = lookup_type_by_reference(file, reference->dynamic_array.base_type, error_if_undefined);
-        for (Type_Handle handle = { 0 }; handle.index < types_length; handle.index++)
-        {
-            Dynamic_Array_Type* type = &lookup(handle)->dynamic_array;
-            if (type->tag == Type_Tag_dynamic_array && compare(type->base_type, base_type))
-                return handle;
-        }
-
-        Type_Handle handle = add_type();
-        Dynamic_Array_Type* type = &lookup(handle)->dynamic_array;
-        type->tag = Type_Tag_dynamic_array;
-        type->base_type = base_type;
-
-        return handle;
-    }
+        return find_or_add_dynamic_pointer_type(lookup_type_by_reference(file, reference->dynamic_array.base_type, error_if_undefined, false));
     else if (reference->tag == Type_Reference_Tag_fixed_array)
     {
-        Type_Handle base_type = lookup_type_by_reference(file, reference->fixed_array.base_type, error_if_undefined);
-        Number size = type_check_integer_literal(file, reference->fixed_array.size, reference->fixed_array.size_span, u32_handle);
-
+        Type_Handle base_type_handle = lookup_type_by_reference(file, reference->fixed_array.base_type, error_if_undefined, false);
         for (Type_Handle handle = { 0 }; handle.index < types_length; handle.index++)
         {
             Fixed_Array_Type* type = &lookup(handle)->fixed_array;
-            if (type->tag == Type_Tag_fixed_array && type->size == size.u32 && compare(type->base_type, base_type))
+            if (type->tag == Type_Tag_fixed_array && type->size == reference->fixed_array.size && compare(type->base_type, base_type_handle))
                 return handle;
         }
 
         Type_Handle handle = add_type();
         Fixed_Array_Type* type = &lookup(handle)->fixed_array;
         type->tag = Type_Tag_fixed_array;
-        type->size = size.u32;
-        type->base_type = base_type;
-        type->size_of = lookup(base_type)->size_of * size.u16;
+        type->size = reference->fixed_array.size;
+        type->base_type = base_type_handle;
+
+        Type* base_type = lookup(base_type_handle);
+        type->size_of = base_type->size_of * type->size;
+        type->is_pointerless = base_type->is_pointerless;
 
         return handle;
     }
@@ -631,7 +666,7 @@ Type_Handle lookup_type_by_reference(const File* file, Type_Reference_Handle ref
                 bool is_match = true;
                 for (Array_Size c = 0; c < b_type->actual_type_parameters.handles_length; c++)
                 {
-                    Type_Handle actual_type_parameter = lookup_type_by_reference(file, handle_at(&reference->polymorphic_compound.actual_type_parameters, c), error_if_undefined);
+                    Type_Handle actual_type_parameter = lookup_type_by_reference(file, handle_at(&reference->polymorphic_compound.actual_type_parameters, c), error_if_undefined, false);
                     if (!compare(handle_at(&b_type->actual_type_parameters, c), actual_type_parameter))
                     {
                         is_match = false;
@@ -659,7 +694,7 @@ Type_Handle lookup_type_by_reference(const File* file, Type_Reference_Handle ref
         for (Array_Size i = 0; i < map.length; i++)
         {
             map.polymorphic_types[i] = handle_at(&polymorphic_compound->formal_type_parameters, i);
-            map.monomorphic_types[i] = lookup_type_by_reference(file, handle_at(&reference->polymorphic_compound.actual_type_parameters, i), error_if_undefined);
+            map.monomorphic_types[i] = lookup_type_by_reference(file, handle_at(&reference->polymorphic_compound.actual_type_parameters, i), error_if_undefined, true);
         }
 
         acquire_polymorphic_type_mapping();
@@ -670,6 +705,16 @@ Type_Handle lookup_type_by_reference(const File* file, Type_Reference_Handle ref
         release_polymorphic_type_mapping();
 
         return monomorphic_compound;
+    }
+    else if (reference->tag == Type_Reference_Tag_qualified)
+    {
+        Type_Handle unqualified_type = lookup_type_by_reference(file, reference->qualified.unqualified, error_if_undefined, allow_noalias);
+        if (lookup(unqualified_type)->is_pointerless && reference->qualified.qualifiers & Qualifier_noalias)
+            print_span_error(file, lookup(reference->qualified.unqualified)->span, "Pointerless type %t cannot be noalias qualified.", unqualified_type);
+        else if (!allow_noalias && reference->qualified.qualifiers & Qualifier_noalias)
+            print_span_error(file, reference->span, "Only Pointerless formal parameter types can be noalias qualified.");
+        
+        return find_or_add_qualified_type(reference->qualified.qualifiers, unqualified_type);
     }
     else
         unexpected_reference_type(__FILE__, __LINE__, reference->tag);
@@ -684,6 +729,17 @@ void deep_copy_type_references(Type_Reference_Handle_Array* restrict destination
     {
         add_to(destination, add_type_reference());
         deep_copy_type_reference(handle_at(destination, i), handle_at(source, i));
+    }
+}
+
+static void type_to_type_reference(Type_Reference_Handle destination_handle, Type_Handle source_handle, Span span_of_t);
+static void types_to_type_references(Type_Reference_Handle_Array* restrict destination, const Type_Handle_Array* restrict source, Span span_of_t)
+{
+    reserve(destination, source->handles_length);
+    for (Array_Size i = 0; i < source->handles_length; i++)
+    {
+        add_to(destination, add_type_reference());
+        type_to_type_reference(handle_at(destination, i), handle_at(source, i), span_of_t);
     }
 }
 
@@ -713,6 +769,9 @@ static void type_to_type_reference(Type_Reference_Handle destination_handle, Typ
         else
         {
             destination->tag = Type_Reference_Tag_polymorphic_compound;
+            destination->polymorphic_compound.name = source->compound.name;
+            destination->polymorphic_compound.name_span = source->compound.name_span;
+
             reserve(&destination->polymorphic_compound.actual_type_parameters, source->compound.actual_type_parameters.handles_length);
             for (Array_Size i = 0; i < source->compound.actual_type_parameters.handles_length; i++)
             {
@@ -722,19 +781,41 @@ static void type_to_type_reference(Type_Reference_Handle destination_handle, Typ
         }
     }
     else if (source->tag == Type_Tag_function)
-        not_implemented(__FILE__, __LINE__, "Type_Tag_function");
+    {
+        destination->tag = Type_Reference_Tag_function;
+        types_to_type_references(&destination->function.formal_parameters, &source->function.formal_parameters, span_of_t);
+        types_to_type_references(&destination->function.return_types, &source->function.return_types, span_of_t);
+    }
     else if (source->tag == Type_Tag_pointer)
     {
         destination->tag = Type_Reference_Tag_pointer;
-        destination->pointer.privileges = source->pointer.privileges;
         destination->pointer.base_type = add_type_reference();
         
         type_to_type_reference(destination->pointer.base_type, source->pointer.base_type, span_of_t);
     }
     else if (source->tag == Type_Tag_dynamic_array)
-        not_implemented(__FILE__, __LINE__, "Type_Tag_dynamic_array");
+    {
+        destination->tag = Type_Reference_Tag_dynamic_array;
+        destination->dynamic_array.base_type = add_type_reference();
+        
+        type_to_type_reference(destination->dynamic_array.base_type, source->dynamic_array.base_type, span_of_t);
+    }
     else if (source->tag == Type_Tag_fixed_array)
-        not_implemented(__FILE__, __LINE__, "Type_Tag_fixed_array");
+    {
+        destination->tag = Type_Reference_Tag_fixed_array;
+        destination->fixed_array.size = source->fixed_array.size;
+        destination->fixed_array.base_type = add_type_reference();
+        
+        type_to_type_reference(destination->fixed_array.base_type, source->fixed_array.base_type, span_of_t);
+    }
+    else if (source->tag == Type_Tag_qualified)
+    {
+        destination->tag = Type_Reference_Tag_qualified;
+        destination->qualified.qualifiers = source->qualified.qualifiers;
+        destination->qualified.unqualified = add_type_reference();
+
+        type_to_type_reference(destination->qualified.unqualified, source->qualified.unqualified, span_of_t);
+    }
     else
         unexpected_type(__FILE__, __LINE__, source->tag);
 }
@@ -766,7 +847,6 @@ void deep_copy_type_reference(Type_Reference_Handle destination_handle, Type_Ref
     }
     else if (source->tag == Type_Reference_Tag_pointer)
     {
-        destination->pointer.privileges = source->pointer.privileges;
         destination->pointer.base_type = add_type_reference();
 
         deep_copy_type_reference(destination->pointer.base_type, source->pointer.base_type);
@@ -798,6 +878,12 @@ void deep_copy_type_reference(Type_Reference_Handle destination_handle, Type_Ref
             deep_copy_type_reference(type_parameter_destination, handle_at(&source->polymorphic_compound.actual_type_parameters, i));
             add_to(&destination->polymorphic_compound.actual_type_parameters, type_parameter_destination);
         }
+    }
+    else if (source->tag == Type_Reference_Tag_qualified)
+    {
+        destination->qualified.qualifiers = source->qualified.qualifiers;
+        destination->qualified.unqualified = add_type_reference();
+        deep_copy_type_reference(destination->qualified.unqualified, source->qualified.unqualified);
     }
     else
         unexpected_reference_type(__FILE__, __LINE__, source->tag);
