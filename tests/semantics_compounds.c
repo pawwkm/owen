@@ -251,10 +251,9 @@ static void indirectly_recursive_polymorphic_compound_through_fixed_sized_array(
 
     SET_COMMAND_LINE("semantics/compounds/indirectly_recursive_polymorphic_compound_through_fixed_sized_array.owen");
     format_expectation(&test.expected_error, 
-                       "semantics/compounds/indirectly_recursive_polymorphic_compound_through_fixed_sized_array.owen:9:5: B[I32] is recursive.\n"
+                       "semantics/compounds/indirectly_recursive_polymorphic_compound_through_fixed_sized_array.owen:5:5: A[I32] is recursive.\n"
                        "Polymorphic stack:\n"
-                       "    semantics/compounds/indirectly_recursive_polymorphic_compound_through_fixed_sized_array.owen:13:5: A[I32]\n"
-                       "    semantics/compounds/indirectly_recursive_polymorphic_compound_through_fixed_sized_array.owen:5:8: B[I32]\n");
+                       "    semantics/compounds/indirectly_recursive_polymorphic_compound_through_fixed_sized_array.owen:13:5: A[I32]\n");
 }
 
 static void indirectly_recursive_monomorphic_compound_through_pointer(void)
@@ -337,10 +336,9 @@ static void indirectly_recursive_polymorphic_compound_through_polymorphic_compou
 
     SET_COMMAND_LINE("semantics/compounds/indirectly_recursive_polymorphic_compound_through_polymorphic_compound.owen");
     format_expectation(&test.expected_error, 
-                       "semantics/compounds/indirectly_recursive_polymorphic_compound_through_polymorphic_compound.owen:9:5: B[I32] is recursive.\n"
+                       "semantics/compounds/indirectly_recursive_polymorphic_compound_through_polymorphic_compound.owen:5:5: A[I32] is recursive.\n"
                        "Polymorphic stack:\n"
-                       "    semantics/compounds/indirectly_recursive_polymorphic_compound_through_polymorphic_compound.owen:13:5: A[I32]\n"
-                       "    semantics/compounds/indirectly_recursive_polymorphic_compound_through_polymorphic_compound.owen:5:5: B[I32]\n");
+                       "    semantics/compounds/indirectly_recursive_polymorphic_compound_through_polymorphic_compound.owen:13:5: A[I32]\n");
 }
 
 static void matching_polymorphic_compounds(void)
