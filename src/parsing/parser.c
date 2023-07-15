@@ -86,6 +86,7 @@ static void parse_base_type(Type_Reference_Handle* base_type)
         print_span_error(file, lexer.token.span, "Base type expected.");
 }
 
+Number type_check_integer_literal(const File* file, String integer, Span integer_span, Type_Handle inferred_type_handle);
 static bool parse_type(Type_Reference_Handle* reference_handle, bool allow_qualifiers)
 {
     if (lexer.token.tag == Token_Tag_left_square_bracket)
@@ -97,19 +98,9 @@ static bool parse_type(Type_Reference_Handle* reference_handle, bool allow_quali
 
         if (lexer.token.tag == Token_Tag_integer)
         {
-            // type_check_integer_literal(lookup(fu
-            // HACK: type_check_integer_literal used to be used for this part
-            // when it was done in the samantics pass but it isn' vissible
-            // from here. I could forward declare it but the semantics pass
-            // is not yet initialized.
-            //
-            // So do the bare minimum for now.
-            //
-            // Maybe I could parse numbers here into 64 bit numbers and set the "type"
-            // so that the semantics pass only need to be concerned with the number 
-            // being within the inferred bounds.
+            Number size = type_check_integer_literal(file, lexer.token.string, lexer.token.span, u32_handle);
             Fixed_Array_Type_Reference* array = &lookup(*reference_handle)->fixed_array;
-            array->size = (uint32_t)atoi(lexer.token.string.text);
+            array->size = size.u32;
             array->tag = Type_Reference_Tag_fixed_array;
             next_token();
 

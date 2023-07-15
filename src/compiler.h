@@ -1148,6 +1148,7 @@ void print_type_reference_for_tuple(const Tuple_Type* tuple, FILE* file);
 void print_type_reference_for_type (Type_Handle type_handle, FILE* file);
 void print_type_reference_for_compound(const Compound_Type* compound, FILE* file);
 
+void initialize_analizer(void);
 void parse_file(char* path);
 void analyze_program(void);
 void lower_ast(void);

@@ -287,13 +287,16 @@ static void add_utf8_string_literal_type(void)
     utf8_string_literal_type_handle = find_or_add_qualified_type(Qualifier_readonly, pointer_handle);
 }
 
-void analyze_program(void)
+void initialize_analizer(void)
 {
-    start_timer(Timer_analysis);
-
     add_primitive_types();
     intern_array_fields();
     add_utf8_string_literal_type();
+}
+
+void analyze_program(void)
+{
+    start_timer(Timer_analysis);
 
     // Compound types might depend on non-primitive types defined in any file of the program.
     // Therefore all types visible to a file must be put into scope before filling in the type of fields.

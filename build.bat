@@ -58,6 +58,9 @@ if "%1" == "release" (
                           /Zi ^
                           /Od ^
                           /fsanitize=address
+
+    set linker_options= %linker_options% ^
+                        /debug:full
 )
 
 set compile_runner="false"

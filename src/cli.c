@@ -72,6 +72,7 @@ void exit_with_error_code(void)
 
 int main(int argc, char *argv[])
 {
+    initialize_analizer();
     parse_arguments(argc, argv);
     if (options.print_version)
     {
